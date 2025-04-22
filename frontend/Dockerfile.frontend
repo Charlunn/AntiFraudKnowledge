@@ -1,0 +1,34 @@
+# 使用选定的 Node.js LTS slim 镜像作为基础
+# [9]
+FROM node:22-slim
+
+# 设置容器内的工作目录
+WORKDIR /app
+
+# 安装 pnpm
+RUN npm install -g pnpm
+# 复制 package.json 和 pnpm-lock.yaml (如果存在)
+# 优先复制这些文件可以利用 Docker 的层缓存机制
+# 只有当这些文件发生变化时，后续的 pnpm install 才会重新执行
+COPY package.json pnpm-lock.yaml ./
+
+# 安装项目依赖
+# 注意：此步骤也可以移至 VS Code 的 postCreateCommand 中执行，
+# 以便在代码挂载后安装，避免因依赖变更频繁重建镜像。
+# 如果选择在 postCreateCommand 中安装，此处可注释掉。
+RUN pnpm install
+
+# 复制项目剩余代码到工作目录
+# COPY . .
+
+# 暴露 Nuxt.js 开发服务器的默认端口
+EXPOSE 3000
+
+# 定义容器启动时运行的默认命令
+# 启动 Nuxt.js 开发服务器
+CMD ["pnpm", "run", "dev"]
+# 定义容器启动时运行的默认命令
+# 启动 Nuxt.js 开发服务器
+# CMD ["npm", "run", "dev"]
+# CMD ["npm","run","dev"]
+# CMD ["ls"]

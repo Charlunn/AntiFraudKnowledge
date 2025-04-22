@@ -1,0 +1,80 @@
+{
+  "name": "nuxt-echarts",
+  "version": "0.2.6",
+  "description": "Nuxt Module for Apache ECharts™",
+  "keywords": [
+    "vue",
+    "nuxt",
+    "echarts",
+    "data-visualization",
+    "charts",
+    "ssr"
+  ],
+  "author": "Yue JIN <yuejin13@fudan.edu.cn>",
+  "repository": "kingyue737/nuxt-echarts",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.4.1",
+  "exports": {
+    ".": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/module.mjs",
+      "require": "./dist/module.cjs"
+    },
+    "./runtime/types": "./dist/runtime/types.js"
+  },
+  "main": "./dist/module.cjs",
+  "types": "./dist/types.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepack": "nuxt-module-build build",
+    "dev": "nuxi dev playground",
+    "dev:build": "nuxi build playground",
+    "dev:prepare": "nuxt-module-build build --stub && nuxt-module-build prepare && nuxi prepare playground",
+    "release": "pnpm run lint && pnpm run test && pnpm run prepack && changelogen --release && npm publish --registry=\"https://registry.npmjs.org/\" && git push --follow-tags",
+    "release:nightly": "pnpm changelogen --canary --publish --publishTag nightly",
+    "docs:dev": "nuxi dev docs",
+    "docs:build": "nuxi generate docs",
+    "docs:types": "nuxi typecheck docs",
+    "lint": "eslint . --fix",
+    "format": "prettier . --write",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:types": "vue-tsc --noEmit && nuxi typecheck playground"
+  },
+  "dependencies": {
+    "@nuxt/kit": "^3.15.4",
+    "echarts": "^5.6.0"
+  },
+  "devDependencies": {
+    "@nuxt/eslint-config": "^1.1.0",
+    "@nuxt/module-builder": "^0.8.4",
+    "@nuxt/schema": "^3.15.4",
+    "@nuxt/test-utils": "^3.17.0",
+    "@types/node": "^22.13.5",
+    "changelogen": "^0.5.7",
+    "eslint": "^9.21.0",
+    "nuxt": "^3.15.4",
+    "prettier": "^3.5.2",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "typescript": "~5.6",
+    "vite": "^6.1.1",
+    "vitest": "^3.0.6",
+    "vue-tsc": "^2.2.2"
+  },
+  "peerDependencies": {
+    "echarts": "^5.5.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "vite-plugin-checker": "^0.9.0",
+      "@vercel/nft": "^0.29.2",
+      "@tailwindcss/vite": "4.0.7"
+    }
+  },
+  "stackblitz": {
+    "startCommand": "pnpm run dev:prepare && pnpm run dev"
+  }
+}

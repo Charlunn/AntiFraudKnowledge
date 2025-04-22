@@ -1,0 +1,35 @@
+const METHOD_NAMES = [
+  "getWidth",
+  "getHeight",
+  "getDom",
+  "getOption",
+  "resize",
+  "dispatchAction",
+  "convertToPixel",
+  "convertFromPixel",
+  "containPixel",
+  "getDataURL",
+  "getConnectedDataURL",
+  "appendData",
+  "clear",
+  "isDisposed",
+  "dispose"
+];
+export function usePublicAPI(chart) {
+  function makePublicMethod(name) {
+    return (...args) => {
+      if (!chart.value) {
+        throw new Error("ECharts is not initialized yet.");
+      }
+      return chart.value[name].apply(chart.value, args);
+    };
+  }
+  function makePublicMethods() {
+    const methods = /* @__PURE__ */ Object.create(null);
+    METHOD_NAMES.forEach((name) => {
+      methods[name] = makePublicMethod(name);
+    });
+    return methods;
+  }
+  return makePublicMethods();
+}

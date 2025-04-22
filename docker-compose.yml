@@ -1,0 +1,116 @@
+
+services:
+  # 前端服务 (Nuxt.js)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
+    volumes:
+      # 将本地前端代码目录挂载到容器的 /app 目录，实现代码同步
+      - ./frontend:/app
+      # 可选：使用命名卷持久化 node_modules，加快重建速度
+      - node_modules_volume:/app/node_modules
+    ports:
+      # 将宿主机的 3000 端口映射到容器的 3000 端口
+      - "3000:3000"
+    networks:
+      # 连接到自定义网络
+      - dev_network
+    # 覆盖 Dockerfile 中的 CMD，确保使用开发模式启动
+    # command: npm run dev
+    environment:
+      # 在某些 Docker 环境下，需要启用轮询来确保热重载正常工作
+      - CHOKIDAR_USEPOLLING=true
+    # 如果需要等待后端服务启动（虽然通常前端可以独立启动）
+    # depends_on:
+    #   - backend
+
+  # 后端服务 (Django)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.backend
+    volumes:
+      # 将本地后端代码目录挂载到容器的 /app 目录
+      - ./backend:/app
+    ports:
+      # 将宿主机的 8000 端口映射到容器的 8000 端口
+      - "8000:8000"
+    networks:
+      # 连接到自定义网络
+      - dev_network
+    # 覆盖 Dockerfile 中的 CMD，确保监听 0.0.0.0
+    command: python manage.py runserver 0.0.0.0:8000
+    # 明确依赖关系，确保数据库服务先于后端服务启动
+    depends_on:
+      - mysql
+      - neo4j
+    environment:
+      # Django 数据库连接配置 (建议生产环境使用更安全的秘密管理方式)
+      DB_ENGINE: django.db.backends.mysql
+      DB_NAME: mydatabase         # 应与 mysql 服务中的 MYSQL_DATABASE 匹配
+      DB_USER: myuser             # 应与 mysql 服务中的 MYSQL_USER 匹配
+      DB_PASSWORD: mypassword       # 应与 mysql 服务中的 MYSQL_PASSWORD 匹配
+      DB_HOST: mysql              # 使用服务名作为主机名
+      DB_PORT: 3306
+      # Neo4j 连接配置
+      NEO4J_URI: neo4j://neo4j:7687 # 使用服务名作为主机名
+      NEO4J_USER: neo4j             # 应与 neo4j 服务中 NEO4J_AUTH 的用户名部分匹配
+      NEO4J_PASSWORD: password # 应与 neo4j 服务中 NEO4J_AUTH 的密码部分匹配
+      # 确保 Python 输出不缓冲
+      PYTHONUNBUFFERED: 1
+
+  # Neo4j 数据库服务
+  neo4j:
+    image: neo4j:latest  # 使用官方最新镜像 [28]
+    volumes:
+      # 使用命名卷持久化 Neo4j 数据
+      - neo4j_data:/data
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    networks:
+      # 连接到自定义网络
+      - dev_network
+    environment:
+      # 设置 Neo4j 初始用户名和密码，格式为 'user/password'
+      # 此设置仅在 /data 卷首次创建时生效 [31, 36, 37]
+      NEO4J_AUTH: neo4j/password
+      # 如果使用 Neo4j 企业版镜像，需要接受许可协议
+      # NEO4J_ACCEPT_LICENSE_AGREEMENT: 'yes' # [31]
+
+  # MySQL 数据库服务
+  mysql:
+    image: mysql:8  # 使用官方 MySQL 8 LTS 镜像 [32]
+    volumes:
+      # 使用命名卷持久化 MySQL 数据
+      - mysql_data:/var/lib/mysql
+    # 通常不需要将 MySQL 端口直接映射到宿主机，除非需要从宿主机直接访问
+    ports:
+      - "3306:3306"
+    networks:
+      # 连接到自定义网络
+      - dev_network
+    environment:
+      # 设置 MySQL root 用户密码 (首次启动时必须) [32, 38, 39]
+      MYSQL_ROOT_PASSWORD: strong_root_password
+      # 可选：首次启动时创建数据库 [32, 38, 39, 40]
+      MYSQL_DATABASE: mydatabase
+      # 可选：首次启动时创建用户 [32, 38, 39, 40]
+      MYSQL_USER: myuser
+      # 可选：设置创建用户的密码 [32, 38, 39, 40]
+      MYSQL_PASSWORD: mypassword
+      # 注意：MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD 这些设置
+      # 同样仅在 /var/lib/mysql 卷首次创建时生效 [32]
+
+# 定义自定义网络
+networks:
+  dev_network:
+    driver: bridge
+
+# 定义命名卷
+volumes:
+  neo4j_data:
+  mysql_data:
+  # 可选：如果使用 node_modules 持久化卷
+  node_modules_volume:

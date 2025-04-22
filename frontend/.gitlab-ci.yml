@@ -1,0 +1,45 @@
+# 使用最新的 Node.js 镜像
+image: node:latest
+
+# 定义服务
+services:
+  - mysql:latest
+  - redis:latest
+  - postgres:latest
+
+# 缓存 node_modules 目录
+cache:
+  paths:
+    - node_modules/
+
+# 安装依赖
+install_dependencies:
+  stage: build
+  script:
+    - npm install
+  tags:
+    - frontend
+
+# 编译项目
+build_project:
+  stage: build
+  script:
+    - npm run build
+  tags:
+    - frontend
+
+# 异步测试
+test_async:
+  stage: test
+  script:
+    - node ./specs/start.js ./specs/async.spec.js
+  tags:
+    - frontend
+
+# 数据库测试
+test_db:
+  stage: test
+  script:
+    - node ./specs/start.js ./specs/db-postgres.spec.js
+  tags:
+    - frontend

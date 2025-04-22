@@ -1,0 +1,8 @@
+import { type Ref, type InjectionKey, type PropType } from 'vue';
+import type { EChartsType, LoadingOptions } from '../types.js';
+export declare const LOADING_OPTIONS_KEY: InjectionKey<LoadingOptions | Ref<LoadingOptions>>;
+export declare function useLoading(chart: Ref<EChartsType | undefined>, loading: Ref<boolean>, loadingOptions: Ref<LoadingOptions | undefined>): void;
+export declare const loadingProps: {
+    loading: BooleanConstructor;
+    loadingOptions: PropType<LoadingOptions>;
+};

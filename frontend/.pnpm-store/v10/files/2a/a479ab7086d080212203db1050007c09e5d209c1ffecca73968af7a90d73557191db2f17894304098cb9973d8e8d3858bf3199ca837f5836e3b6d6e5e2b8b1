@@ -1,0 +1,30 @@
+let registered = null;
+export const TAG_NAME = "x-vue-echarts";
+if (import.meta.server) {
+  globalThis.HTMLElement = Object;
+}
+export class EChartsElement extends HTMLElement {
+  __dispose = null;
+  disconnectedCallback() {
+    if (this.__dispose) {
+      this.__dispose();
+      this.__dispose = null;
+    }
+  }
+}
+export function register() {
+  if (registered != null) {
+    return registered;
+  }
+  if (typeof HTMLElement === "undefined" || typeof customElements === "undefined") {
+    return registered = false;
+  }
+  try {
+    if (customElements.get(TAG_NAME) == null) {
+      customElements.define(TAG_NAME, EChartsElement);
+    }
+  } catch {
+    return registered = false;
+  }
+  return registered = true;
+}
