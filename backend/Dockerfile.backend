@@ -1,20 +1,17 @@
-# 使用选定的 Python 最新稳定版 slim 镜像作为基础
-# [19, 20]
+# 使用 Python 最新稳定版 slim 镜像
 FROM python:3.13-slim
 
-# 设置环境变量，确保 Python 输出不经缓冲直接打印到终端，便于日志查看
+# 设置 Python 无缓冲输出
 ENV PYTHONUNBUFFERED=1
 
-# 设置容器内的工作目录
+# 设置工作目录
 WORKDIR /app
-# **更换 APT 镜像源（使用清华源）**
-RUN sed -i 's|http://deb.debian.org|https://mirrors.tuna.tsinghua.edu.cn|g' /etc/apt/sources.list && \
-    sed -i 's|http://security.debian.org|https://mirrors.tuna.tsinghua.edu.cn/debian-security|g' /etc/apt/sources.list
 
-# 安装 mysqlclient 所需的操作系统依赖
-# [27]
-# 使用 --no-install-recommends 减少不必要的包安装
-# 在同一 RUN 指令中清理 apt 缓存，以减小镜像体积
+# 更换 APT 镜像源为清华源（适用于 Debian 12+）
+RUN echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
+    echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian-security/ bookworm-security main contrib non-free non-free-firmware" >> /etc/apt/sources.list
+
+# 安装系统依赖（MySQL 相关）
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         python3-dev \
@@ -23,21 +20,19 @@ RUN apt-get update && \
         pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖定义文件
-COPY requirements.txt ./
+# 更换 PIP 镜像源为清华源
 RUN pip install --no-cache-dir --upgrade pip && \
     pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-# 安装 Python 依赖
-# 使用 --no-cache-dir 减少镜像体积
+
+# 复制并安装 Python 依赖
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 复制项目剩余代码到工作目录
+# 复制项目代码
 COPY . .
 
-# 暴露 Django 开发服务器的默认端口
+# 暴露 Django 开发端口
 EXPOSE 8000
 
-# 定义容器启动时运行的默认命令
-# 启动 Django 开发服务器，并监听 0.0.0.0 以便从宿主机访问
-# [35]
+# 启动 Django 开发服务器
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
