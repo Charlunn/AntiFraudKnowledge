@@ -6,7 +6,9 @@ FROM node:22-slim
 WORKDIR /app
 
 # 安装 pnpm
-RUN npm install -g pnpm
+RUN npm config set registry https://registry.npmmirror.com/ && \
+    npm install -g pnpm && \
+    pnpm config set registry https://registry.npmmirror.com/
 # 复制 package.json 和 pnpm-lock.yaml (如果存在)
 # 优先复制这些文件可以利用 Docker 的层缓存机制
 # 只有当这些文件发生变化时，后续的 pnpm install 才会重新执行
