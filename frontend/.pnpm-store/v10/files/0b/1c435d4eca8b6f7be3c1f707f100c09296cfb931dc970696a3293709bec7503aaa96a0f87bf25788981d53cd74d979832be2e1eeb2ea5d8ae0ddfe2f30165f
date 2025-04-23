@@ -1,0 +1,11 @@
+import { type Ref, type PropType } from 'vue';
+import type { EChartsType } from '../types.js';
+type AutoresizeProp = boolean | {
+    throttle?: number;
+    onResize?: ResizeObserverCallback;
+};
+export declare function useAutoresize(chart: Ref<EChartsType | undefined>, autoresize: Ref<AutoresizeProp | undefined>, root: Ref<HTMLElement | undefined>): void;
+export declare const autoresizeProps: {
+    autoresize: PropType<AutoresizeProp>;
+};
+export {};

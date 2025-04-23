@@ -1,0 +1,43 @@
+import { watch } from "vue";
+import { throttle } from "echarts/core";
+export function useAutoresize(chart, autoresize, root) {
+  watch(
+    [root, chart, autoresize],
+    ([root2, chart2, autoresize2], _, onCleanup) => {
+      let ro = null;
+      if (root2 && chart2 && autoresize2) {
+        const { offsetWidth, offsetHeight } = root2;
+        const autoresizeOptions = autoresize2 === true ? {} : autoresize2;
+        const { throttle: wait = 100, onResize } = autoresizeOptions;
+        let initialResizeTriggered = false;
+        const callback = (entry, ob) => {
+          chart2.resize({ height: "auto", width: "auto" });
+          onResize?.(entry, ob);
+        };
+        const resizeCallback = wait ? (
+          // @ts-expect-error callback can accept params
+          throttle(callback, wait)
+        ) : callback;
+        ro = new ResizeObserver((entry, observer) => {
+          if (!initialResizeTriggered) {
+            initialResizeTriggered = true;
+            if (root2.offsetWidth === offsetWidth && root2.offsetHeight === offsetHeight) {
+              return;
+            }
+          }
+          resizeCallback(entry, observer);
+        });
+        ro.observe(root2);
+      }
+      onCleanup(() => {
+        if (ro) {
+          ro.disconnect();
+          ro = null;
+        }
+      });
+    }
+  );
+}
+export const autoresizeProps = {
+  autoresize: [Boolean, Object]
+};

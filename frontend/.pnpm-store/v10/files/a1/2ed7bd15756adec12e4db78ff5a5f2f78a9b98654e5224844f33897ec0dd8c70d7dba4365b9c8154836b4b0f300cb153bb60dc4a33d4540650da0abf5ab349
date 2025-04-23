@@ -1,0 +1,6 @@
+export declare const TAG_NAME = "x-vue-echarts";
+export declare class EChartsElement extends HTMLElement {
+    __dispose: (() => void) | null;
+    disconnectedCallback(): void;
+}
+export declare function register(): boolean;

@@ -1,0 +1,59 @@
+{
+  "compilerOptions": {
+    /* 基本设置 */
+    "types": [
+      "node",
+      "estree",
+      "vite/client",
+      "unplugin-icons/types/vue"
+    ],
+    "target": "ESNext", // 编译目标ES版本
+    "module": "ESNext", // 模块系统
+    "moduleResolution": "node", // 模块解析策略
+    "strict": true, // 启用所有严格类型检查
+    "jsx": "preserve", // 保留JSX（如果使用Vue JSX）
+    "esModuleInterop": true, // 兼容CommonJS和ES模块
+    "skipLibCheck": true, // 跳过声明文件类型检查
+    "forceConsistentCasingInFileNames": true, // 强制文件名大小写一致
+    /* Vue 相关设置 */
+    "baseUrl": ".", // 解析非相对模块的基础路径
+    "paths": {
+      "@/*": [
+        "src/*"
+      ], // 路径别名
+      "~/*": [
+        "./*"
+      ] // 另一个常用别名
+    },
+    "types": [
+      "vite/client"
+    ], // 包含Vite客户端类型
+    /* 类型检查增强 */
+    "noImplicitAny": true, // 禁止隐式any类型
+    "strictNullChecks": true, // 严格的null检查
+    "strictFunctionTypes": true, // 严格的函数类型检查
+    "strictBindCallApply": true, // 严格的bind/call/apply检查
+    "noImplicitThis": true, // 禁止隐式this
+    "alwaysStrict": true, // 始终在严格模式下解析
+    /* 输出控制 */
+    "sourceMap": true, // 生成sourcemap
+    "outDir": "./dist", // 输出目录
+    "removeComments": true, // 移除注释
+    /* 实验性特性 */
+    "experimentalDecorators": true, // 启用装饰器（如果使用）
+    "emitDecoratorMetadata": true // 为装饰器生成元数据
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue", // 包含Vue单文件组件
+    "types/**/*.d.ts", // 自定义类型声明
+    "tests/**/*.ts" // 测试文件
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.js" // 排除JavaScript文件
+  ]
+}

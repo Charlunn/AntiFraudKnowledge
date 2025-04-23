@@ -1,0 +1,7 @@
+import type { Ref } from 'vue';
+import type { EChartsType } from '../types.js';
+declare const METHOD_NAMES: readonly ["getWidth", "getHeight", "getDom", "getOption", "resize", "dispatchAction", "convertToPixel", "convertFromPixel", "containPixel", "getDataURL", "getConnectedDataURL", "appendData", "clear", "isDisposed", "dispose"];
+type MethodName = (typeof METHOD_NAMES)[number];
+type PublicMethods = Pick<EChartsType, MethodName>;
+export declare function usePublicAPI(chart: Ref<EChartsType | undefined>): PublicMethods;
+export {};

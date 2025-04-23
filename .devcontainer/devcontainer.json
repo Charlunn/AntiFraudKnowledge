@@ -1,0 +1,50 @@
+//.devcontainer/devcontainer.json
+{
+  "name": "Nuxt Frontend Dev Environment",
+
+  // 指向项目根目录下的 docker-compose.yml 文件
+  "dockerComposeFile": "../docker-compose.yml",
+
+  // 指定 VS Code 连接到 docker-compose.yml 中定义的 'frontend' 服务
+//  "service": "frontend",
+  "service": "backend",
+  // 指定容器内的工作区文件夹路径，应与 Dockerfile 的 WORKDIR 和 Compose 的 volume mount 匹配
+  "workspaceFolder": "/app",
+
+  // 在容器中自动安装的 VS Code 扩展列表
+//  "extensions":,
+
+  // 应用于容器环境的 VS Code 设置
+  "settings": {
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "editor.formatOnSave": true,
+    "eslint.validate": [
+      "javascript",
+      "javascriptreact",
+      "typescript",
+      "typescriptreact",
+      "vue"
+    ]
+    // 如果 Prettier 与 ESLint 集成
+    // "prettier.eslintIntegration": true,
+    // 可以在这里添加 Nuxt/Vue 特定的编辑器设置
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Vue.volar",
+        "mhutchie.git-graph"
+      ]
+    }
+  }
+
+  // 容器创建并挂载工作区后执行的命令
+  // 用于安装依赖，避免在 Dockerfile 中安装导致频繁镜像重建
+  // "postCreateCommand": "npm install",
+
+  // (可选) 容器启动后转发的端口，除了 Compose 文件中定义的，还可以在这里指定
+  // "forwardPorts": ,
+
+  // (可选) 指定远程用户，如果 Dockerfile 中创建了非 root 用户
+  // "remoteUser": "node"
+}
