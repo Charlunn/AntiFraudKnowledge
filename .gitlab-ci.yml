@@ -1,190 +1,186 @@
+# .gitlab-ci.yml
+
+# 定义 CI/CD 的各个阶段
 stages:
+  - build
+  # - test # 如果需要测试阶段，可以添加
   - deploy
 
+# 定义默认行为，比如使用哪个 Docker 镜像执行 Job
+# 如果你的 Runner 是 shell executor 且已安装 Docker/Compose，则不需要这个
+# default:
+#   image: docker:latest
+#   services:
+#     - docker:dind # 如果使用 Docker-in-Docker
+
+# 定义一些全局变量，方便复用
 variables:
-#5
-  # 定义通用变量
-  COMPOSE_DOCKER_CLI_BUILD: 1
-  DOCKER_BUILDKIT: 1
-  MYSQL_PASSWORD: $GITLAB_MYSQL_PASSWORD # 从 GitLab CI/CD Variables 获取
-  MYSQL_ROOT_PASSWORD: $GITLAB_MYSQL_ROOT_PASSWORD # 从 GitLab CI/CD Variables 获取
-  NEO4J_PASSWORD: $GITLAB_NEO4J_PASSWORD # 从 GitLab CI/CD Variables 获取
-  MYSQL_DATABASE: mydatabase
-  MYSQL_USER: myuser
-  BACKEND_PORT_CONTAINER: 8000
-  FRONTEND_PORT_CONTAINER: 3000
+  DOCKER_DRIVER: overlay2 # 推荐的 Docker 存储驱动
+  DOCKER_TLS_CERTDIR: "/certs" # Docker-in-Docker 需要
+  # 定义 Compose 项目名称，避免不同项目冲突，默认为目录名
+  COMPOSE_PROJECT_NAME: myapp_${CI_COMMIT_REF_SLUG} # 使用分支名作为后缀，防止并发部署冲突
 
-# --- 隐藏 Job 模板：定义通用配置 ---
-.job_template: &job_definition
-  image: docker/compose:latest
-  tags:
-    - docker-deploy-runner # 确保这个 tag 和你的 Runner 配置一致
+# ==================================
+#  Backend 服务 (Django)
+# ==================================
+build_backend:
+  stage: build
+  script:
+    # 登录 Docker Registry (如果需要推送到私有或 GitLab Registry)
+    # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - echo "Building backend service..."
+    # 使用 docker-compose build 构建，它会读取 docker-compose.yml 中的 build 配置
+    - docker-compose build backend
+    # 如果需要推送到 Registry
+    # - docker tag <image_name_backend> $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
+    # - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"' # 只在 main 分支运行
+      changes:
+        - backend/**/* # 当 backend 目录下的任何文件改变时触发
+        - docker-compose.yml # 当 docker-compose 文件改变时也触发（可能影响构建）
+        - backend/Dockerfile.backend # 当 Dockerfile 改变时触发
+
+deploy_backend:
+  stage: deploy
+  # needs: [build_backend] # 如果 build 和 deploy 在不同 Runner 或需要明确依赖关系
   before_script:
-    - echo "Deploying branch: ${CI_COMMIT_BRANCH}"
-    - echo "Environment suffix: ${ENV_SUFFIX}"
-    - echo "Using Compose project name: ${COMPOSE_PROJECT_NAME}"
-  after_script:
-    - echo "Cleaning up old images..."
-    - docker image prune -f
-
-# --- Master 分支的 Jobs ---
-
-deploy_frontend_master:
-  <<: *job_definition # 继承模板
-  stage: deploy
+    # 设置 SSH 环境，让 Runner 可以免密登录部署服务器
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )' # 确保 ssh-agent 已安装 (Debian/Ubuntu)
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - # 添加私钥
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    # 将服务器的公钥添加到 known_hosts，避免首次连接的交互提示
+    # 推荐：预先获取服务器公钥并添加到 GitLab 变量 SSH_KNOWN_HOSTS
+    # - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    # 或者（安全性较低，易受中间人攻击）:
+    - ssh-keyscan -H $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
   script:
-    - echo "Building/Updating frontend for master..."
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} build frontend
-    - echo "Restarting frontend service for master..."
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --remove-orphans --force-recreate frontend
+    - echo "Deploying backend service to $DEPLOY_SERVER_IP..."
+    - > # 使用多行命令，更清晰
+      ssh ${DEPLOY_USER}@${DEPLOY_SERVER_IP} "
+        cd ${DEPLOY_PATH} && \\
+        echo 'Pulling latest code...' && \\
+        git pull origin main && \\
+        echo 'Pulling latest backend image (if using registry)...' && \\
+        # 如果你推送了镜像到 Registry，需要先 pull
+        # docker-compose pull backend && \\
+        echo 'Building backend image locally...' && \\
+        docker-compose build backend && \\
+        echo 'Starting backend service...' && \\
+        # --no-deps 只启动或重建 backend 及其依赖 (如果依赖没变则不会重建)
+        # 如果 backend 依赖的服务 (mysql, neo4j) 配置有变动，可能需要去掉 --no-deps
+        docker-compose up -d --no-deps backend && \\
+        echo 'Backend deployment complete.'
+      "
+  environment: # 定义部署环境，方便在 GitLab UI 中查看
+    name: production/backend
+    url: http://your-backend-url.com # 替换成你的后端访问地址
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "master"'
-      changes:
-        - frontend/**/*
-        - docker-compose.yml
-      variables:
-        ENV_SUFFIX: "master"
-        COMPOSE_PROJECT_NAME: "myapp_master"
-        FRONTEND_PORT_HOST: "3000"
-        BACKEND_PORT_HOST: "8000"
-        MYSQL_PORT_HOST: "3306"
-        NEO4J_HTTP_PORT_HOST: "7474"
-        NEO4J_BOLT_PORT_HOST: "7687"
-        NETWORK_NAME: "master_network"
-        NODE_MODULES_VOLUME_NAME: "node_modules_master"
-        MYSQL_DATA_VOLUME: "mysql_data_master"
-        NEO4J_DATA_VOLUME: "neo4j_data_master"
-
-deploy_backend_master:
-  <<: *job_definition
-  stage: deploy
-  script:
-    - echo "Building/Updating backend for master..."
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} build backend
-    - echo "Running database migrations for master..."
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d mysql_master neo4j_master
-    - sleep 10
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} exec -T backend python manage.py migrate --noinput
-    - echo "Restarting backend service for master..."
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --remove-orphans --force-recreate backend
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - backend/**/*
         - docker-compose.yml
-      variables:
-        ENV_SUFFIX: "master"
-        COMPOSE_PROJECT_NAME: "myapp_master"
-        FRONTEND_PORT_HOST: "3000"
-        BACKEND_PORT_HOST: "8000"
-        MYSQL_PORT_HOST: "3306"
-        NEO4J_HTTP_PORT_HOST: "7474"
-        NEO4J_BOLT_PORT_HOST: "7687"
-        NETWORK_NAME: "master_network"
-        NODE_MODULES_VOLUME_NAME: "node_modules_master"
-        MYSQL_DATA_VOLUME: "mysql_data_master"
-        NEO4J_DATA_VOLUME: "neo4j_data_master"
+        - backend/Dockerfile.backend
+      when: on_success # 仅在 build 成功后执行 (如果定义了 needs) 或独立执行
 
-apply_compose_changes_master:
-  <<: *job_definition
-  stage: deploy
+# ==================================
+#  Frontend 服务
+# ==================================
+build_frontend:
+  stage: build
   script:
-    - echo "Applying docker-compose.yml changes for master..."
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --remove-orphans --force-recreate
+    # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - echo "Building frontend service..."
+    - docker-compose build frontend
+    # 如果需要推送到 Registry
+    # - docker tag <image_name_frontend> $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
+    # - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
+        - frontend/**/* # 当 frontend 目录下的任何文件改变时触发
         - docker-compose.yml
-      variables:
-        ENV_SUFFIX: "master"
-        COMPOSE_PROJECT_NAME: "myapp_master"
-        FRONTEND_PORT_HOST: "3000"
-        BACKEND_PORT_HOST: "8000"
-        MYSQL_PORT_HOST: "3306"
-        NEO4J_HTTP_PORT_HOST: "7474"
-        NEO4J_BOLT_PORT_HOST: "7687"
-        NETWORK_NAME: "master_network"
-        NODE_MODULES_VOLUME_NAME: "node_modules_master"
-        MYSQL_DATA_VOLUME: "mysql_data_master"
-        NEO4J_DATA_VOLUME: "neo4j_data_master"
+        - frontend/Dockerfile.frontend
 
-# --- Dev 分支的 Jobs ---
-
-deploy_frontend_dev:
-  <<: *job_definition
+deploy_frontend:
   stage: deploy
+  # needs: [build_frontend]
+  before_script: # 和 deploy_backend 类似，设置 SSH
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
   script:
-    - echo "Building/Updating frontend for dev..."
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} build frontend
-    - echo "Restarting frontend service for dev..."
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --remove-orphans --force-recreate frontend
+    - echo "Deploying frontend service to $DEPLOY_SERVER_IP..."
+    - >
+      ssh ${DEPLOY_USER}@${DEPLOY_SERVER_IP} "
+        cd ${DEPLOY_PATH} && \\
+        echo 'Pulling latest code...' && \\
+        git pull origin main && \\
+        echo 'Pulling latest frontend image (if using registry)...' && \\
+        # docker-compose pull frontend && \\
+        echo 'Building frontend image locally...' && \\
+        docker-compose build frontend && \\
+        echo 'Starting frontend service...' && \\
+        docker-compose up -d --no-deps frontend && \\
+        echo 'Frontend deployment complete.'
+      "
+  environment:
+    name: production/frontend
+    url: http://your-frontend-url.com # 替换成你的前端访问地址
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - frontend/**/*
         - docker-compose.yml
-      variables:
-        ENV_SUFFIX: "dev"
-        COMPOSE_PROJECT_NAME: "myapp_dev"
-        FRONTEND_PORT_HOST: "3001"
-        BACKEND_PORT_HOST: "8001"
-        MYSQL_PORT_HOST: "3307"
-        NEO4J_HTTP_PORT_HOST: "7475"
-        NEO4J_BOLT_PORT_HOST: "7688"
-        NETWORK_NAME: "dev_network"
-        NODE_MODULES_VOLUME_NAME: "node_modules_dev"
-        MYSQL_DATA_VOLUME: "mysql_data_dev"
-        NEO4J_DATA_VOLUME: "neo4j_data_dev"
+        - frontend/Dockerfile.frontend
+      when: on_success
 
-deploy_backend_dev:
-  <<: *job_definition
-  stage: deploy
-  script:
-    - echo "Building/Updating backend for dev..."
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} build backend
-    - echo "Running database migrations for dev..."
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d mysql_dev neo4j_dev
-    - sleep 10
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} exec -T backend python manage.py migrate --noinput
-    - echo "Restarting backend service for dev..."
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --remove-orphans --force-recreate backend
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
-      changes:
-        - backend/**/*
-        - docker-compose.yml
-      variables:
-        ENV_SUFFIX: "dev"
-        COMPOSE_PROJECT_NAME: "myapp_dev"
-        FRONTEND_PORT_HOST: "3001"
-        BACKEND_PORT_HOST: "8001"
-        MYSQL_PORT_HOST: "3307"
-        NEO4J_HTTP_PORT_HOST: "7475"
-        NEO4J_BOLT_PORT_HOST: "7688"
-        NETWORK_NAME: "dev_network"
-        NODE_MODULES_VOLUME_NAME: "node_modules_dev"
-        MYSQL_DATA_VOLUME: "mysql_data_dev"
-        NEO4J_DATA_VOLUME: "neo4j_data_dev"
+# ==================================
+#  数据库服务 (MySQL, Neo4j) - 通常不需要构建
+# ==================================
+# 如果 docker-compose.yml 中数据库相关的配置 (端口、卷、环境变量等) 发生变化，
+# 你可能需要一个 Job 来确保这些服务也根据新的配置重启。
+# 这个 Job 只在 docker-compose.yml 变化时运行。
 
-apply_compose_changes_dev:
-  <<: *job_definition
+deploy_infrastructure:
   stage: deploy
+  before_script: # 和其他 deploy job 类似
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
   script:
-    - echo "Applying docker-compose.yml changes for dev..."
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --remove-orphans --force-recreate
+    - echo "Applying potential infrastructure changes from docker-compose.yml on $DEPLOY_SERVER_IP..."
+    - >
+      ssh ${DEPLOY_USER}@${DEPLOY_SERVER_IP} "
+        cd ${DEPLOY_PATH} && \\
+        echo 'Pulling latest code (including docker-compose.yml)...' && \\
+        git pull origin main && \\
+        echo 'Pulling latest mysql and neo4j images...' && \\
+        # 拉取最新的官方镜像
+        docker-compose pull mysql && \\
+        docker-compose pull neo4j && \\
+        echo 'Applying docker-compose changes (if any)...' && \\
+        # 运行 docker-compose up 会根据 yml 文件更新所有服务
+        # 包括端口映射、卷、网络、环境变量等
+        docker-compose up -d && \\
+        echo 'Infrastructure update complete.'
+      "
+  environment:
+    name: production/infrastructure
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
+    # 这个 Job 只在 docker-compose.yml 变化时运行
+    - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - docker-compose.yml
-      variables:
-        ENV_SUFFIX: "dev"
-        COMPOSE_PROJECT_NAME: "myapp_dev"
-        FRONTEND_PORT_HOST: "3001"
-        BACKEND_PORT_HOST: "8001"
-        MYSQL_PORT_HOST: "3307"
-        NEO4J_HTTP_PORT_HOST: "7475"
-        NEO4J_BOLT_PORT_HOST: "7688"
-        NETWORK_NAME: "dev_network"
-        NODE_MODULES_VOLUME_NAME: "node_modules_dev"
-        MYSQL_DATA_VOLUME: "mysql_data_dev"
-        NEO4J_DATA_VOLUME: "neo4j_data_dev"
+      when: on_success # 或者 on_success，如果希望它在代码部署后运行
