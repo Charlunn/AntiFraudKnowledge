@@ -29,8 +29,8 @@ build_backend:
     # 登录 Docker Registry (如果需要推送到私有或 GitLab Registry)
     # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - echo "Building backend service..."
-    # 使用 docker-compose build 构建，它会读取 docker-compose.yml 中的 build 配置
-    - docker-compose build backend
+    # 使用 docker compose build 构建，它会读取 docker compose.yml 中的 build 配置
+    - docker compose build backend
     # 如果需要推送到 Registry
     # - docker tag <image_name_backend> $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
     # - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
@@ -38,7 +38,7 @@ build_backend:
     - if: '$CI_COMMIT_BRANCH == "main"' # 只在 main 分支运行
       changes:
         - backend/**/* # 当 backend 目录下的任何文件改变时触发
-        - docker-compose.yml # 当 docker-compose 文件改变时也触发（可能影响构建）
+        - docker compose.yml # 当 docker compose 文件改变时也触发（可能影响构建）
         - backend/Dockerfile.backend # 当 Dockerfile 改变时触发
 
 deploy_backend:
@@ -66,13 +66,13 @@ deploy_backend:
         git pull origin main && \\
         echo 'Pulling latest backend image (if using registry)...' && \\
         # 如果你推送了镜像到 Registry，需要先 pull
-        # docker-compose pull backend && \\
+        # docker compose pull backend && \\
         echo 'Building backend image locally...' && \\
-        docker-compose build backend && \\
+        docker compose build backend && \\
         echo 'Starting backend service...' && \\
         # --no-deps 只启动或重建 backend 及其依赖 (如果依赖没变则不会重建)
         # 如果 backend 依赖的服务 (mysql, neo4j) 配置有变动，可能需要去掉 --no-deps
-        docker-compose up -d --no-deps backend && \\
+        docker compose up -d --no-deps backend && \\
         echo 'Backend deployment complete.'
       "
   environment: # 定义部署环境，方便在 GitLab UI 中查看
@@ -82,7 +82,7 @@ deploy_backend:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - backend/**/*
-        - docker-compose.yml
+        - docker compose.yml
         - backend/Dockerfile.backend
       when: on_success # 仅在 build 成功后执行 (如果定义了 needs) 或独立执行
 
@@ -94,7 +94,7 @@ build_frontend:
   script:
     # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - echo "Building frontend service..."
-    - docker-compose build frontend
+    - docker compose build frontend
     # 如果需要推送到 Registry
     # - docker tag <image_name_frontend> $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
     # - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
@@ -102,7 +102,7 @@ build_frontend:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - frontend/**/* # 当 frontend 目录下的任何文件改变时触发
-        - docker-compose.yml
+        - docker compose.yml
         - frontend/Dockerfile.frontend
 
 deploy_frontend:
@@ -124,11 +124,11 @@ deploy_frontend:
         echo 'Pulling latest code...' && \\
         git pull origin main && \\
         echo 'Pulling latest frontend image (if using registry)...' && \\
-        # docker-compose pull frontend && \\
+        # docker compose pull frontend && \\
         echo 'Building frontend image locally...' && \\
-        docker-compose build frontend && \\
+        docker compose build frontend && \\
         echo 'Starting frontend service...' && \\
-        docker-compose up -d --no-deps frontend && \\
+        docker compose up -d --no-deps frontend && \\
         echo 'Frontend deployment complete.'
       "
   environment:
@@ -138,16 +138,16 @@ deploy_frontend:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - frontend/**/*
-        - docker-compose.yml
+        - docker compose.yml
         - frontend/Dockerfile.frontend
       when: on_success
 
 # ==================================
 #  数据库服务 (MySQL, Neo4j) - 通常不需要构建
 # ==================================
-# 如果 docker-compose.yml 中数据库相关的配置 (端口、卷、环境变量等) 发生变化，
+# 如果 docker compose.yml 中数据库相关的配置 (端口、卷、环境变量等) 发生变化，
 # 你可能需要一个 Job 来确保这些服务也根据新的配置重启。
-# 这个 Job 只在 docker-compose.yml 变化时运行。
+# 这个 Job 只在 docker compose.yml 变化时运行。
 
 deploy_infrastructure:
   stage: deploy
@@ -160,27 +160,27 @@ deploy_infrastructure:
     - ssh-keyscan -H $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
   script:
-    - echo "Applying potential infrastructure changes from docker-compose.yml on $DEPLOY_SERVER_IP..."
+    - echo "Applying potential infrastructure changes from docker compose.yml on $DEPLOY_SERVER_IP..."
     - >
       ssh ${DEPLOY_USER}@${DEPLOY_SERVER_IP} "
         cd ${DEPLOY_PATH} && \\
-        echo 'Pulling latest code (including docker-compose.yml)...' && \\
+        echo 'Pulling latest code (including docker compose.yml)...' && \\
         git pull origin main && \\
         echo 'Pulling latest mysql and neo4j images...' && \\
         # 拉取最新的官方镜像
-        docker-compose pull mysql && \\
-        docker-compose pull neo4j && \\
-        echo 'Applying docker-compose changes (if any)...' && \\
-        # 运行 docker-compose up 会根据 yml 文件更新所有服务
+        docker compose pull mysql && \\
+        docker compose pull neo4j && \\
+        echo 'Applying docker compose changes (if any)...' && \\
+        # 运行 docker compose up 会根据 yml 文件更新所有服务
         # 包括端口映射、卷、网络、环境变量等
-        docker-compose up -d && \\
+        docker compose up -d && \\
         echo 'Infrastructure update complete.'
       "
   environment:
     name: production/infrastructure
   rules:
-    # 这个 Job 只在 docker-compose.yml 变化时运行
+    # 这个 Job 只在 docker compose.yml 变化时运行
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
-        - docker-compose.yml
+        - docker compose.yml
       when: on_success # 或者 on_success，如果希望它在代码部署后运行
