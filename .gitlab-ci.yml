@@ -6,13 +6,6 @@ stages:
   # - test # 如果需要测试阶段，可以添加
   - deploy
 
-# 定义默认行为，比如使用哪个 Docker 镜像执行 Job
-# 如果你的 Runner 是 shell executor 且已安装 Docker/Compose，则不需要这个
-# default:
-#   image: docker:latest
-#   services:
-#     - docker:dind # 如果使用 Docker-in-Docker
-
 # 定义一些全局变量，方便复用
 variables:
   DOCKER_DRIVER: overlay2 # 推荐的 Docker 存储驱动
@@ -25,12 +18,13 @@ variables:
 # ==================================
 build_backend:
   stage: build
+  image: docker:latest # <--- 添加此行，指定使用 docker 镜像
   script:
     # 登录 Docker Registry (如果需要推送到私有或 GitLab Registry)
     # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - echo "Building backend service..."
     # 使用 docker compose build 构建，它会读取 docker-compose.yml 中的 build 配置
-    - docker compose build backend
+    - docker compose build backend # 确认使用无连字符命令
     # 如果需要推送到 Registry
     # - docker tag <image_name_backend> $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
     # - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
@@ -38,7 +32,7 @@ build_backend:
     - if: '$CI_COMMIT_BRANCH == "main"' # 只在 main 分支运行
       changes:
         - backend/**/* # 当 backend 目录下的任何文件改变时触发
-        - docker-compose.yml # 当 docker compose 文件改变时也触发（可能影响构建）
+        - docker-compose.yml # 当 docker-compose 文件改变时也触发（可能影响构建）
         - backend/Dockerfile.backend # 当 Dockerfile 改变时触发
 
 deploy_backend:
@@ -52,9 +46,6 @@ deploy_backend:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     # 将服务器的公钥添加到 known_hosts，避免首次连接的交互提示
-    # 推荐：预先获取服务器公钥并添加到 GitLab 变量 SSH_KNOWN_HOSTS
-    # - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
-    # 或者（安全性较低，易受中间人攻击）:
     - ssh-keyscan -H $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts
     - chmod 644 ~/.ssh/known_hosts
   script:
@@ -68,10 +59,10 @@ deploy_backend:
         # 如果你推送了镜像到 Registry，需要先 pull
         # docker compose pull backend && \\
         echo 'Building backend image locally...' && \\
+        # 注意：确保 $DEPLOY_SERVER_IP 上安装了 Docker Compose v2 (docker compose)
+        # 如果目标服务器是 v1，请将下面的命令改为 docker-compose (带连字符)
         docker compose build backend && \\
         echo 'Starting backend service...' && \\
-        # --no-deps 只启动或重建 backend 及其依赖 (如果依赖没变则不会重建)
-        # 如果 backend 依赖的服务 (mysql, neo4j) 配置有变动，可能需要去掉 --no-deps
         docker compose up -d --no-deps backend && \\
         echo 'Backend deployment complete.'
       "
@@ -91,10 +82,11 @@ deploy_backend:
 # ==================================
 build_frontend:
   stage: build
+  image: docker:latest # <--- 添加此行，指定使用 docker 镜像
   script:
     # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - echo "Building frontend service..."
-    - docker compose build frontend
+    - docker compose build frontend # 确认使用无连字符命令
     # 如果需要推送到 Registry
     # - docker tag <image_name_frontend> $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
     # - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
@@ -126,6 +118,8 @@ deploy_frontend:
         echo 'Pulling latest frontend image (if using registry)...' && \\
         # docker compose pull frontend && \\
         echo 'Building frontend image locally...' && \\
+        # 注意：确保 $DEPLOY_SERVER_IP 上安装了 Docker Compose v2 (docker compose)
+        # 如果目标服务器是 v1，请将下面的命令改为 docker-compose (带连字符)
         docker compose build frontend && \\
         echo 'Starting frontend service...' && \\
         docker compose up -d --no-deps frontend && \\
@@ -145,10 +139,6 @@ deploy_frontend:
 # ==================================
 #  数据库服务 (MySQL, Neo4j) - 通常不需要构建
 # ==================================
-# 如果 docker-compose.yml 中数据库相关的配置 (端口、卷、环境变量等) 发生变化，
-# 你可能需要一个 Job 来确保这些服务也根据新的配置重启。
-# 这个 Job 只在 docker-compose.yml 变化时运行。
-
 deploy_infrastructure:
   stage: deploy
   before_script: # 和其他 deploy job 类似
@@ -167,12 +157,11 @@ deploy_infrastructure:
         echo 'Pulling latest code (including docker-compose.yml)...' && \\
         git pull origin main && \\
         echo 'Pulling latest mysql and neo4j images...' && \\
-        # 拉取最新的官方镜像
+        # 注意：确保 $DEPLOY_SERVER_IP 上安装了 Docker Compose v2 (docker compose)
+        # 如果目标服务器是 v1，请将下面的命令改为 docker-compose (带连字符)
         docker compose pull mysql && \\
         docker compose pull neo4j && \\
         echo 'Applying docker compose changes (if any)...' && \\
-        # 运行 docker compose up 会根据 yml 文件更新所有服务
-        # 包括端口映射、卷、网络、环境变量等
         docker compose up -d && \\
         echo 'Infrastructure update complete.'
       "
@@ -183,4 +172,4 @@ deploy_infrastructure:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - docker-compose.yml
-      when: on_success # 或者 on_success，如果希望它在代码部署后运行
+      when: on_success
