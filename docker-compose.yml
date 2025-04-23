@@ -64,10 +64,10 @@ services:
     networks:
       - dev_network
     environment:
-      - MYSQL_ROOT_PASSWORD=strong_root_password
+      - MYSQL_ROOT_PASSWORD=password
       - MYSQL_DATABASE=mydatabase
-      - MYSQL_USER=myuser
-      - MYSQL_PASSWORD=mypassword
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
 
 networks:
   dev_network:
