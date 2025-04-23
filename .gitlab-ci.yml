@@ -19,6 +19,8 @@ variables:
 build_backend:
   stage: build
   image: docker:latest # <--- 添加此行，指定使用 docker 镜像
+  variables: # <--- 添加这个 variables 块
+    DOCKER_HOST: ""
   script:
     # 登录 Docker Registry (如果需要推送到私有或 GitLab Registry)
     # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
@@ -83,6 +85,8 @@ deploy_backend:
 build_frontend:
   stage: build
   image: docker:latest # <--- 添加此行，指定使用 docker 镜像
+  variables: # <--- 添加这个 variables 块
+    DOCKER_HOST: ""
   script:
     # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
     - echo "Building frontend service..."
