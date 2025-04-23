@@ -1,24 +1,20 @@
-# .gitlab-ci.yml (支持 master 和 dev 环境)
 stages:
   - deploy
 
 variables:
-  # 定义一些基础或通用的变量
+  # 定义通用变量
   COMPOSE_DOCKER_CLI_BUILD: 1
   DOCKER_BUILDKIT: 1
-  # 将密码从 GitLab CI/CD Variables 传递给 Docker Compose
-  MYSQL_PASSWORD: $GITLAB_MYSQL_PASSWORD
-  MYSQL_ROOT_PASSWORD: $GITLAB_MYSQL_ROOT_PASSWORD
-  NEO4J_PASSWORD: $GITLAB_NEO4J_PASSWORD
-  # 可以设置默认数据库和用户名，或也通过变量传递
+  MYSQL_PASSWORD: $GITLAB_MYSQL_PASSWORD # 从 GitLab CI/CD Variables 获取
+  MYSQL_ROOT_PASSWORD: $GITLAB_MYSQL_ROOT_PASSWORD # 从 GitLab CI/CD Variables 获取
+  NEO4J_PASSWORD: $GITLAB_NEO4J_PASSWORD # 从 GitLab CI/CD Variables 获取
   MYSQL_DATABASE: mydatabase
   MYSQL_USER: myuser
-  # 容器内部端口通常不变
   BACKEND_PORT_CONTAINER: 8000
   FRONTEND_PORT_CONTAINER: 3000
 
-# Docker Runner 模板
-.docker_job_template: &docker_job_definition
+# --- 隐藏 Job 模板：定义通用配置 ---
+.job_template: &job_definition
   image: docker/compose:latest
   tags:
     - docker-deploy-runner # 确保这个 tag 和你的 Runner 配置一致
@@ -26,58 +22,31 @@ variables:
     - echo "Deploying branch: ${CI_COMMIT_BRANCH}"
     - echo "Environment suffix: ${ENV_SUFFIX}"
     - echo "Using Compose project name: ${COMPOSE_PROJECT_NAME}"
-    # 可以在这里 export 所有需要的变量，确保 docker-compose 能获取到
-    # 或者依赖 GitLab Runner 自动传递变量给 docker-compose 环境
-
-# --- 统一的部署任务 (根据规则设置不同变量) ---
-
-deploy_app:
-  <<: *docker_job_definition
-  stage: deploy
-  script:
-    # 1. 构建受影响的服务 (frontend 或 backend)
-    - | # 使用 YAML 多行字符串语法
-      if [[ "${CI_JOB_NAME}" == *"frontend"* ]]; then
-        echo "Building frontend for ${ENV_SUFFIX}..."
-        docker-compose -p ${COMPOSE_PROJECT_NAME} build frontend
-      elif [[ "${CI_JOB_NAME}" == *"backend"* ]]; then
-        echo "Building backend for ${ENV_SUFFIX}..."
-        docker-compose -p ${COMPOSE_PROJECT_NAME} build backend
-      elif [[ "${CI_JOB_NAME}" == *"compose_changes"* ]]; then
-        echo "Applying compose changes, building if necessary..."
-        # docker-compose up 会自动构建缺失的镜像
-      fi
-
-    # 2. 如果是后端部署，执行数据库迁移
-    - |
-      if [[ "${CI_JOB_NAME}" == *"backend"* ]]; then
-        echo "Running database migrations for ${ENV_SUFFIX}..."
-        # 确保容器已启动或使用 run --rm 来执行一次性任务
-        # 先尝试启动依赖，再执行迁移可能更稳妥
-        docker-compose -p ${COMPOSE_PROJECT_NAME} up -d mysql_${ENV_SUFFIX} neo4j_${ENV_SUFFIX} # 确保 DB 启动
-        sleep 10 # 等待 DB 服务启动
-        docker-compose -p ${COMPOSE_PROJECT_NAME} exec -T backend python manage.py migrate --noinput
-      fi
-
-    # 3. 启动/重启所有服务 (docker-compose up 会处理依赖和变更)
-    - echo "Starting/Restarting services for ${ENV_SUFFIX}..."
-    # 使用 docker-compose up -d 会启动所有服务，并只重新创建有变更的（包括配置或镜像）
-    # 并且会自动处理服务依赖顺序
-    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --remove-orphans --force-recreate ${SERVICE_TO_RECREATE:-} # SERVICE_TO_RECREATE 可以用来强制重启特定服务
-
-    # 4. 清理旧镜像
+    # 可以在这里 export 变量，但通常 Runner 会自动传递
+  after_script:
     - echo "Cleaning up old images..."
     - docker image prune -f
+
+# --- Master 分支的 Jobs ---
+
+deploy_frontend_master:
+  <<: *job_definition # 继承模板
+  stage: deploy
+  script:
+    - echo "Building/Updating frontend for master..."
+    - docker-compose -p ${COMPOSE_PROJECT_NAME} build frontend
+    - echo "Restarting frontend service for master..."
+    # --force-recreate 确保使用新镜像（如果 build 产生了新镜像）
+    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --remove-orphans --force-recreate frontend
   rules:
-    # --- Master 分支规则 ---
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "master"'
-      changes: # 检测 frontend 变更
+      changes:
         - frontend/**/*
         - docker-compose.yml
-      variables: &master_vars # 定义锚点方便复用
+      variables: &master_vars # 定义 master 变量锚点
         ENV_SUFFIX: "master"
         COMPOSE_PROJECT_NAME: "myapp_master"
-        FRONTEND_PORT_HOST: "3000" # Master 端口
+        FRONTEND_PORT_HOST: "3000"
         BACKEND_PORT_HOST: "8000"
         MYSQL_PORT_HOST: "3306"
         NEO4J_HTTP_PORT_HOST: "7474"
@@ -86,60 +55,99 @@ deploy_app:
         NODE_MODULES_VOLUME_NAME: "node_modules_master"
         MYSQL_DATA_VOLUME: "mysql_data_master"
         NEO4J_DATA_VOLUME: "neo4j_data_master"
-        SERVICE_TO_RECREATE: "frontend" # 明确要强制重启的服务
-      name: deploy_frontend_master # 给 job 一个明确的名字
 
+deploy_backend_master:
+  <<: *job_definition
+  stage: deploy
+  script:
+    - echo "Building/Updating backend for master..."
+    - docker-compose -p ${COMPOSE_PROJECT_NAME} build backend
+    - echo "Running database migrations for master..."
+    # 确保 DB 服务启动，再执行迁移
+    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d mysql_${ENV_SUFFIX} neo4j_${ENV_SUFFIX}
+    - sleep 10 # 等待 DB 服务启动
+    - docker-compose -p ${COMPOSE_PROJECT_NAME} exec -T backend python manage.py migrate --noinput
+    - echo "Restarting backend service for master..."
+    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --remove-orphans --force-recreate backend
+  rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "master"'
-      changes: # 检测 backend 变更
+      changes:
         - backend/**/*
         - docker-compose.yml
       variables:
         <<: *master_vars # 复用 master 变量
-        SERVICE_TO_RECREATE: "backend"
-      name: deploy_backend_master
 
+apply_compose_changes_master:
+  <<: *job_definition
+  stage: deploy
+  script:
+    - echo "Applying docker-compose.yml changes for master..."
+    # docker-compose up 会处理所有服务的变更
+    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --remove-orphans --force-recreate
+  rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "master"'
-      changes: # 只检测 docker-compose.yml 变更 (排除 frontend/backend 目录)
+      changes:
         - docker-compose.yml
       variables:
         <<: *master_vars
-        # SERVICE_TO_RECREATE: "" # 让 compose 自行判断需要重启哪些服务
-      name: apply_compose_changes_master
-      # 可能需要更复杂的规则来排除其他目录的变更，或者接受 compose job 和其他 job 同时运行
 
-    # --- Dev 分支规则 ---
+# --- Dev 分支的 Jobs ---
+
+deploy_frontend_dev:
+  <<: *job_definition
+  stage: deploy
+  script:
+    - echo "Building/Updating frontend for dev..."
+    - docker-compose -p ${COMPOSE_PROJECT_NAME} build frontend
+    - echo "Restarting frontend service for dev..."
+    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --remove-orphans --force-recreate frontend
+  rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
-      changes: # 检测 frontend 变更
+      changes:
         - frontend/**/*
         - docker-compose.yml
       variables: &dev_vars # 定义 dev 变量锚点
         ENV_SUFFIX: "dev"
         COMPOSE_PROJECT_NAME: "myapp_dev"
-        FRONTEND_PORT_HOST: "3001" # Dev 使用不同端口
+        FRONTEND_PORT_HOST: "3001"
         BACKEND_PORT_HOST: "8001"
-        MYSQL_PORT_HOST: "3307" # Dev MySQL 使用不同端口
-        NEO4J_HTTP_PORT_HOST: "7475" # Dev Neo4j 使用不同端口
-        NEO4J_BOLT_PORT_HOST: "7688" # Dev Neo4j 使用不同端口
+        MYSQL_PORT_HOST: "3307"
+        NEO4J_HTTP_PORT_HOST: "7475"
+        NEO4J_BOLT_PORT_HOST: "7688"
         NETWORK_NAME: "dev_network"
         NODE_MODULES_VOLUME_NAME: "node_modules_dev"
-        MYSQL_DATA_VOLUME: "mysql_data_dev"     # Dev 独立数据卷
-        NEO4J_DATA_VOLUME: "neo4j_data_dev"       # Dev 独立数据卷
-        SERVICE_TO_RECREATE: "frontend"
-      name: deploy_frontend_dev
+        MYSQL_DATA_VOLUME: "mysql_data_dev"
+        NEO4J_DATA_VOLUME: "neo4j_data_dev"
 
+deploy_backend_dev:
+  <<: *job_definition
+  stage: deploy
+  script:
+    - echo "Building/Updating backend for dev..."
+    - docker-compose -p ${COMPOSE_PROJECT_NAME} build backend
+    - echo "Running database migrations for dev..."
+    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d mysql_${ENV_SUFFIX} neo4j_${ENV_SUFFIX}
+    - sleep 10
+    - docker-compose -p ${COMPOSE_PROJECT_NAME} exec -T backend python manage.py migrate --noinput
+    - echo "Restarting backend service for dev..."
+    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --remove-orphans --force-recreate backend
+  rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
-      changes: # 检测 backend 变更
+      changes:
         - backend/**/*
         - docker-compose.yml
       variables:
-        <<: *dev_vars
-        SERVICE_TO_RECREATE: "backend"
-      name: deploy_backend_dev
+        <<: *dev_vars # 复用 dev 变量
 
+apply_compose_changes_dev:
+  <<: *job_definition
+  stage: deploy
+  script:
+    - echo "Applying docker-compose.yml changes for dev..."
+    - docker-compose -p ${COMPOSE_PROJECT_NAME} up -d --remove-orphans --force-recreate
+  rules:
     - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "dev"'
-      changes: # 只检测 docker-compose.yml 变更
+      changes:
         - docker-compose.yml
       variables:
         <<: *dev_vars
-        # SERVICE_TO_RECREATE: ""
-      name: apply_compose_changes_dev
