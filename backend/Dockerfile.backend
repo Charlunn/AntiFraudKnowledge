@@ -11,14 +11,22 @@ WORKDIR /app
 RUN echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
     echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian-security/ bookworm-security main contrib non-free non-free-firmware" >> /etc/apt/sources.list
 
-# 安装系统依赖（MySQL 相关）
+# 安装系统依赖（包括 Git 和 SSH）
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         python3-dev \
         default-libmysqlclient-dev \
         build-essential \
         pkg-config \
+        git \
+        openssh-client \
+        ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# 配置 Git 全局设置（可在运行时被挂载的配置覆盖）
+RUN git config --global credential.helper store && \
+    git config --global core.autocrlf input && \
+    git config --global core.fileMode false
 
 # 更换 PIP 镜像源为清华源
 RUN pip install --no-cache-dir --upgrade pip && \
