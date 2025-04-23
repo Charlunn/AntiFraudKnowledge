@@ -2,6 +2,7 @@ stages:
   - deploy
 
 variables:
+#5
   # 定义通用变量
   COMPOSE_DOCKER_CLI_BUILD: 1
   DOCKER_BUILDKIT: 1
