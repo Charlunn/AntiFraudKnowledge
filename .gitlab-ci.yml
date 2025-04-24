@@ -9,7 +9,6 @@ stages:
 # 定义一些全局变量，方便复用
 variables:
   DOCKER_DRIVER: overlay2 # 推荐的 Docker 存储驱动
-  # DOCKER_TLS_CERTDIR: "/certs" # 移除全局的，将在需要 DinD 的 job 中设置为空 ""
   # 定义 Compose 项目名称，避免不同项目冲突，默认为目录名
   COMPOSE_PROJECT_NAME: myapp_${CI_COMMIT_REF_SLUG} # 使用分支名作为后缀，防止并发部署冲突
 
@@ -19,22 +18,54 @@ variables:
 build_backend:
   stage: build
   image: docker:latest # 使用包含 Docker CLI 和 Compose 的镜像
-  services: # <--- 添加 services 块以启动 DinD
+  services: # 启动 DinD 服务
     - name: docker:dind
-      alias: docker # 设置服务别名，DOCKER_HOST 可以使用它
-  variables: # <--- 修改/添加 DinD 所需的变量
-    # 告诉 Docker CLI 连接到 DinD 服务容器
+      alias: docker # 设置服务别名
+  variables: # DinD 所需的变量
     DOCKER_HOST: tcp://docker:2375
-    # 禁用 TLS，因为标准 DinD 服务默认不使用 TLS
     DOCKER_TLS_CERTDIR: ""
     # DOCKER_DRIVER 已在全局定义
-  before_script: # <--- 添加 before_script
+  before_script: # <--- 修改后的 before_script
     # 1. 移除 docker-compose.yml 中过时的 'version:' 属性 (建议直接在代码库中修改)
+    - echo "Attempting to remove 'version:' from docker-compose.yml..."
     - sed -i '/^version:/d' docker-compose.yml
-    # 2. 等待 Docker-in-Docker 服务完全启动并准备就绪
-    - until docker info; do echo "Waiting for Docker daemon..."; sleep 1; done
-    # 登录 Docker Registry (如果需要推送到私有或 GitLab Registry, 取消注释并配置相关 CI/CD 变量)
-    # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+
+    # 2. 添加网络诊断步骤
+    - echo "--- Network Diagnostics Start ---"
+    # 安装 DNS 查询工具 (docker:latest 基于 Alpine, 使用 apk)
+    - echo "Installing DNS tools..."
+    - apk add --no-cache bind-tools
+    # 尝试解析 'docker' 别名
+    - echo "Attempting nslookup for 'docker'..."
+    - nslookup docker
+    # 尝试 ping 'docker' 别名
+    - echo "Attempting ping for 'docker'..."
+    - ping -c 3 docker || echo "Ping failed (continuing...)" # 即使 ping 失败也继续
+    # 查看容器的 hosts 文件
+    - echo "Contents of /etc/hosts:"
+    - cat /etc/hosts
+    # 查看容器的 DNS 配置
+    - echo "Contents of /etc/resolv.conf:"
+    - cat /etc/resolv.conf
+    - echo "--- Network Diagnostics End ---"
+
+    # 3. 等待 Docker-in-Docker 服务完全启动并准备就绪
+    - echo "Waiting for Docker daemon..."
+    # 增加 sleep 时间到 5 秒, 并添加超时以防万一 (例如 3 分钟)
+    - |
+      timeout=180 # Timeout in seconds (3 minutes)
+      elapsed=0
+      while ! docker info > /dev/null 2>&1; do
+        if [ $elapsed -ge $timeout ]; then
+          echo "Timeout waiting for Docker daemon!"
+          docker info # Attempt one last time to show the error
+          exit 1
+        fi
+        echo "Still waiting for Docker daemon... (${elapsed}s / ${timeout}s)"
+        sleep 5
+        elapsed=$((elapsed + 5))
+      done
+    - echo "Docker daemon is ready!"
   script:
     - echo "Building backend service..."
     # 使用 docker compose build 构建，它会读取 docker-compose.yml 中的 build 配置
@@ -55,7 +86,7 @@ deploy_backend:
   # 注意：此 Job 通过 SSH 在目标服务器上执行 Docker 命令，因此不需要 DinD 服务
   before_script:
     # 设置 SSH 环境，让 Runner 可以免密登录部署服务器
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )' # 确保 ssh-agent 已安装 (Debian/Ubuntu)
+    - 'which ssh-agent || ( apk update && apk add openssh-client )' # 使用 apk (假设 Runner 基础镜像是 Alpine)
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - # 添加私钥
     - mkdir -p ~/.ssh
@@ -75,7 +106,6 @@ deploy_backend:
         # docker compose pull backend && \\
         echo 'Building backend image locally on target server...' && \\
         # 注意：确保 $DEPLOY_SERVER_IP 上安装了 Docker Compose v2 (docker compose)
-        # 如果目标服务器是 v1，请将下面的命令改为 docker-compose (带连字符)
         docker compose build backend && \\
         echo 'Starting backend service...' && \\
         docker compose up -d --no-deps backend && \\
@@ -98,20 +128,54 @@ deploy_backend:
 build_frontend:
   stage: build
   image: docker:latest # 使用包含 Docker CLI 和 Compose 的镜像
-  services: # <--- 添加 services 块以启动 DinD
+  services: # 启动 DinD 服务
     - name: docker:dind
       alias: docker
-  variables: # <--- 修改/添加 DinD 所需的变量
+  variables: # DinD 所需的变量
     DOCKER_HOST: tcp://docker:2375
     DOCKER_TLS_CERTDIR: ""
     # DOCKER_DRIVER 已在全局定义
-  before_script: # <--- 添加 before_script
+  before_script: # <--- 修改后的 before_script
     # 1. 移除 docker-compose.yml 中过时的 'version:' 属性 (建议直接在代码库中修改)
+    - echo "Attempting to remove 'version:' from docker-compose.yml..."
     - sed -i '/^version:/d' docker-compose.yml
-    # 2. 等待 Docker-in-Docker 服务完全启动并准备就绪
-    - until docker info; do echo "Waiting for Docker daemon..."; sleep 1; done
-    # 登录 Docker Registry (如果需要)
-    # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+
+    # 2. 添加网络诊断步骤
+    - echo "--- Network Diagnostics Start ---"
+    # 安装 DNS 查询工具 (docker:latest 基于 Alpine, 使用 apk)
+    - echo "Installing DNS tools..."
+    - apk add --no-cache bind-tools
+    # 尝试解析 'docker' 别名
+    - echo "Attempting nslookup for 'docker'..."
+    - nslookup docker
+    # 尝试 ping 'docker' 别名
+    - echo "Attempting ping for 'docker'..."
+    - ping -c 3 docker || echo "Ping failed (continuing...)" # 即使 ping 失败也继续
+    # 查看容器的 hosts 文件
+    - echo "Contents of /etc/hosts:"
+    - cat /etc/hosts
+    # 查看容器的 DNS 配置
+    - echo "Contents of /etc/resolv.conf:"
+    - cat /etc/resolv.conf
+    - echo "--- Network Diagnostics End ---"
+
+    # 3. 等待 Docker-in-Docker 服务完全启动并准备就绪
+    - echo "Waiting for Docker daemon..."
+    # 增加 sleep 时间到 5 秒, 并添加超时以防万一 (例如 3 分钟)
+    - |
+      timeout=180 # Timeout in seconds (3 minutes)
+      elapsed=0
+      while ! docker info > /dev/null 2>&1; do
+        if [ $elapsed -ge $timeout ]; then
+          echo "Timeout waiting for Docker daemon!"
+          docker info # Attempt one last time to show the error
+          exit 1
+        fi
+        echo "Still waiting for Docker daemon... (${elapsed}s / ${timeout}s)"
+        sleep 5
+        elapsed=$((elapsed + 5))
+      done
+    - echo "Docker daemon is ready!"
   script:
     - echo "Building frontend service..."
     - docker compose build frontend # 确认使用无连字符命令
@@ -130,7 +194,7 @@ deploy_frontend:
   # needs: [build_frontend]
   # 注意：此 Job 通过 SSH 在目标服务器上执行 Docker 命令，因此不需要 DinD 服务
   before_script: # 和 deploy_backend 类似，设置 SSH
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - 'which ssh-agent || ( apk update && apk add openssh-client )' # 使用 apk
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
@@ -148,7 +212,6 @@ deploy_frontend:
         # docker compose pull frontend && \\
         echo 'Building frontend image locally on target server...' && \\
         # 注意：确保 $DEPLOY_SERVER_IP 上安装了 Docker Compose v2 (docker compose)
-        # 如果目标服务器是 v1，请将下面的命令改为 docker-compose (带连字符)
         docker compose build frontend && \\
         echo 'Starting frontend service...' && \\
         docker compose up -d --no-deps frontend && \\
@@ -172,7 +235,7 @@ deploy_infrastructure:
   stage: deploy
   # 注意：此 Job 通过 SSH 在目标服务器上执行 Docker 命令，因此不需要 DinD 服务
   before_script: # 和其他 deploy job 类似
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - 'which ssh-agent || ( apk update && apk add openssh-client )' # 使用 apk
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
@@ -188,7 +251,6 @@ deploy_infrastructure:
         git pull origin main && \\
         echo 'Pulling latest mysql and neo4j images...' && \\
         # 注意：确保 $DEPLOY_SERVER_IP 上安装了 Docker Compose v2 (docker compose)
-        # 如果目标服务器是 v1，请将下面的命令改为 docker-compose (带连字符)
         docker compose pull mysql && \\
         docker compose pull neo4j && \\
         echo 'Applying docker compose changes (if any)...' && \\
