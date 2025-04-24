@@ -9,7 +9,7 @@ stages:
 # 定义一些全局变量，方便复用
 variables:
   DOCKER_DRIVER: overlay2 # 推荐的 Docker 存储驱动
-  DOCKER_TLS_CERTDIR: "/certs" # Docker-in-Docker 需要
+  # DOCKER_TLS_CERTDIR: "/certs" # 移除全局的，将在需要 DinD 的 job 中设置为空 ""
   # 定义 Compose 项目名称，避免不同项目冲突，默认为目录名
   COMPOSE_PROJECT_NAME: myapp_${CI_COMMIT_REF_SLUG} # 使用分支名作为后缀，防止并发部署冲突
 
@@ -18,16 +18,28 @@ variables:
 # ==================================
 build_backend:
   stage: build
-  image: docker:latest # <--- 添加此行，指定使用 docker 镜像
-  variables: # <--- 添加这个 variables 块
-    DOCKER_HOST: ""
-  script:
-    # 登录 Docker Registry (如果需要推送到私有或 GitLab Registry)
+  image: docker:latest # 使用包含 Docker CLI 和 Compose 的镜像
+  services: # <--- 添加 services 块以启动 DinD
+    - name: docker:dind
+      alias: docker # 设置服务别名，DOCKER_HOST 可以使用它
+  variables: # <--- 修改/添加 DinD 所需的变量
+    # 告诉 Docker CLI 连接到 DinD 服务容器
+    DOCKER_HOST: tcp://docker:2375
+    # 禁用 TLS，因为标准 DinD 服务默认不使用 TLS
+    DOCKER_TLS_CERTDIR: ""
+    # DOCKER_DRIVER 已在全局定义
+  before_script: # <--- 添加 before_script
+    # 1. 移除 docker-compose.yml 中过时的 'version:' 属性 (建议直接在代码库中修改)
+    - sed -i '/^version:/d' docker-compose.yml
+    # 2. 等待 Docker-in-Docker 服务完全启动并准备就绪
+    - until docker info; do echo "Waiting for Docker daemon..."; sleep 1; done
+    # 登录 Docker Registry (如果需要推送到私有或 GitLab Registry, 取消注释并配置相关 CI/CD 变量)
     # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+  script:
     - echo "Building backend service..."
     # 使用 docker compose build 构建，它会读取 docker-compose.yml 中的 build 配置
     - docker compose build backend # 确认使用无连字符命令
-    # 如果需要推送到 Registry
+    # 如果需要推送到 Registry (取消注释并替换 <image_name_backend>)
     # - docker tag <image_name_backend> $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
     # - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
   rules:
@@ -40,6 +52,7 @@ build_backend:
 deploy_backend:
   stage: deploy
   # needs: [build_backend] # 如果 build 和 deploy 在不同 Runner 或需要明确依赖关系
+  # 注意：此 Job 通过 SSH 在目标服务器上执行 Docker 命令，因此不需要 DinD 服务
   before_script:
     # 设置 SSH 环境，让 Runner 可以免密登录部署服务器
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )' # 确保 ssh-agent 已安装 (Debian/Ubuntu)
@@ -58,9 +71,9 @@ deploy_backend:
         echo 'Pulling latest code...' && \\
         git pull origin main && \\
         echo 'Pulling latest backend image (if using registry)...' && \\
-        # 如果你推送了镜像到 Registry，需要先 pull
+        # 如果你推送了镜像到 Registry，需要先 pull (取消注释)
         # docker compose pull backend && \\
-        echo 'Building backend image locally...' && \\
+        echo 'Building backend image locally on target server...' && \\
         # 注意：确保 $DEPLOY_SERVER_IP 上安装了 Docker Compose v2 (docker compose)
         # 如果目标服务器是 v1，请将下面的命令改为 docker-compose (带连字符)
         docker compose build backend && \\
@@ -84,14 +97,25 @@ deploy_backend:
 # ==================================
 build_frontend:
   stage: build
-  image: docker:latest # <--- 添加此行，指定使用 docker 镜像
-  variables: # <--- 添加这个 variables 块
-    DOCKER_HOST: ""
-  script:
+  image: docker:latest # 使用包含 Docker CLI 和 Compose 的镜像
+  services: # <--- 添加 services 块以启动 DinD
+    - name: docker:dind
+      alias: docker
+  variables: # <--- 修改/添加 DinD 所需的变量
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    # DOCKER_DRIVER 已在全局定义
+  before_script: # <--- 添加 before_script
+    # 1. 移除 docker-compose.yml 中过时的 'version:' 属性 (建议直接在代码库中修改)
+    - sed -i '/^version:/d' docker-compose.yml
+    # 2. 等待 Docker-in-Docker 服务完全启动并准备就绪
+    - until docker info; do echo "Waiting for Docker daemon..."; sleep 1; done
+    # 登录 Docker Registry (如果需要)
     # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+  script:
     - echo "Building frontend service..."
     - docker compose build frontend # 确认使用无连字符命令
-    # 如果需要推送到 Registry
+    # 如果需要推送到 Registry (取消注释并替换 <image_name_frontend>)
     # - docker tag <image_name_frontend> $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
     # - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
   rules:
@@ -104,6 +128,7 @@ build_frontend:
 deploy_frontend:
   stage: deploy
   # needs: [build_frontend]
+  # 注意：此 Job 通过 SSH 在目标服务器上执行 Docker 命令，因此不需要 DinD 服务
   before_script: # 和 deploy_backend 类似，设置 SSH
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
@@ -121,7 +146,7 @@ deploy_frontend:
         git pull origin main && \\
         echo 'Pulling latest frontend image (if using registry)...' && \\
         # docker compose pull frontend && \\
-        echo 'Building frontend image locally...' && \\
+        echo 'Building frontend image locally on target server...' && \\
         # 注意：确保 $DEPLOY_SERVER_IP 上安装了 Docker Compose v2 (docker compose)
         # 如果目标服务器是 v1，请将下面的命令改为 docker-compose (带连字符)
         docker compose build frontend && \\
@@ -145,6 +170,7 @@ deploy_frontend:
 # ==================================
 deploy_infrastructure:
   stage: deploy
+  # 注意：此 Job 通过 SSH 在目标服务器上执行 Docker 命令，因此不需要 DinD 服务
   before_script: # 和其他 deploy job 类似
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
