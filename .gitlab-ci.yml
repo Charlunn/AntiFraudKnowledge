@@ -24,8 +24,16 @@ build_backend:
   # 无需 services, variables (DOCKER_HOST, DOCKER_TLS_CERTDIR)
   before_script:
     # 在 Alpine 中安装 Docker CLI 和 Docker Compose
+    before_script:
+    # --- 更换 Alpine 源 ---
+    - cp /etc/apk/repositories /etc/apk/repositories.bak
+    - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+    - echo "Using mirrors:"
+    - cat /etc/apk/repositories
+    - apk update
+    # --- 源更换结束 ---
     - echo "Installing Docker tools..."
-    - apk add --no-cache docker-cli docker-compose openssl # openssl 可能被docker login等需要
+    - apk add --no-cache docker-cli docker-compose openssl
     # (可选) 登录 Docker Registry
     # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
   script:
