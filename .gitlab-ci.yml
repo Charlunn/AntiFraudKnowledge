@@ -5,46 +5,62 @@ stages:
   - build
   - deploy
 
-# 定义默认使用 alpine 镜像
+# 定义默认行为: 使用 alpine 镜像，并在所有 Job (除非覆盖) 执行前更换镜像源
 default:
   image: alpine:latest
+  before_script:
+    # --- 全局更换 Alpine 源 (在每个 Job 执行 apk add 前生效) ---
+    - echo "Attempting to switch Alpine mirror to Aliyun..."
+    - cp /etc/apk/repositories /etc/apk/repositories.bak
+    # 使用 sed 命令替换为阿里云镜像源 (请确保 Runner 能访问此镜像)
+    - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+    # 打印当前使用的源 (用于调试)
+    - echo "Current Alpine repositories:"
+    - cat /etc/apk/repositories
+    # 从新源更新软件包索引 (只需一次)
+    - apk update
+    - echo "Alpine mirror switched and index updated."
+    # --- 源更换结束 ---
 
 # 定义全局变量
 variables:
-  DOCKER_DRIVER: overlay2 # 推荐的 Docker 存储驱动 (对 DinD 更重要，对 socket binding 影响小)
-  # 定义 Compose 项目名称，避免不同项目冲突
+  DOCKER_DRIVER: overlay2
   COMPOSE_PROJECT_NAME: myapp_${CI_COMMIT_REF_SLUG}
+
+# 定义 SSH 设置的 YAML 锚点，方便复用
+.ssh_setup: &ssh_setup_script
+  # 安装 SSH 客户端和 Git (在 deploy_* jobs 中需要)
+  - echo "Installing SSH client and Git..."
+  - apk add --no-cache openssh-client git
+  # 设置 SSH 环境
+  - echo "Setting up SSH agent..."
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - echo "Adding SSH known hosts..."
+  - ssh-keyscan -H $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts || true # 忽略 keyscan 可能的错误
+  - chmod 644 ~/.ssh/known_hosts
 
 # ==================================
 #  Backend 服务 (Django)
 # ==================================
 build_backend:
   stage: build
-  # 无需 image: docker:latest, 使用默认的 alpine:latest
-  # 无需 services, variables (DOCKER_HOST, DOCKER_TLS_CERTDIR)
+  # 使用 default 的 alpine:latest 和全局 before_script (换源)
   before_script:
-    # 在 Alpine 中安装 Docker CLI 和 Docker Compose
-    before_script:
-    # --- 更换 Alpine 源 ---
-    - cp /etc/apk/repositories /etc/apk/repositories.bak
-    - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
-    - echo "Using mirrors:"
-    - cat /etc/apk/repositories
-    - apk update
-    # --- 源更换结束 ---
-    - echo "Installing Docker tools..."
+    # Job 特定的准备：安装 Docker 工具 (全局 before_script 会先运行)
+    - echo "Installing Docker tools for build_backend..."
     - apk add --no-cache docker-cli docker-compose openssl
     # (可选) 登录 Docker Registry
     # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
   script:
     - echo "Building backend service..."
-    # 使用 docker-compose (带连字符) 命令
-    - docker-compose --version # 打印版本确认
+    - docker-compose --version
     - docker --version
     - docker-compose build backend
-    # 如果需要推送到 Registry (取消注释并替换 <image_name_backend>)
-    # - docker tag <image_name_backend> $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
-    # - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
+    # (可选) 推送镜像
+    # - docker tag ... && docker push ...
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
@@ -54,33 +70,24 @@ build_backend:
 
 deploy_backend:
   stage: deploy
-  # 使用默认的 alpine:latest
+  # 使用 default 的 alpine:latest 和全局 before_script (换源)
   before_script:
-    # 安装 SSH 客户端和 Git (如果需要在脚本中操作 Git)
-    - echo "Installing SSH client and Git..."
-    - apk add --no-cache openssh-client git
-    # 设置 SSH 环境
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - ssh-keyscan -H $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
+    # Job 特定的准备：使用锚点包含 SSH 设置 (会先运行全局 before_script)
+    - *ssh_setup_script
   script:
     - echo "Deploying backend service to $DEPLOY_SERVER_IP..."
     - >
       ssh ${DEPLOY_USER}@${DEPLOY_SERVER_IP} "
-        cd ${DEPLOY_PATH} && \\
-        echo 'Pulling latest code...' && \\
-        git pull origin main && \\
-        echo 'Pulling latest backend image (if using registry)...' && \\
-        # 如果你推送了镜像到 Registry，需要先 pull (取消注释)
-        # docker-compose pull backend && \\
-        echo 'Building backend image locally on target server...' && \\
+        cd ${DEPLOY_PATH} && \
+        echo 'Pulling latest code...' && \
+        git pull origin main && \
+        echo 'Pulling latest backend image (if using registry)...' && \
+        # docker-compose pull backend && \
+        echo 'Building backend image locally on target server...' && \
         # 注意：确保 $DEPLOY_SERVER_IP 上安装了 docker-compose (建议 v1)
-        docker-compose build backend && \\
-        echo 'Starting backend service...' && \\
-        docker-compose up -d --no-deps backend && \\
+        docker-compose build backend && \
+        echo 'Starting backend service...' && \
+        docker-compose up -d --no-deps backend && \
         echo 'Backend deployment complete.'
       "
   environment:
@@ -99,10 +106,10 @@ deploy_backend:
 # ==================================
 build_frontend:
   stage: build
-  # 使用默认的 alpine:latest
+  # 使用 default 的 alpine:latest 和全局 before_script (换源)
   before_script:
-    # 安装 Docker CLI 和 Docker Compose
-    - echo "Installing Docker tools..."
+    # Job 特定的准备：安装 Docker 工具 (全局 before_script 会先运行)
+    - echo "Installing Docker tools for build_frontend..."
     - apk add --no-cache docker-cli docker-compose openssl
     # (可选) 登录 Docker Registry
     # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
@@ -111,9 +118,8 @@ build_frontend:
     - docker-compose --version
     - docker --version
     - docker-compose build frontend
-    # 如果需要推送到 Registry (取消注释并替换 <image_name_frontend>)
-    # - docker tag <image_name_frontend> $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
-    # - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
+     # (可选) 推送镜像
+    # - docker tag ... && docker push ...
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
@@ -123,32 +129,24 @@ build_frontend:
 
 deploy_frontend:
   stage: deploy
-  # 使用默认的 alpine:latest
+  # 使用 default 的 alpine:latest 和全局 before_script (换源)
   before_script:
-    # 安装 SSH 客户端和 Git
-    - echo "Installing SSH client and Git..."
-    - apk add --no-cache openssh-client git
-    # 设置 SSH 环境
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - ssh-keyscan -H $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
+    # Job 特定的准备：使用锚点包含 SSH 设置 (会先运行全局 before_script)
+    - *ssh_setup_script
   script:
     - echo "Deploying frontend service to $DEPLOY_SERVER_IP..."
     - >
       ssh ${DEPLOY_USER}@${DEPLOY_SERVER_IP} "
-        cd ${DEPLOY_PATH} && \\
-        echo 'Pulling latest code...' && \\
-        git pull origin main && \\
-        echo 'Pulling latest frontend image (if using registry)...' && \\
-        # docker-compose pull frontend && \\
-        echo 'Building frontend image locally on target server...' && \\
+        cd ${DEPLOY_PATH} && \
+        echo 'Pulling latest code...' && \
+        git pull origin main && \
+        echo 'Pulling latest frontend image (if using registry)...' && \
+        # docker-compose pull frontend && \
+        echo 'Building frontend image locally on target server...' && \
         # 注意：确保 $DEPLOY_SERVER_IP 上安装了 docker-compose (建议 v1)
-        docker-compose build frontend && \\
-        echo 'Starting frontend service...' && \\
-        docker-compose up -d --no-deps frontend && \\
+        docker-compose build frontend && \
+        echo 'Starting frontend service...' && \
+        docker-compose up -d --no-deps frontend && \
         echo 'Frontend deployment complete.'
       "
   environment:
@@ -167,31 +165,23 @@ deploy_frontend:
 # ==================================
 deploy_infrastructure:
   stage: deploy
-  # 使用默认的 alpine:latest
+  # 使用 default 的 alpine:latest 和全局 before_script (换源)
   before_script:
-    # 安装 SSH 客户端和 Git
-    - echo "Installing SSH client and Git..."
-    - apk add --no-cache openssh-client git
-    # 设置 SSH 环境
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - ssh-keyscan -H $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
+    # Job 特定的准备：使用锚点包含 SSH 设置 (会先运行全局 before_script)
+    - *ssh_setup_script
   script:
     - echo "Applying potential infrastructure changes from docker-compose.yml on $DEPLOY_SERVER_IP..."
     - >
       ssh ${DEPLOY_USER}@${DEPLOY_SERVER_IP} "
-        cd ${DEPLOY_PATH} && \\
-        echo 'Pulling latest code (including docker-compose.yml)...' && \\
-        git pull origin main && \\
-        echo 'Pulling latest mysql and neo4j images...' && \\
+        cd ${DEPLOY_PATH} && \
+        echo 'Pulling latest code (including docker-compose.yml)...' && \
+        git pull origin main && \
+        echo 'Pulling latest mysql and neo4j images...' && \
         # 注意：确保 $DEPLOY_SERVER_IP 上安装了 docker-compose (建议 v1)
-        docker-compose pull mysql && \\
-        docker-compose pull neo4j && \\
-        echo 'Applying docker-compose changes (if any)...' && \\
-        docker-compose up -d && \\
+        docker-compose pull mysql && \
+        docker-compose pull neo4j && \
+        echo 'Applying docker-compose changes (if any)...' && \
+        docker-compose up -d && \
         echo 'Infrastructure update complete.'
       "
   environment:
