@@ -3,198 +3,124 @@
 # 定义 CI/CD 的各个阶段
 stages:
   - build
-  # - test # 如果需要测试阶段，可以添加
   - deploy
 
-# 定义一些全局变量，方便复用
+# 定义默认使用 alpine 镜像
+default:
+  image: alpine:latest
+
+# 定义全局变量
 variables:
-  DOCKER_DRIVER: overlay2 # 推荐的 Docker 存储驱动
-  # 定义 Compose 项目名称，避免不同项目冲突，默认为目录名
-  COMPOSE_PROJECT_NAME: myapp_${CI_COMMIT_REF_SLUG} # 使用分支名作为后缀，防止并发部署冲突
+  DOCKER_DRIVER: overlay2 # 推荐的 Docker 存储驱动 (对 DinD 更重要，对 socket binding 影响小)
+  # 定义 Compose 项目名称，避免不同项目冲突
+  COMPOSE_PROJECT_NAME: myapp_${CI_COMMIT_REF_SLUG}
 
 # ==================================
 #  Backend 服务 (Django)
 # ==================================
 build_backend:
   stage: build
-  image: docker:latest # 使用包含 Docker CLI 和 Compose 的镜像
-  services: # 启动 DinD 服务
-    - name: docker:dind
-      alias: docker # 设置服务别名
-  variables: # DinD 所需的变量
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ""
-    # DOCKER_DRIVER 已在全局定义
-  before_script: # <--- 修改后的 before_script
-    # 1. 移除 docker-compose.yml 中过时的 'version:' 属性 (建议直接在代码库中修改)
-    - echo "Attempting to remove 'version:' from docker-compose.yml..."
-    - sed -i '/^version:/d' docker-compose.yml
-
-    # 2. 添加网络诊断步骤
-    - echo "--- Network Diagnostics Start ---"
-    # 安装 DNS 查询工具 (docker:latest 基于 Alpine, 使用 apk)
-    - echo "Installing DNS tools..."
-    - apk add --no-cache bind-tools
-    # 尝试解析 'docker' 别名
-    - echo "Attempting nslookup for 'docker'..."
-    - nslookup docker
-    # 尝试 ping 'docker' 别名
-    - echo "Attempting ping for 'docker'..."
-    - ping -c 3 docker || echo "Ping failed (continuing...)" # 即使 ping 失败也继续
-    # 查看容器的 hosts 文件
-    - echo "Contents of /etc/hosts:"
-    - cat /etc/hosts
-    # 查看容器的 DNS 配置
-    - echo "Contents of /etc/resolv.conf:"
-    - cat /etc/resolv.conf
-    - echo "--- Network Diagnostics End ---"
-
-    # 3. 等待 Docker-in-Docker 服务完全启动并准备就绪
-    - echo "Waiting for Docker daemon..."
-    # 增加 sleep 时间到 5 秒, 并添加超时以防万一 (例如 3 分钟)
-    - |
-      timeout=180 # Timeout in seconds (3 minutes)
-      elapsed=0
-      while ! docker info > /dev/null 2>&1; do
-        if [ $elapsed -ge $timeout ]; then
-          echo "Timeout waiting for Docker daemon!"
-          docker info # Attempt one last time to show the error
-          exit 1
-        fi
-        echo "Still waiting for Docker daemon... (${elapsed}s / ${timeout}s)"
-        sleep 5
-        elapsed=$((elapsed + 5))
-      done
-    - echo "Docker daemon is ready!"
+  # 无需 image: docker:latest, 使用默认的 alpine:latest
+  # 无需 services, variables (DOCKER_HOST, DOCKER_TLS_CERTDIR)
+  before_script:
+    # 在 Alpine 中安装 Docker CLI 和 Docker Compose
+    - echo "Installing Docker tools..."
+    - apk add --no-cache docker-cli docker-compose openssl # openssl 可能被docker login等需要
+    # (可选) 登录 Docker Registry
+    # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
   script:
     - echo "Building backend service..."
-    # 使用 docker compose build 构建，它会读取 docker-compose.yml 中的 build 配置
-    - docker compose build backend # 确认使用无连字符命令
+    # 使用 docker-compose (带连字符) 命令
+    - docker-compose --version # 打印版本确认
+    - docker --version
+    - docker-compose build backend
     # 如果需要推送到 Registry (取消注释并替换 <image_name_backend>)
     # - docker tag <image_name_backend> $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
     # - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHA
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"' # 只在 main 分支运行
-      changes:
-        - backend/**/* # 当 backend 目录下的任何文件改变时触发
-        - docker-compose.yml # 当 docker-compose 文件改变时也触发（可能影响构建）
-        - backend/Dockerfile.backend # 当 Dockerfile 改变时触发
-
-deploy_backend:
-  stage: deploy
-  # needs: [build_backend] # 如果 build 和 deploy 在不同 Runner 或需要明确依赖关系
-  # 注意：此 Job 通过 SSH 在目标服务器上执行 Docker 命令，因此不需要 DinD 服务
-  before_script:
-    # 设置 SSH 环境，让 Runner 可以免密登录部署服务器
-    - 'which ssh-agent || ( apk update && apk add openssh-client )' # 使用 apk (假设 Runner 基础镜像是 Alpine)
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - # 添加私钥
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    # 将服务器的公钥添加到 known_hosts，避免首次连接的交互提示
-    - ssh-keyscan -H $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-  script:
-    - echo "Deploying backend service to $DEPLOY_SERVER_IP..."
-    - > # 使用多行命令，更清晰
-      ssh ${DEPLOY_USER}@${DEPLOY_SERVER_IP} "
-        cd ${DEPLOY_PATH} && \\
-        echo 'Pulling latest code...' && \\
-        git pull origin main && \\
-        echo 'Pulling latest backend image (if using registry)...' && \\
-        # 如果你推送了镜像到 Registry，需要先 pull (取消注释)
-        # docker compose pull backend && \\
-        echo 'Building backend image locally on target server...' && \\
-        # 注意：确保 $DEPLOY_SERVER_IP 上安装了 Docker Compose v2 (docker compose)
-        docker compose build backend && \\
-        echo 'Starting backend service...' && \\
-        docker compose up -d --no-deps backend && \\
-        echo 'Backend deployment complete.'
-      "
-  environment: # 定义部署环境，方便在 GitLab UI 中查看
-    name: production/backend
-    url: http://your-backend-url.com # 替换成你的后端访问地址
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - backend/**/*
         - docker-compose.yml
         - backend/Dockerfile.backend
-      when: on_success # 仅在 build 成功后执行 (如果定义了 needs) 或独立执行
+
+deploy_backend:
+  stage: deploy
+  # 使用默认的 alpine:latest
+  before_script:
+    # 安装 SSH 客户端和 Git (如果需要在脚本中操作 Git)
+    - echo "Installing SSH client and Git..."
+    - apk add --no-cache openssh-client git
+    # 设置 SSH 环境
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    - echo "Deploying backend service to $DEPLOY_SERVER_IP..."
+    - >
+      ssh ${DEPLOY_USER}@${DEPLOY_SERVER_IP} "
+        cd ${DEPLOY_PATH} && \\
+        echo 'Pulling latest code...' && \\
+        git pull origin main && \\
+        echo 'Pulling latest backend image (if using registry)...' && \\
+        # 如果你推送了镜像到 Registry，需要先 pull (取消注释)
+        # docker-compose pull backend && \\
+        echo 'Building backend image locally on target server...' && \\
+        # 注意：确保 $DEPLOY_SERVER_IP 上安装了 docker-compose (建议 v1)
+        docker-compose build backend && \\
+        echo 'Starting backend service...' && \\
+        docker-compose up -d --no-deps backend && \\
+        echo 'Backend deployment complete.'
+      "
+  environment:
+    name: production/backend
+    url: http://your-backend-url.com
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      changes:
+        - backend/**/*
+        - docker-compose.yml
+        - backend/Dockerfile.backend
+      when: on_success
 
 # ==================================
 #  Frontend 服务
 # ==================================
 build_frontend:
   stage: build
-  image: docker:latest # 使用包含 Docker CLI 和 Compose 的镜像
-  services: # 启动 DinD 服务
-    - name: docker:dind
-      alias: docker
-  variables: # DinD 所需的变量
-    DOCKER_HOST: tcp://docker:2375
-    DOCKER_TLS_CERTDIR: ""
-    # DOCKER_DRIVER 已在全局定义
-  before_script: # <--- 修改后的 before_script
-    # 1. 移除 docker-compose.yml 中过时的 'version:' 属性 (建议直接在代码库中修改)
-    - echo "Attempting to remove 'version:' from docker-compose.yml..."
-    - sed -i '/^version:/d' docker-compose.yml
-
-    # 2. 添加网络诊断步骤
-    - echo "--- Network Diagnostics Start ---"
-    # 安装 DNS 查询工具 (docker:latest 基于 Alpine, 使用 apk)
-    - echo "Installing DNS tools..."
-    - apk add --no-cache bind-tools
-    # 尝试解析 'docker' 别名
-    - echo "Attempting nslookup for 'docker'..."
-    - nslookup docker
-    # 尝试 ping 'docker' 别名
-    - echo "Attempting ping for 'docker'..."
-    - ping -c 3 docker || echo "Ping failed (continuing...)" # 即使 ping 失败也继续
-    # 查看容器的 hosts 文件
-    - echo "Contents of /etc/hosts:"
-    - cat /etc/hosts
-    # 查看容器的 DNS 配置
-    - echo "Contents of /etc/resolv.conf:"
-    - cat /etc/resolv.conf
-    - echo "--- Network Diagnostics End ---"
-
-    # 3. 等待 Docker-in-Docker 服务完全启动并准备就绪
-    - echo "Waiting for Docker daemon..."
-    # 增加 sleep 时间到 5 秒, 并添加超时以防万一 (例如 3 分钟)
-    - |
-      timeout=180 # Timeout in seconds (3 minutes)
-      elapsed=0
-      while ! docker info > /dev/null 2>&1; do
-        if [ $elapsed -ge $timeout ]; then
-          echo "Timeout waiting for Docker daemon!"
-          docker info # Attempt one last time to show the error
-          exit 1
-        fi
-        echo "Still waiting for Docker daemon... (${elapsed}s / ${timeout}s)"
-        sleep 5
-        elapsed=$((elapsed + 5))
-      done
-    - echo "Docker daemon is ready!"
+  # 使用默认的 alpine:latest
+  before_script:
+    # 安装 Docker CLI 和 Docker Compose
+    - echo "Installing Docker tools..."
+    - apk add --no-cache docker-cli docker-compose openssl
+    # (可选) 登录 Docker Registry
+    # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
   script:
     - echo "Building frontend service..."
-    - docker compose build frontend # 确认使用无连字符命令
+    - docker-compose --version
+    - docker --version
+    - docker-compose build frontend
     # 如果需要推送到 Registry (取消注释并替换 <image_name_frontend>)
     # - docker tag <image_name_frontend> $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
     # - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHA
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
-        - frontend/**/* # 当 frontend 目录下的任何文件改变时触发
+        - frontend/**/*
         - docker-compose.yml
         - frontend/Dockerfile.frontend
 
 deploy_frontend:
   stage: deploy
-  # needs: [build_frontend]
-  # 注意：此 Job 通过 SSH 在目标服务器上执行 Docker 命令，因此不需要 DinD 服务
-  before_script: # 和 deploy_backend 类似，设置 SSH
-    - 'which ssh-agent || ( apk update && apk add openssh-client )' # 使用 apk
+  # 使用默认的 alpine:latest
+  before_script:
+    # 安装 SSH 客户端和 Git
+    - echo "Installing SSH client and Git..."
+    - apk add --no-cache openssh-client git
+    # 设置 SSH 环境
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
@@ -209,17 +135,17 @@ deploy_frontend:
         echo 'Pulling latest code...' && \\
         git pull origin main && \\
         echo 'Pulling latest frontend image (if using registry)...' && \\
-        # docker compose pull frontend && \\
+        # docker-compose pull frontend && \\
         echo 'Building frontend image locally on target server...' && \\
-        # 注意：确保 $DEPLOY_SERVER_IP 上安装了 Docker Compose v2 (docker compose)
-        docker compose build frontend && \\
+        # 注意：确保 $DEPLOY_SERVER_IP 上安装了 docker-compose (建议 v1)
+        docker-compose build frontend && \\
         echo 'Starting frontend service...' && \\
-        docker compose up -d --no-deps frontend && \\
+        docker-compose up -d --no-deps frontend && \\
         echo 'Frontend deployment complete.'
       "
   environment:
     name: production/frontend
-    url: http://your-frontend-url.com # 替换成你的前端访问地址
+    url: http://your-frontend-url.com
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
@@ -233,9 +159,12 @@ deploy_frontend:
 # ==================================
 deploy_infrastructure:
   stage: deploy
-  # 注意：此 Job 通过 SSH 在目标服务器上执行 Docker 命令，因此不需要 DinD 服务
-  before_script: # 和其他 deploy job 类似
-    - 'which ssh-agent || ( apk update && apk add openssh-client )' # 使用 apk
+  # 使用默认的 alpine:latest
+  before_script:
+    # 安装 SSH 客户端和 Git
+    - echo "Installing SSH client and Git..."
+    - apk add --no-cache openssh-client git
+    # 设置 SSH 环境
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
@@ -250,17 +179,16 @@ deploy_infrastructure:
         echo 'Pulling latest code (including docker-compose.yml)...' && \\
         git pull origin main && \\
         echo 'Pulling latest mysql and neo4j images...' && \\
-        # 注意：确保 $DEPLOY_SERVER_IP 上安装了 Docker Compose v2 (docker compose)
-        docker compose pull mysql && \\
-        docker compose pull neo4j && \\
-        echo 'Applying docker compose changes (if any)...' && \\
-        docker compose up -d && \\
+        # 注意：确保 $DEPLOY_SERVER_IP 上安装了 docker-compose (建议 v1)
+        docker-compose pull mysql && \\
+        docker-compose pull neo4j && \\
+        echo 'Applying docker-compose changes (if any)...' && \\
+        docker-compose up -d && \\
         echo 'Infrastructure update complete.'
       "
   environment:
     name: production/infrastructure
   rules:
-    # 这个 Job 只在 docker-compose.yml 变化时运行
     - if: '$CI_COMMIT_BRANCH == "main"'
       changes:
         - docker-compose.yml
