@@ -4,7 +4,7 @@ django-cors-headers
 django-rest-framework
 # Neo4j Database Drivers
 neo4j # 官方推荐的 Neo4j Python 驱动 [1, 2]
-
+mysqlclient
 
 # MySQL Database Driver (for Django)
 mysqlclient # Django 连接 MySQL 需要的驱动 [3, 4, 5]
@@ -13,5 +13,5 @@ mysqlclient # Django 连接 MySQL 需要的驱动 [3, 4, 5]
 thulac # 清华大学自然语言处理与社会人文计算实验室的中文词法分析工具包
 stanfordcorenlp # Stanford CoreNLP 的 Python 封装库 (注意：需要 CoreNLP Java 服务器在后台运行)
 pypinyin # 用于汉字转拼音的库
-
+Pillow
 # 其他你项目可能需要的依赖可以继续添加...

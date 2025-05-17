@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'graph_api',
-    'users'
+    'users',
 ]
 TEMPLATES = [
     {
@@ -83,15 +83,23 @@ WSGI_APPLICATION = 'KnowledgeBackend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'mydatabase',  # 使用 docker-compose.yml 中设置的数据库名
+        'USER': 'root',       # 使用 docker-compose.yml 中设置的用户名 (这里是 root)
+        'PASSWORD': '123456',   # 使用 docker-compose.yml 中设置的密码
+        'HOST': 'mysql',        # 关键：使用 MySQL 服务的名称
+        'PORT': '3306',
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
 
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-
+AUTH_USER_MODEL = 'users.CustomUser'
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',

@@ -24,4 +24,5 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('graph_api.urls', namespace='graph_api')),  # 包含应用URL并指定命名空间
+    path('api/users/', include('users.urls')),
 ]
