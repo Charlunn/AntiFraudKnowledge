@@ -1,6 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
-import { defineNuxtConfig } from 'nuxt/config'
+import { defineNuxtConfig } from 'nuxt/config';
+
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
@@ -30,13 +31,16 @@ export default defineNuxtConfig({
     }
   },
 
-  // CSS 配置 (Nuxt UI 会自动处理 Tailwind)
-  // css:,
+  // CSS 配置
+  css: [
+    '~/assets/css/main.css'
+  ],
+
   // postcss: { // 如果手动配置 Tailwind (且未使用 Nuxt UI)
   //   plugins: {
   //     tailwindcss: {},
-  //     autoprefixer: {},
+  //     autoprefixer: {},\
   //   },
   // },
 
-})
+});
