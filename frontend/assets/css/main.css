@@ -1,11 +1,28 @@
 /* frontend/assets/css/main.css */
 
+/* 定义颜色变量 */
+:root {
+  --primary-color: #00dc82; /* Nuxt 官网的绿色作为主题色 */
+  --primary-color-dark: #00b067; /* 主题色深色版本 */
+  --secondary-color: #10b981; /* 辅助色，可以使用其他绿色或灰色系 */
+
+  --background-color: #f8f8f8; /* 浅灰色背景，比白色更柔和 */
+  --surface-color: #ffffff; /* 用于卡片、侧边栏等“表面”元素的白色 */
+
+  --text-color: #333333; /* 深灰色文字 */
+  --subtle-text-color: #666666; /* 中灰色文字，用于辅助信息 */
+  --border-color: #eeeeee; /* 浅灰色边框 */
+  --shadow-color: rgba(0, 0, 0, 0.05); /* 柔和的阴影颜色 */
+  --hover-shadow-color: rgba(0, 0, 0, 0.1); /* 悬停时的阴影颜色 */
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background-color: #f4f6f8; /* 高级感背景色 */
-  color: #333;
+  background-color: var(--background-color); /* 应用新的背景色 */
+  color: var(--text-color); /* 应用新的文字颜色 */
   margin: 0;
   line-height: 1.6;
+  text-rendering: optimizeLegibility; /* 优化字体渲染 */
 }
 
 *,
@@ -29,9 +46,89 @@ select,
 h1, h2, h3, h4, h5, h6 {
     margin-top: 0;
     margin-bottom: 0.5em;
+    font-weight: 700; /* 加粗标题 */
+    line-height: 1.2;
 }
 
 p {
     margin-top: 0;
     margin-bottom: 1em;
+}
+
+a {
+    color: var(--primary-color); /* 链接使用主题色 */
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: var(--primary-color-dark); /* 悬停时颜色变深 */
+    text-decoration: underline;
+}
+
+/* 按钮基础样式 */
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease; /* 添加 opacity 过渡 */
+    /* 确保按钮有明确的背景和文字颜色对比 */
+    background-color: var(--primary-color); /* 使用主题色 */
+    color: white; /* 白色文字 */
+    box-shadow: 0 2px 4px var(--shadow-color); /* 默认阴影 */
+}
+
+button:hover {
+    background-color: var(--primary-color-dark); /* 悬停时颜色变深 */
+    box-shadow: 0 4px 8px var(--hover-shadow-color); /* 悬停时添加阴影 */
+}
+
+button:active {
+    transform: scale(0.98); /* 点击时的微小缩小效果 */
+}
+
+button:disabled {
+  background-color: #cccccc; /* 禁用状态背景色 */
+  color: #999999; /* 禁用状态文字颜色 */
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  transition: none; /* 禁用状态没有动画 */
+  opacity: 0.7; /* 禁用时半透明 */
+}
+
+
+/* 输入框基础样式 */
+input[type="text"],
+textarea,
+select {
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+input[type="text"]:focus,
+textarea:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-dark), 0.1); /* focus 时使用主题色阴影 */
+}
+
+/* 通用容器和卡片样式 */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px; /* 容器内边距 */
+}
+
+.card {
+    background-color: var(--surface-color);
+    border-radius: 15px; /* 更大的圆角用于主要区域 */
+    box-shadow: 0 8px 24px var(--shadow-color); /* 柔和的阴影 */
+    padding: 20px;
 }
