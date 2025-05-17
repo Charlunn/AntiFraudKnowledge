@@ -5,7 +5,7 @@
   
       <!-- 主内容区域 -->
       <div class="main-content">
-        <!-- 返回按钮 (仅在查看邻居时显示) -->
+        <!-- 返回按钮 (在查看邻居或筛选图谱时显示) -->
         <button v-if="isNeighborView && !isLoading" @click="goBackToFullGraph" class="back-button">
           ← Back to Full Graph
         </button>
@@ -80,9 +80,12 @@
   .sidebar-area {
     width: 250px; /* 侧边栏宽度 */
     flex-shrink: 0; /* 防止侧边栏被压缩 */
-    background-color: #f8f9fa;
+    background-color: #e9ecef; /* subtle background color */
     overflow-y: auto; /* 如果内容过多，允许滚动 */
+    border-top-left-radius: 10px; /* Add rounded corner */
+    border-bottom-left-radius: 10px; /* Add rounded corner */
   }
+
   
   .main-content {
     flex-grow: 1; /* 占据剩余空间 */
@@ -91,6 +94,9 @@
     position: relative; /* 为了定位返回按钮 */
     padding: 10px; /* 添加一些内边距 */
     overflow: hidden; /* 防止图表溢出 */
+  }
+  .main-content {
+    background-color: #ffffff; /* subtle background color */
   }
   
   .back-button {
@@ -102,26 +108,32 @@
     background-color: rgba(0, 0, 0, 0.6);
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 20px; /* More rounded button */
     cursor: pointer;
+    transition: background-color 0.3s ease; /* Smooth transition */
   }
   .back-button:hover {
       background-color: rgba(0, 0, 0, 0.8);
   }
   
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
   .loading-indicator, .error-message, .no-data {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100%; /* 占据可用空间 */
-    font-size: 1.2em;
+    font-size: 1.1em;
     color: #666;
+    animation: fadeIn 0.5s ease-in-out; /* Add fade-in animation */
   }
-  
-  .error-message {
-      color: red;
-  }
-  
+
+.error-message {
+  color: #dc3545; /* More distinct red color */
+}
   .graph-area {
     flex-grow: 1; /* 让图表区域填充剩余空间 */
     width: 100%;

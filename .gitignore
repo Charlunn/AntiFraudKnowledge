@@ -86,3 +86,4 @@ docker-compose.override.yml
 # 用户上传/生成内容
 /uploads/
 /public/static/
+db/mysql/mysql.sock

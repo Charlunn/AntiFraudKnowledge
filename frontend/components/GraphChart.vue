@@ -48,20 +48,27 @@
     }
   });
   
+  // 处理窗口大小变化，调整图表大小
+  const handleResize = () => {
+    chartInstance.value?.resize();
+  };
+
   const emit = defineEmits(['node-dblclick']); // 定义双击事件
-  
+
   // ECharts 实例和容器引用
   const chartRef = ref(null);
   // 使用 shallowRef 存储 ECharts 实例，避免深度代理带来的性能问题
   const chartInstance = shallowRef(null);
-  
+
   // 初始化 ECharts 图表
   const initChart = () => {
     if (chartRef.value && !chartInstance.value) {
       chartInstance.value = echarts.init(chartRef.value);
       setOptions(); // 初始设置选项
-  
+
       // 监听双击事件
+      // 销毁旧的事件监听器，防止重复绑定
+      chartInstance.value.off('dblclick');
       chartInstance.value.on('dblclick', (params) => {
         // console.log('Double Click Params:', params);
         if (params.dataType === 'node') {
@@ -76,19 +83,22 @@
       });
     }
   };
-  
+
   // 设置或更新 ECharts 选项
   const setOptions = () => {
     if (!chartInstance.value) return;
-  
+
     // 提取所有 category 用于图例 (如果需要)
     const categories = [...new Set(props.nodes.map(node => node.category || 'Default'))]
                         .map(name => ({ name }));
-  
-  
+
+
     const option = {
       title: {
         text: props.title,
+        textStyle: { // 标题样式
+          color: '#333'
+        },
         left: 'center'
       },
       tooltip: {
@@ -127,15 +137,40 @@
       //   orient: 'vertical',
       //   left: 'left'
       // }],
+       animationDuration: 1500, // 初始动画时长
+       animationEasingUpdate: 'quinticInOut', // 数据更新动画效果
       series: [
         {
           name: 'Knowledge Graph',
           type: 'graph',
-          layout: 'force', // 或者 'circular'
+          layout: 'force',
+          // layout: 'circular', // 也可以尝试环形布局
           data: props.nodes.map(node => ({ // 确保 id, name, category, symbolSize, value 都在顶层
                ...node, // 展开原始节点数据
                itemStyle: { // 可以根据 category 或其他属性设置样式
-                  // color: getNodeColor(node.category)
+                  color: node.color || '#5470C6', // 默认颜色，可以根据 category 或其他属性动态设置
+                  shadowBlur: 5,
+                  shadowColor: 'rgba(0, 0, 0, 0.2)'
+               },
+               label: { // 节点标签设置 (优先级高于 series 顶层 label)
+                show: true,
+                position: 'right',
+                formatter: '{b}', // 显示节点的 name ('{b}')
+                color: '#333', // 标签颜色
+                fontSize: 10,
+               },
+               // symbol: 'circle', // 节点形状，可选 'circle', 'rect', 'roundRect', 'triangle', 'diamond', 'pin', 'arrow'
+               symbolSize: node.symbolSize || 20, // 节点大小，可以根据 value 或其他属性动态设置
+               emphasis: { // 节点高亮状态
+                 label: {
+                   show: true,
+                   position: 'right',
+                   formatter: '{b}',
+                   fontWeight: 'bold',
+                   fontSize: 12,
+                   color: '#000'
+                 },
+                 itemStyle: { ...node.itemStyle, shadowBlur: 10, shadowColor: 'rgba(0, 0, 0, 0.5)' }
                }
           })),
           links: props.links.map(link => ({ // 确保 source, target, label, lineStyle 都在顶层
@@ -144,60 +179,67 @@
                   ...link.label,
                   formatter: link.label?.formatter || link.type // 优先用 formatter，其次用 type
                },
+               lineStyle: { // 边的样式
+                 color: link.color || '#999', // 默认边的颜色
+                 curveness: 0.1 // 边的弯曲度
+               },
+               emphasis: { // 边高亮状态
+                 lineStyle: {
+                   width: 3,
+                   color: link.emphasisColor || '#000', // 高亮颜色
+                   shadowBlur: 5,
+                   shadowColor: 'rgba(0, 0, 0, 0.5)'
+                 }
+               }
           })),
           categories: categories, // 绑定 categories
           roam: true, // 开启鼠标缩放和平移漫游
-          label: { // 节点标签设置
-            show: true,
-            position: 'right',
-            formatter: '{b}' // 显示节点的 name ('{b}')
-          },
           force: { // 力引导布局配置
-            repulsion: 100, // 节点之间的斥力因子
-            edgeLength: [50, 100], // 边的两个节点之间的距离，默认为50
-            gravity: 0.05 // 节点受到的向中心的引力因子
+            repulsion: 200, // 节点之间的斥力因子，增大可以使节点更分散
+            edgeLength: [80, 150], // 边的两个节点之间的距离范围
+            gravity: 0.1, // 节点受到的向中心的引力因子，增大可以使节点更聚拢
+            // layoutAnimation: true // 是否开启布局动画
           },
           emphasis: { // 高亮状态
-              focus: 'adjacency', // 高亮相邻节点和边
-               lineStyle: {
-                  width: 4
-              }
+              focus: 'adjacency', // 高亮相邻节点和边 // 或者 'series' 高亮整个系列
           }
         }
       ]
     };
-  
+
     chartInstance.value.setOption(option, true); // true 表示不合并，替换旧配置
   };
-  
+
   // 监听 props 变化，更新图表
   watch(() => [props.nodes, props.links], () => {
      nextTick(() => { // 确保 DOM 更新后再设置选项
           setOptions();
      });
   }, { deep: true }); // 深度监听，因为 nodes/links 是数组/对象
-  
+
   // 组件挂载时初始化
   onMounted(() => {
+    window.addEventListener('resize', handleResize);
     initChart();
   });
-  
+
   // 组件卸载前销毁 ECharts 实例
   onBeforeUnmount(() => {
+    window.removeEventListener('resize', handleResize);
     if (chartInstance.value) {
       chartInstance.value.dispose();
       chartInstance.value = null;
     }
   });
-  
-  // (可选) 处理窗口大小变化，调整图表大小
-  // 可以添加一个 window resize 事件监听器，并调用 chartInstance.value.resize()
-  
   </script>
-  
+
   <style scoped>
   /* 可以添加一些基本的样式 */
   div {
-    border: 1px solid #eee;
+    border-radius: 8px; /* 添加圆角 */
+    overflow: hidden; /* 确保圆角生效 */
+    /* border: none; /* 移除或调整边框 */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* 添加轻微阴影 */
   }
+
   </style>

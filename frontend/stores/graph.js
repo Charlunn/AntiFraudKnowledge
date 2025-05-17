@@ -87,7 +87,7 @@ export const useGraphStore = defineStore('graph', () => {
         }
         isLoading.value = true;
         error.value = null;
-        isNeighborView.value = false; // 切换回完整视图 (因为是新过滤)
+        isNeighborView.value = true; // 切换回完整视图 (因为是新过滤)
         selectedNodeDetails.value = null; // Clear selected node details
         console.log(`Fetching filtered graph data (Prop: ${filterProp}, Value: ${filterValue})...`); // Log start
         try {
