@@ -10,8 +10,8 @@ deploy_backend:
   stage: deploy
   script:
     - echo "Backend files changed. Restarting backend service..."
-    - apt-get update && apt-get install -y openssh-client
-    - ssh user@your_server_ip "cd /path/to/your/project && docker-compose down backend && docker-compose up -d backend"
+    - apk add --no-cache openssh-client # 使用 apk 安装 openssh-client
+    - ssh user@your_server_ip "cd /path/to/your/project && docker-compose down backend && docker-compose up -d backend" # 请将 your_server_ip 替换为实际服务器IP或主机名，并确保SSH配置正确
   only:
     changes:
       - backend/**/*
@@ -22,8 +22,8 @@ deploy_frontend:
   stage: deploy
   script:
     - echo "Frontend files changed. Restarting frontend service..."
-    - apt-get update && apt-get install -y openssh-client
-    - ssh user@your_server_ip "cd /path/to/your/project && docker-compose down frontend && docker-compose up -d frontend"
+    - apk add --no-cache openssh-client # 使用 apk 安装 openssh-client
+    - ssh user@your_server_ip "cd /path/to/your/project && docker-compose down frontend && docker-compose up -d frontend" # 请将 your_server_ip 替换为实际服务器IP或主机名，并确保SSH配置正确
   only:
     changes:
       - frontend/**/*
@@ -34,8 +34,8 @@ deploy_neo4j:
   stage: deploy
   script:
     - echo "Neo4j data or configuration changed. Restarting neo4j service..."
-    - apt-get update && apt-get install -y openssh-client
-    - ssh user@your_server_ip "cd /path/to/your/project && docker-compose down neo4j && docker-compose up -d neo4j" # 重启 neo4j 服务
+    - apk add --no-cache openssh-client # 使用 apk 安装 openssh-client
+    - ssh user@your_server_ip "cd /path/to/your/project && docker-compose down neo4j && docker-compose up -d neo4j" # 重启 neo4j 服务，请将 your_server_ip 替换为实际服务器IP或主机名，并确保SSH配置正确
   only:
     changes:
       - db/neo4j/**/* # 当 db/neo4j 目录下的任何文件发生更改时触发
@@ -46,8 +46,8 @@ deploy_mysql:
   stage: deploy
   script:
     - echo "MySQL data or configuration changed. Restarting mysql service..."
-    - apt-get update && apt-get install -y openssh-client
-    - ssh user@your_server_ip "cd /path/to/your/project && docker-compose down mysql && docker-compose up -d mysql" # 重启 mysql 服务
+    - apk add --no-cache openssh-client # 使用 apk 安装 openssh-client
+    - ssh user@your_server_ip "cd /path/to/your/project && docker-compose down mysql && docker-compose up -d mysql" # 重启 mysql 服务，请将 your_server_ip 替换为实际服务器IP或主机名，并确保SSH配置正确
   only:
     changes:
       - db/mysql/**/* # 当 db/mysql 目录下的任何文件发生更改时触发
