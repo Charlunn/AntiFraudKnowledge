@@ -1,193 +1,55 @@
-# .gitlab-ci.yml
+image: docker:latest
 
-# 定义 CI/CD 的各个阶段
+services:
+  - docker:dind
+
 stages:
-  - build
   - deploy
-
-# 定义默认行为: 使用 alpine 镜像，并在所有 Job (除非覆盖) 执行前更换镜像源
-default:
-  image: alpine:latest
-  before_script:
-    # --- 全局更换 Alpine 源 (在每个 Job 执行 apk add 前生效) ---
-    - echo "Attempting to switch Alpine mirror to Aliyun..."
-    - cp /etc/apk/repositories /etc/apk/repositories.bak
-    # 使用 sed 命令替换为阿里云镜像源 (请确保 Runner 能访问此镜像)
-    - sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
-    # 打印当前使用的源 (用于调试)
-    - echo "Current Alpine repositories:"
-    - cat /etc/apk/repositories
-    # 从新源更新软件包索引 (只需一次)
-    - apk update
-    - echo "Alpine mirror switched and index updated."
-    # --- 源更换结束 ---
-
-# 定义全局变量
-variables:
-  DOCKER_DRIVER: overlay2
-  COMPOSE_PROJECT_NAME: myapp_${CI_COMMIT_REF_SLUG}
-
-# 定义 SSH 设置的 YAML 锚点，方便复用
-.ssh_setup: &ssh_setup_script
-  # 安装 SSH 客户端和 Git (在 deploy_* jobs 中需要)
-  - echo "Installing SSH client and Git..."
-  - apk add --no-cache openssh-client git
-  # 设置 SSH 环境
-  - echo "Setting up SSH agent..."
-  - eval $(ssh-agent -s)
-  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-  - mkdir -p ~/.ssh
-  - chmod 700 ~/.ssh
-  - echo "Adding SSH known hosts..."
-  - ssh-keyscan -H $DEPLOY_SERVER_IP >> ~/.ssh/known_hosts || true # 忽略 keyscan 可能的错误
-  - chmod 644 ~/.ssh/known_hosts
-
-# ==================================
-#  Backend 服务 (Django)
-# ==================================
-build_backend:
-  stage: build
-  # 使用 default 的 alpine:latest 和全局 before_script (换源)
-  before_script:
-    # Job 特定的准备：安装 Docker 工具 (全局 before_script 会先运行)
-    - echo "Installing Docker tools for build_backend..."
-    - apk add --no-cache docker-cli docker-compose openssl
-    # (可选) 登录 Docker Registry
-    # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-  script:
-    - echo "Building backend service..."
-    - docker-compose --version
-    - docker --version
-    - docker-compose build backend
-    # (可选) 推送镜像
-    # - docker tag ... && docker push ...
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - backend/**/*
-        - docker-compose.yml
-        - backend/Dockerfile.backend
 
 deploy_backend:
   stage: deploy
-  # 使用 default 的 alpine:latest 和全局 before_script (换源)
-  before_script:
-    # Job 特定的准备：使用锚点包含 SSH 设置 (会先运行全局 before_script)
-    - *ssh_setup_script
   script:
-    - echo "Deploying backend service to $DEPLOY_SERVER_IP..."
-    - >
-      ssh ${DEPLOY_USER}@${DEPLOY_SERVER_IP} "
-        cd ${DEPLOY_PATH} && \
-        echo 'Pulling latest code...' && \
-        git pull origin main && \
-        echo 'Pulling latest backend image (if using registry)...' && \
-        # docker-compose pull backend && \
-        echo 'Building backend image locally on target server...' && \
-        # 注意：确保 $DEPLOY_SERVER_IP 上安装了 docker-compose (建议 v1)
-        docker-compose build backend && \
-        echo 'Starting backend service...' && \
-        docker-compose up -d --no-deps backend && \
-        echo 'Backend deployment complete.'
-      "
-  environment:
-    name: production/backend
-    url: http://your-backend-url.com
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - backend/**/*
-        - docker-compose.yml
-        - backend/Dockerfile.backend
-      when: on_success
-
-# ==================================
-#  Frontend 服务
-# ==================================
-build_frontend:
-  stage: build
-  # 使用 default 的 alpine:latest 和全局 before_script (换源)
-  before_script:
-    # Job 特定的准备：安装 Docker 工具 (全局 before_script 会先运行)
-    - echo "Installing Docker tools for build_frontend..."
-    - apk add --no-cache docker-cli docker-compose openssl
-    # (可选) 登录 Docker Registry
-    # - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-  script:
-    - echo "Building frontend service..."
-    - docker-compose --version
-    - docker --version
-    - docker-compose build frontend
-     # (可选) 推送镜像
-    # - docker tag ... && docker push ...
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - frontend/**/*
-        - docker-compose.yml
-        - frontend/Dockerfile.frontend
+    - echo "Backend files changed. Restarting backend service..."
+    - apt-get update && apt-get install -y openssh-client
+    - ssh user@your_server_ip "cd /path/to/your/project && docker-compose down backend && docker-compose up -d backend"
+  only:
+    changes:
+      - backend/**/*
+    refs:
+      - main
 
 deploy_frontend:
   stage: deploy
-  # 使用 default 的 alpine:latest 和全局 before_script (换源)
-  before_script:
-    # Job 特定的准备：使用锚点包含 SSH 设置 (会先运行全局 before_script)
-    - *ssh_setup_script
   script:
-    - echo "Deploying frontend service to $DEPLOY_SERVER_IP..."
-    - >
-      ssh ${DEPLOY_USER}@${DEPLOY_SERVER_IP} "
-        cd ${DEPLOY_PATH} && \
-        echo 'Pulling latest code...' && \
-        git pull origin main && \
-        echo 'Pulling latest frontend image (if using registry)...' && \
-        # docker-compose pull frontend && \
-        echo 'Building frontend image locally on target server...' && \
-        # 注意：确保 $DEPLOY_SERVER_IP 上安装了 docker-compose (建议 v1)
-        docker-compose build frontend && \
-        echo 'Starting frontend service...' && \
-        docker-compose up -d --no-deps frontend && \
-        echo 'Frontend deployment complete.'
-      "
-  environment:
-    name: production/frontend
-    url: http://your-frontend-url.com
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - frontend/**/*
-        - docker-compose.yml
-        - frontend/Dockerfile.frontend
-      when: on_success
+    - echo "Frontend files changed. Restarting frontend service..."
+    - apt-get update && apt-get install -y openssh-client
+    - ssh user@your_server_ip "cd /path/to/your/project && docker-compose down frontend && docker-compose up -d frontend"
+  only:
+    changes:
+      - frontend/**/*
+    refs:
+      - main
 
-# ==================================
-#  数据库服务 (MySQL, Neo4j) - 通常不需要构建
-# ==================================
-deploy_infrastructure:
+deploy_neo4j:
   stage: deploy
-  # 使用 default 的 alpine:latest 和全局 before_script (换源)
-  before_script:
-    # Job 特定的准备：使用锚点包含 SSH 设置 (会先运行全局 before_script)
-    - *ssh_setup_script
   script:
-    - echo "Applying potential infrastructure changes from docker-compose.yml on $DEPLOY_SERVER_IP..."
-    - >
-      ssh ${DEPLOY_USER}@${DEPLOY_SERVER_IP} "
-        cd ${DEPLOY_PATH} && \
-        echo 'Pulling latest code (including docker-compose.yml)...' && \
-        git pull origin main && \
-        echo 'Pulling latest mysql and neo4j images...' && \
-        # 注意：确保 $DEPLOY_SERVER_IP 上安装了 docker-compose (建议 v1)
-        docker-compose pull mysql && \
-        docker-compose pull neo4j && \
-        echo 'Applying docker-compose changes (if any)...' && \
-        docker-compose up -d && \
-        echo 'Infrastructure update complete.'
-      "
-  environment:
-    name: production/infrastructure
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - docker-compose.yml
-      when: on_success
+    - echo "Neo4j data or configuration changed. Restarting neo4j service..."
+    - apt-get update && apt-get install -y openssh-client
+    - ssh user@your_server_ip "cd /path/to/your/project && docker-compose down neo4j && docker-compose up -d neo4j" # 重启 neo4j 服务
+  only:
+    changes:
+      - db/neo4j/**/* # 当 db/neo4j 目录下的任何文件发生更改时触发
+    refs:
+      - main # 只在 main 分支触发
+
+deploy_mysql:
+  stage: deploy
+  script:
+    - echo "MySQL data or configuration changed. Restarting mysql service..."
+    - apt-get update && apt-get install -y openssh-client
+    - ssh user@your_server_ip "cd /path/to/your/project && docker-compose down mysql && docker-compose up -d mysql" # 重启 mysql 服务
+  only:
+    changes:
+      - db/mysql/**/* # 当 db/mysql 目录下的任何文件发生更改时触发
+    refs:
+      - main # 只在 main 分支触发
