@@ -3,18 +3,13 @@
     <h2>Graph Filters</h2>
 
     <div class="filter-group">
-      <label for="node-name">Node Name:</label>
-      <input type="text" id="node-name" v-model="localFilters.nodeName" />
+      <label for="filter-prop">Property Name:</label>
+      <input type="text" id="filter-prop" v-model="localFilters.filterProp" />
     </div>
 
     <div class="filter-group">
-      <label for="node-type">Node Type:</label>
-      <input type="text" id="node-type" v-model="localFilters.nodeType" />
-    </div>
-
-     <div class="filter-group">
-      <label for="relation-type">Relation Type:</label>
-      <input type="text" id="relation-type" v-model="localFilters.relationType" />
+      <label for="filter-value">Property Value:</label>
+      <input type="text" id="filter-value" v-model="localFilters.filterValue" />
     </div>
 
     <!-- 添加一个用于显示错误信息的元素 -->
@@ -32,9 +27,8 @@ const props = defineProps({
     type: Object,
     required: true,
     default: () => ({
-      nodeName: '',
-      nodeType: '',
-      relationType: ''
+      filterProp: '',
+      filterValue: ''
     })
   },
   isLoading: {
@@ -50,15 +44,21 @@ const props = defineProps({
 const emit = defineEmits(['apply-filters']);
 
 // 创建一个内部的 ref 来存储过滤器的临时值
-const localFilters = ref({ ...props.filters });
+const localFilters = ref({
+ filterProp: props.filters.filterProp || '',
+ filterValue: props.filters.filterValue || ''
+});
 
 // 监听外部 filters prop 的变化，以便在外部重置时更新内部状态
 watch(() => props.filters, (newFilters) => {
-  localFilters.value = { ...newFilters };
+ localFilters.value = {
+ filterProp: newFilters.filterProp || '',
+ filterValue: newFilters.filterValue || ''
+ };
 }, { deep: true });
 
 const applyFilters = () => {
-  emit('apply-filters', localFilters.value);
+  emit('apply-filters', { filterProp: localFilters.value.filterProp, filterValue: localFilters.value.filterValue });
 };
 
 </script>

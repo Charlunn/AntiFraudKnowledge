@@ -94,14 +94,14 @@ const setOptions = () => {
 
     // 从 CSS 变量中获取颜色值 (注意：这里是模拟获取，实际应用中需要通过 JS 获取 CSS 变量或使用一个共享的颜色配置)
     // 为了简单起见，我们继续使用硬编码，但确保它们与 main.css 中的变量一致
-    const primaryColor = '#4a90e2'; // 与 main.css 中的 --primary-color 一致 (蓝色系)
-    const primaryColorDark = '#00b067'; // 这个颜色与 main.css 中的 primary-color-dark(#00b067) 不完全一致，需要统一。我们使用 main.css 中的颜色
+    const primaryColor = '#00dc82'; // 与 main.css 中的 --primary-color 一致
+    const primaryColorDark = '#00b067'; // 与 main.css 中的 --primary-color-dark 一致
     const surfaceColor = '#ffffff'; // 与 main.css 中的 --surface-color 一致
     const textColor = '#333333'; // 与 main.css 中的 --text-color 一致
     const subtleTextColor = '#666666'; // 与 main.css 中的 --subtle-text-color 一致
-    const borderColor = '#dddddd'; // 与 main.css 中的 --border-color 一致
-    const shadowColor = 'rgba(0, 0, 0, 0.1)'; // 与 main.css 中的 --shadow-color 一致
-    const hoverShadowColor = 'rgba(0, 0, 0, 0.15)'; // 与 main.css 中的 --hover-shadow-color 一致
+    const borderColor = '#eeeeee'; // 与 main.css 中的 --border-color 一致
+    const shadowColor = 'rgba(0, 0, 0, 0.05)'; // 与 main.css 中的 --shadow-color 一致
+    const hoverShadowColor = 'rgba(0, 0, 0, 0.1)'; // 与 main.css 中的 --hover-shadow-color 一致
 
 
     const option = {
@@ -159,8 +159,8 @@ const setOptions = () => {
         //      color: textColor
         //   }
         // }],
-        animationDuration: 1500,
-        animationEasingUpdate: 'quinticInOut',
+        animationDuration: 2000, // 增加动画时长，使入场效果更明显
+        animationEasingUpdate: 'cubicInOut', // 更改布局更新动画缓动函数
         series: [
             {
                 name: 'Knowledge Graph',
@@ -170,7 +170,7 @@ const setOptions = () => {
                 data: props.nodes.map(node => ({
                     ...node,
                     itemStyle: {
-                        color: node.color || primaryColor, // 默认颜色，使用主题色
+                        color: primaryColor, // 默认颜色，使用主题色
                         shadowBlur: 8,
                         shadowColor: shadowColor,
                         borderColor: surfaceColor,
@@ -188,6 +188,7 @@ const setOptions = () => {
                     symbolSize: node.symbolSize || 30,
                     emphasis: {
                         label: {
+                            // label styles on emphasis
                             show: true,
                             position: 'right',
                             formatter: '{b}',
@@ -195,29 +196,35 @@ const setOptions = () => {
                             fontSize: 14,
                             color: textColor // 高亮时标签颜色使用主题文字颜色
                         },
-                        itemStyle: { ...node.itemStyle, shadowBlur: 15, shadowColor: hoverShadowColor }
+                        itemStyle: {
+                            // itemStyle on emphasis
+                            scale: 1.2, // Make node 20% larger on hover
+                            shadowBlur: 15, shadowColor: hoverShadowColor
+                        }
                     }
                 })),
                 links: props.links.map(link => ({
                     ...link,
                     label: {
                         ...link.label,
-                        formatter: link.label?.formatter || link.type,
+                        formatter: link.label?.formatter || link.type, 
                         show: true,
                         position: 'middle',
                         color: subtleTextColor, // 标签颜色使用中灰色文字颜色
                         fontSize: 10
                     },
                     lineStyle: {
-                        color: link.color || borderColor, // 默认边的颜色，使用边框颜色
+                        // line style
+                        color: subtleTextColor, // 默认边的颜色，使用中灰色文字颜色
                         curveness: 0.1,
-                        width: 1.5,
+                        width: 2,
                         opacity: 0.8
                     },
                     emphasis: {
+                        // emphasis line style
                         lineStyle: {
-                            width: 2.5,
-                            color: link.emphasisColor || primaryColorDark, // 高亮颜色，使用主题深色
+                            width: 3,
+                            color: link.emphasisColor || primaryColorDark, // 高亮颜色，使用主题深色 
                             shadowBlur: 5,
                             shadowColor: shadowColor
                         },
@@ -231,7 +238,8 @@ const setOptions = () => {
                 categories: categories,
                 roam: true,
                 draggable: true,
-                force: {
+                force: { // Force layout parameters
+                    initLayout: 'circular', // Optional: Initial layout before force simulation
                     repulsion: 500,
                     edgeLength: [120, 300],
                     gravity: 0.1,

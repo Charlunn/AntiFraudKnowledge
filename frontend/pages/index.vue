@@ -1,7 +1,8 @@
 <template>
     <div class="app-layout">
         <!-- 侧边栏 -->
-        <GraphFilterSidebar class="sidebar-area" />
+        <!-- 确保这里绑定了 apply-filters 事件 -->
+        <GraphFilterSidebar class="sidebar-area" @apply-filters="handleApplyFilters" />
 
         <!-- 主内容区域 -->
         <main class="main-content">
@@ -57,6 +58,28 @@ const handleNodeDoubleClick = (nodeId) => {
     graphStore.fetchNodeNeighbors(nodeId);
 };
 
+// **修改后的函数：处理 GraphFilterSidebar 发出的 apply-filters 事件**
+const handleApplyFilters = (filters) => {
+  console.log('Applying filters from sidebar:', filters); // Log filters
+
+  const { filterProp, filterValue } = filters;
+
+  // 检查是否有有效的过滤属性和值
+  if (filterProp && filterValue) {
+       // 调用 Store 中的 fetchFilteredGraph action，并传递 filterProp 和 filterValue
+      graphStore.fetchFilteredGraph(filterProp, filterValue);
+  } else if (filterProp || filterValue) {
+      // 如果只输入了属性名或属性值，显示提示
+      graphStore.error = 'Please enter both property name and value for filtering.';
+      console.log('Partial filter criteria entered.');
+  } else {
+      // 如果没有输入任何过滤条件，可以不进行任何操作或返回到初始图谱
+      console.log('No filter criteria entered. Returning to initial graph.');
+      graphStore.showInitialGraph(); // 例如：没有过滤条件时显示完整图谱
+  }
+};
+
+
 // 处理返回按钮点击
 const goBackToFullGraph = () => {
     graphStore.showInitialGraph();
@@ -64,10 +87,13 @@ const goBackToFullGraph = () => {
 
 // 组件挂载后加载初始数据
 onMounted(() => {
-    // 只有在初始数据为空时才加载，避免重复加载
-    if (graphStore.currentNodes.length === 0) {
-        graphStore.fetchInitialGraph();
-    }
+    // 修改：现在我们依赖 initialNodes/Links 来进行前端过滤，所以确保它们被加载
+    // 如果你仍然希望每次加载页面时都获取初始图谱，可以保留以下代码
+    // if (graphStore.initialNodes.length === 0) {
+    //     graphStore.fetchInitialGraph();
+    // }
+    // 或者，如果你希望默认显示一个空图谱，直到用户应用过滤，可以移除以下代码
+    graphStore.fetchInitialGraph(); // 默认加载初始图谱
 });
 </script>
 
