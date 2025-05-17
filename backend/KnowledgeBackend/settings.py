@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'graph_api'
+    'graph_api',
+    'users'
 ]
 TEMPLATES = [
     {

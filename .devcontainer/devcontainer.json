@@ -4,8 +4,8 @@
   // 指向项目根目录下的 docker-compose.yml 文件
   "dockerComposeFile": "../docker-compose.yml",
   // 指定 VS Code 连接到 docker-compose.yml 中定义的 'frontend' 服务
-  "service": "frontend",
-  // "service": "backend",
+  // "service": "frontend",
+  "service": "backend",
   // 指定容器内的工作区文件夹路径，应与 Dockerfile 的 WORKDIR 和 Compose 的 volume mount 匹配
   "workspaceFolder": "/app",
   // 在容器中自动安装的 VS Code 扩展列表
