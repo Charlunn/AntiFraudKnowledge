@@ -3,16 +3,26 @@
     <AppHeader />
     <div class="page-content">
       <!-- Nuxt 3 的路由视图占位符 -->
-      <NuxtPage />
+      <NuxtLayout :name="layout">
+        <NuxtPage />
+      </NuxtLayout>
     </div>
     <AppFooter />
   </div>
 </template>
 
 <script setup>
+import { onMounted } from 'vue';
 // 导入组件
 import AppHeader from '~/components/AppHeader.vue';
 import AppFooter from '~/components/AppFooter.vue';
+import { useAuthStore } from '~/stores/auth'; // Import the auth store
+
+const authStore = useAuthStore(); // Initialize the auth store
+
+onMounted(() => {
+  authStore.initializeAuth(); // Initialize auth state when the component is mounted
+});
 </script>
 
 <style scoped>

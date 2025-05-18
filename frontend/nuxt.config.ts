@@ -27,7 +27,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       // 从环境变量读取，提供本地开发默认值，简化初始设置
-      apiBaseUrl: 'http://localhost:8000/api'
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://127.0.0.1:8000/api' // Default to your backend URL
     }
   },
 

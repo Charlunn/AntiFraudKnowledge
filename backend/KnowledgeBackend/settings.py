@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import logging.config
+from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -43,6 +44,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'graph_api',
     'users',
 ]
@@ -158,14 +161,55 @@ REST_FRAMEWORK = {
     # 默认允许任何请求访问任何资源。
     # 示例：
     # 'DEFAULT_PERMISSION_CLASSES':
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny', # 警告：开发时方便，生产环境极不安全！
+
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # ... 其他认证类
     ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny', # 这通常是登录接口需要的权限
+        # ... 其他权限类，但不要包含 JWTAuthentication
+    ],
+    # ... 其他配置
+
     # 分页设置 [24, 27]
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 50  # 每页默认返回 50 条记录，可根据需求调整
 }
+SIMPLE_JWT = {
+    'TOKEN_BLACKLIST_APP': 'rest_framework_simplejwt.token_blacklist',
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # Access Token 有效期
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1), # Refresh Token 有效期
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_ENABLED': True, # 是否启用黑名单
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY, # 使用项目的 SECRET_KEY 进行签名
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    'JWK_URL': None,
+    'LEEWAY': 0,
 
+    'AUTH_HEADER_TYPES': ('Bearer',), # 认证头类型
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
+
+    'JTI_CLAIM': 'jti',
+
+    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+
+    'TOKEN_OBTAIN_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenObtainPairSerializer',
+    'TOKEN_REFRESH_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenRefreshSerializer',
+    'TOKEN_VERIFY_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenVerifySerializer',
+    'TOKEN_BLACK_LIST_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenBlacklistSerializer',
+}
 # --- Logging Configuration ---
 LOGGING = {
     'version': 1,
@@ -212,6 +256,13 @@ LOGGING = {
          },
     },
 }
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/stable/howto/static-files/
+
+
+# Media files (user uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media' # 或者 os.path.join(BASE_DIR, 'media')
 
 # 配置日志
 logging.config.dictConfig(LOGGING)

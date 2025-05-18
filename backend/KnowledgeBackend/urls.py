@@ -15,14 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include # 确保导入 include
-# your_django_project/urls.py
-
-from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings # 导入 settings
+from django.conf.urls.static import static # 导入 static 函数
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('graph_api.urls', namespace='graph_api')),  # 包含应用URL并指定命名空间
     path('api/users/', include('users.urls')),
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -15,3 +15,4 @@ stanfordcorenlp # Stanford CoreNLP 的 Python 封装库 (注意：需要 CoreNLP
 pypinyin # 用于汉字转拼音的库
 Pillow
 # 其他你项目可能需要的依赖可以继续添加...
+djangorestframework-simplejwt
