@@ -169,22 +169,32 @@ const startInitialAIResponse = async () => {
         });
         const data = response.data; // Axios puts the response body in .data
 
-        if (data && data.ai_reply !== undefined) { // Adjust field name based on Django API response
-            const aiMessage = { sender: 'ai', text: data.ai_reply, isTyping: false };
-            messages.value.push(aiMessage);
-            // Scroll to bottom after first AI message
+        // Check if the request was successful and contains necessary data
+        if (data.success === true && data.messages !== undefined && data.score !== undefined) {
+            // Update messages with the full conversation history from the backend
+            // Convert backend format {role, content} to frontend format {sender, text}
+            messages.value = data.messages.map(msg => ({
+                sender: msg.role === 'user' ? 'user' : 'ai', // Map role to sender
+                text: msg.content,
+                isTyping: false // Assuming initial messages are not typing
+            }));
+            score.value = data.score; // Update score
+
+            // Scroll to bottom after messages are updated
             await nextTick();
             scrollToBottom();
         } else {
-           const aiMessage = { sender: 'ai', text: data.error || '无法开始对话，请稍后再试。' , isTyping: false};
-           messages.value.push(aiMessage);
-           console.error('Failed to get initial AI message:', data);
+           // Handle unexpected response format or backend error message
+           const errorMessage = { sender: 'ai', text: data.error || '无法开始对话，请稍后再试。', isTyping: false };
+           messages.value.push(errorMessage);
+           console.error('Failed to get initial AI message or unexpected format:', data);
            // Scroll to bottom after error message
            await nextTick();
            scrollToBottom();
         }
     } catch (error) {
         console.error('Error fetching initial AI message:', error);
+        // Handle network errors or other exceptions
         const errorMessage = { sender: 'ai', text: '启动对话失败，请检查网络或稍后再试。', isTyping: false };
         messages.value.push(errorMessage);
          await nextTick();
@@ -202,6 +212,7 @@ const sendMessage = async () => {
 
   isLoading.value = true; // Set loading state to true
 
+  // Add user message to the frontend immediately
   const userMessage = { sender: 'user', text: userInput.value, isTyping: false };
   messages.value.push(userMessage);
 
@@ -210,7 +221,7 @@ const sendMessage = async () => {
   scrollToBottom();
 
   const messageText = userInput.value;
-  userInput.value = '';
+  userInput.value = ''; // Clear input field
 
   try {
     // Use axios to send the message
@@ -223,15 +234,20 @@ const sendMessage = async () => {
     });
     const data = response.data; // Axios puts the response body in .data
 
+    // Check if the request was successful and contains necessary data
+    if (data.success === true && data.messages !== undefined && data.score !== undefined) {
+       // Update messages with the full conversation history from the backend
+       // Convert backend format {role, content} to frontend format {sender, text}
+       messages.value = data.messages.map(msg => ({
+           sender: msg.role === 'user' ? 'user' : 'ai', // Map role to sender
+           text: msg.content,
+           isTyping: false // Assuming new messages from backend are not typing indicators
+       }));
+       score.value = data.score; // Update score
 
-    if (data && data.ai_reply !== undefined) { // Adjust field names based on Django API response
-      score.value = data.score !== undefined ? data.score : score.value; // Update score
-      const aiMessage = { sender: 'ai', text: data.ai_reply, isTyping: false };
-      messages.value.push(aiMessage); // Add the actual AI message
-
-      // Scroll to the bottom after adding AI message
-      await nextTick();
-      scrollToBottom();
+       // Scroll to the bottom after adding AI message
+       await nextTick();
+       scrollToBottom();
 
     } else {
        // If API response is unexpected, add an error message from AI
@@ -284,12 +300,18 @@ const endConversation = async () => { // Make async to call backend API
 const startNewConversation = async () => {
   // Call backend API to reset conversation state
   try {
-    await axios.post(`${API_BASE_URL}/chat/reset/`, {}, { // Assuming your reset endpoint is /api/chat/reset/
+    const response = await axios.post(`${API_BASE_URL}/chat/reset/`, {}, { // Assuming your reset endpoint is /api/chat/reset/
       headers: {
          'Authorization': `Bearer ${authStore.getAccessToken}`
       }
     });
-    console.log('Backend conversation state reset.');
+    const data = response.data;
+    if (data.success === true) {
+        console.log('Backend conversation state reset.');
+    } else {
+        console.error('Backend conversation reset failed:', data.error);
+        // Optionally show an error message to the user
+    }
   } catch (error) {
     console.error('Error resetting conversation state on backend:', error);
     // Continue with frontend reset even if backend reset fails, but log the error
