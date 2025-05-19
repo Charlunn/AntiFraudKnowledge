@@ -14,6 +14,9 @@ from pathlib import Path
 import os
 import logging.config
 from datetime import timedelta
+from dotenv import load_dotenv
+load_dotenv()
+DASHSCOPE_API_KEY = os.environ.get("DASHSCOPE_API_KEY") # 可以在这里获取，也可以直接在 views.py 中获取
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -48,6 +51,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'graph_api',
     'users',
+    'chatapi'
 ]
 TEMPLATES = [
     {

@@ -160,7 +160,7 @@ const startInitialAIResponse = async () => {
     isLoading.value = true;
     try {
         // Use axios to call the backend API
-        const response = await axios.post(`${API_BASE_URL}/chat/`, { message: '' }, { // Assuming your chat endpoint is /api/chat/
+        const response = await axios.post(`${API_BASE_URL}/chat/`, { message: ' ' }, { // Assuming your chat endpoint is /api/chat/
              headers: {
                 'Content-Type': 'application/json',
                 // Include Authorization header - Axios interceptor should handle token refresh
