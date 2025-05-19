@@ -9,8 +9,10 @@
       <nav class="main-nav">
         <ul>
           <li><NuxtLink to="/">首页</NuxtLink></li>
-          <!-- 更多导航链接 -->
-          <li><NuxtLink to="/some-other-page">其他页面</NuxtLink></li>
+          <!-- 添加诈骗模拟聊天页面链接，仅登录后显示 -->
+          <li v-if="authStore.isLoggedIn"><NuxtLink to="/chat">诈骗模拟</NuxtLink></li>
+          <!-- 移除或其他导航链接 -->
+          <!-- <li><NuxtLink to="/some-other-page">其他页面</NuxtLink></li> -->
         </ul>
       </nav>
       <div class="user-area">
@@ -28,8 +30,7 @@
               <!-- 将 Button 替换为 Div -->
               <div class="dropdown-item" data-path="/personal-info" @click="handleMenuItemClick">个人信息</div>
               <div class="dropdown-item" data-path="/achievements" @click="handleMenuItemClick">成就</div>
-               <!-- 添加诈骗模拟聊天页面链接 -->
-              <div class="dropdown-item" data-path="/chat" @click="handleMenuItemClick">诈骗模拟</div>
+              <!-- 移除诈骗模拟链接 -->
               <div class="dropdown-item" data-path="/settings" @click="handleMenuItemClick">设置</div>
               <!-- 退出登录使用 Div -->
               <div class="dropdown-item" @click="handleLogout">退出登录</div>
