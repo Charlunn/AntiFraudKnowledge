@@ -3,8 +3,7 @@
     <div class="container">
       <!-- 使用 NuxtLink 包裹 Logo -->
       <NuxtLink to="/" class="logo">
-        <!-- 可以是你的 Logo 图片或文字 -->
-        <span>My App</span>
+        <img src="../public/LOGO.png" clas="img" style="width:4rem"/>
       </NuxtLink>
       <nav class="main-nav">
         <ul>
