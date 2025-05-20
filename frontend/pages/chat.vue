@@ -419,13 +419,13 @@ watchEffect(() => {
 .chat-page-container {
   display: flex;
   flex-direction: column;
-  height: 70vh; 
+  height: 79vh; 
   background-color: var(--background-color);
   color: var(--text-color);
   overflow: hidden;
-  padding: 20px;
   max-width: 800px;
-  margin: 20px auto; 
+  margin: 0 auto; 
+  margin-top:20px;
   border-radius: 15px;
   box-shadow: 0 4px 12px var(--shadow-color);
 }
