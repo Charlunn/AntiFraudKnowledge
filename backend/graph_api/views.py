@@ -155,8 +155,6 @@ class NodeDetailView(BaseGraphAPIView):
 
         logger.info(f"Fetching details for id: {node_id}")
         params = {"node_id" : node_id}  # 假设 node_id 是我们在节点上存储的属性
-        print("2222222222222222222222222222222222222")
-        print(params)
         try:
             results = db_utils.read_from_neo4j(cypher_queries.GET_NODE_DETAIL_CYPHER, params=params)
 
