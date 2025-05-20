@@ -1,6 +1,6 @@
 <template>
   <div class="filter-sidebar">
-    <h2>Graph Filters</h2>
+    <h2>图表查询</h2>
 
     <div class="filter-group">
       <label for="filter-prop">Property Name:</label>

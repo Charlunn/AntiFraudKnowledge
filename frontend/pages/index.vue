@@ -6,6 +6,7 @@
 
         <!-- 主内容区域 -->
         <main class="main-content">
+          <div class="graph-title">防诈骗知识图谱</div>
             <!-- 返回按钮 (仅在查看邻居时显示) -->
             <button v-if="isNeighborView && !isLoading" @click="goBackToFullGraph" class="back-button">
                 ← Back to Full Graph
@@ -49,7 +50,7 @@ const { currentNodes, currentLinks, isLoading, isNeighborView, error } = storeTo
 
 // 计算属性，用于动态设置图表标题
 const chartTitle = computed(() => {
-    return isNeighborView.value ? 'Node and Neighbors View' : 'Full Knowledge Graph';
+    return isNeighborView.value ? 'Node and Neighbors View' : '';
 });
 
 // 处理节点双击事件
@@ -146,6 +147,14 @@ onMounted(() => {
     padding: 20px; /* 增加主内容区域内边距 */
     overflow: hidden; /* 防止图表溢出 */
     box-shadow: 0 4px 12px var(--shadow-color); /* 添加阴影 */
+}
+
+.graph-title{
+  align-self: center;
+  font-size: 18px;
+  box-shadow: 0 4px 12px var(--shadow-color); /* 添加阴影 */
+  background-color: var(--surface-color); /* 应用表面色 */
+  border-radius: 15px; /* 圆润边角 */
 }
 
 .back-button {

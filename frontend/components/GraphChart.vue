@@ -285,7 +285,7 @@ onBeforeUnmount(() => {
 div {
     border-radius: 15px; /* 添加圆角，与主内容区域一致 */
     overflow: hidden; /* 确保圆角生效 */
-    box-shadow: 0 8px 24px var(--shadow-color); /* 添加阴影，与主内容区域一致 */
+    box-shadow: 0 0 24px 8px var(--shadow-color); /* 添加阴影，与主内容区域一致 */
     background-color: var(--surface-color); /* 应用表面色，作为图表背景 */
     /* 确保容器本身不影响布局，flex-grow 由父元素控制 */
     flex-grow: 1; /* 让容器占据父元素的可用空间 */
