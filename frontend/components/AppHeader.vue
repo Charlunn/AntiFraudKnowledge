@@ -3,7 +3,8 @@
     <div class="container">
       <!-- 使用 NuxtLink 包裹 Logo -->
       <NuxtLink to="/" class="logo">
-        <img src="../public/LOGO.png" style="width:4rem"/>
+        <!-- 可以是你的 Logo 图片或文字 -->
+        <span>My App</span>
       </NuxtLink>
       <nav class="main-nav">
         <ul>
@@ -87,11 +88,7 @@ const handleMenuItemClick = (event) => {
   box-shadow: 0 2px 8px var(--shadow-color); /* 调整阴影，使其更柔和 */
   /* Removed border-radius here as it's a header, typically full width */
 }
-.logo{
-  display:flex;
-  align-content:center;
-  justify-content:center;
-}
+
 .app-header .container {
   display: flex;
   justify-content: space-between; /* Logo 和导航左右对齐 */

@@ -133,7 +133,7 @@ export const useGraphStore = defineStore('graph', () => {
         console.log(`Fetching neighbors for node ID: ${nodeId}...`); // Log start
         try {
             // Use axios
-            const response = await axios.get(`${API_BASE_URL}/graph/nodes/${nodeId}/`);
+            const response = await axios.get(`${API_BASE_URL}/nodes/${nodeId}/`);
             const data = response.data; // Extract data
 
             console.log(`--- API Response (Node Neighbors: ${nodeId}) ---`);

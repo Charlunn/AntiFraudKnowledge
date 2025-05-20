@@ -8,8 +8,7 @@ mysqlclient
 
 # MySQL Database Driver (for Django)
 mysqlclient # Django 连接 MySQL 需要的驱动 [3, 4, 5]
-openai
-python-dotenv
+
 # NLP Libraries
 thulac # 清华大学自然语言处理与社会人文计算实验室的中文词法分析工具包
 stanfordcorenlp # Stanford CoreNLP 的 Python 封装库 (注意：需要 CoreNLP Java 服务器在后台运行)
