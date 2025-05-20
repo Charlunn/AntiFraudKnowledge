@@ -50,14 +50,13 @@ const { currentNodes, currentLinks, isLoading, isNeighborView, error } = storeTo
 
 // 计算属性，用于动态设置图表标题
 const chartTitle = computed(() => {
-    return isNeighborView.value ? {graphStore.nodes.name} : '';
+    return isNeighborView.value ? 'Node and Neighbors View' : '';
 });
 
 // 处理节点双击事件
 const handleNodeDoubleClick = (nodeId) => {
     // console.log('Received node double click on page for ID:', nodeId);
     graphStore.fetchNodeNeighbors(nodeId);
-    graphStore.nodes.name
 };
 
 // **修改后的函数：处理 GraphFilterSidebar 发出的 apply-filters 事件**
