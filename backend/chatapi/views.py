@@ -156,7 +156,9 @@ def chat_api_view(request):
             print(f"[INFO] Calling AI API for user_id_from_body: {user_id_from_body}")
             # 调用 AI 时使用当前 session 中的消息历史
             chat_completion = openai_client.chat.completions.create(
-                model="deepseek-v3", # 请根据你实际使用的模型调整
+                # model="deepseek-v3", # 请根据你实际使用的模型调整
+                model="deepseek-r1", # 请根据你实际使用的模型调整
+
                 messages=conversation_state['messages'] # 使用 session 中的消息历史
             )
             print(f"[INFO] AI API call successful for user_id_from_body: {user_id_from_body}")
