@@ -12,7 +12,7 @@ app_name = 'graph_api'  # 定义应用命名空间
 
 
 urlpatterns = [
-    path('graph/initial/', views.InitialGraphView.as_view(), name='initial-graph'),
-    path('graph/filtered/', views.FilteredGraphView.as_view(), name='filtered-graph'),
+    path('initial/', views.InitialGraphView.as_view(), name='initial-graph'),
+    path('filtered/', views.FilteredGraphView.as_view(), name='filtered-graph'),
     path('nodes/<str:node_id>/', views.NodeDetailView.as_view(), name='node-detail'),
 ]

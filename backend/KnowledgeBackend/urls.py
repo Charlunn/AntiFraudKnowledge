@@ -21,7 +21,8 @@ from django.conf.urls.static import static # 导入 static 函数
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('graph_api.urls', namespace='graph_api')),  # 包含应用URL并指定命名空间
+    path('api/graph/', include('graph_api.urls', namespace='graph_api')),  # 包含应用URL并指定命名空间
+    path('api/chat/',include('chatapi.urls',namespace='chat_api')),
     path('api/users/', include('users.urls')),
 ]
 if settings.DEBUG:
