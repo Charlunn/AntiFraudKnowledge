@@ -6,11 +6,16 @@
 
         <!-- 主内容区域 -->
         <main class="main-content">
-          <div class="graph-title">防诈骗知识图谱</div>
+          <div class="graph-title">
             <!-- 返回按钮 (仅在查看邻居时显示) -->
-            <button v-if="isNeighborView && !isLoading" @click="goBackToFullGraph" class="back-button">
-                ← Back to Full Graph
-            </button>
+            <div class="button-box">
+              <button v-if="isNeighborView && !isLoading" @click="goBackToFullGraph" class="back-button">
+                  ← 返回
+              </button>
+            </div>
+          <span class="title-text">防诈骗知识图谱</span>
+          </div>
+
 
             <!-- 加载状态 -->
             <div v-if="isLoading" class="loading-indicator">Loading Graph Data...</div>
@@ -48,15 +53,34 @@ const graphStore = useGraphStore();
 // 使用 storeToRefs 保持响应性
 const { currentNodes, currentLinks, isLoading, isNeighborView, error } = storeToRefs(graphStore);
 
+// 用于存储双击的节点名称
+const doubleClickedNodeName = ref('');
+
 // 计算属性，用于动态设置图表标题
 const chartTitle = computed(() => {
-    return isNeighborView.value ? 'Node and Neighbors View' : '';
+    // **修改这里：当处于邻居视图时，使用双击的节点名称作为标题**
+    return isNeighborView.value ? ` "${doubleClickedNodeName.value}" 的相关节点` : ''; // 默认标题
 });
 
 // 处理节点双击事件
 const handleNodeDoubleClick = (nodeId) => {
-    // console.log('Received node double click on page for ID:', nodeId);
-    graphStore.fetchNodeNeighbors(nodeId);
+    console.log('Received node double click on page for ID:', nodeId);
+
+    // 查找被双击的节点对象
+    const clickedNode = currentNodes.value.find(node => node.id === nodeId);
+
+    if (clickedNode) {
+        // 获取节点名称并更新 reactive 变量
+        doubleClickedNodeName.value = clickedNode.name || 'Unnamed Node'; // 使用 name，如果没有则显示 'Unnamed Node'
+        console.log('Double-clicked node name:', doubleClickedNodeName.value);
+
+        // 继续获取邻居节点 (这会触发 isNeighborView.value 变为 true)
+        graphStore.fetchNodeNeighbors(nodeId);
+    } else {
+        console.warn(`Node with ID ${nodeId} not found in currentNodes.`);
+        doubleClickedNodeName.value = ''; // 找不到节点时清空显示
+    }
+
 };
 
 // **修改后的函数：处理 GraphFilterSidebar 发出的 apply-filters 事件**
@@ -150,18 +174,23 @@ onMounted(() => {
 }
 
 .graph-title{
-  align-self: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  position: relative;
   font-size: 18px;
   box-shadow: 0 4px 12px var(--shadow-color); /* 添加阴影 */
   background-color: var(--surface-color); /* 应用表面色 */
   border-radius: 15px; /* 圆润边角 */
+  width: 100%;
+  margin-left: 0;
+  height: 3rem;
 }
+.title-text{
 
+}
 .back-button {
-    position: absolute;
-    top: 25px; /* 调整位置 */
-    left: 25px; /* 调整位置 */
-    z-index: 10; /* 确保在图表上层 */
     padding: 10px 15px; /* 增加内边距 */
     background-color: var(--primary-color); /* 使用主题色 */
     color: white; /* 文字颜色为白色 */
@@ -221,10 +250,11 @@ onMounted(() => {
         padding: 10px;
     }
 
-    .back-button {
-        top: 10px;
-        left: 10px;
-        padding: 8px 12px; /* 调整小屏幕下的内边距 */
-    }
 }
+.button-box{
+      position: absolute;
+      left: 15px;
+      top: 50%;                /* 配合 transform 实现垂直居中 */
+      transform: translateY(-50%); /* 实现垂直居中 */
+    }
 </style>
