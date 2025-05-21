@@ -3,19 +3,19 @@
     <h2>图表查询</h2>
 
     <div class="filter-group">
-      <label for="filter-prop">Property Name:</label>
+      <label for="filter-prop">属性名称</label>
       <input type="text" id="filter-prop" v-model="localFilters.filterProp" />
     </div>
 
     <div class="filter-group">
-      <label for="filter-value">Property Value:</label>
+      <label for="filter-value">属性值</label>
       <input type="text" id="filter-value" v-model="localFilters.filterValue" />
     </div>
 
     <!-- 添加一个用于显示错误信息的元素 -->
     <div :class="['error-message', { hidden: !errorMessage }]">{{ errorMessage }}</div>
 
-    <button @click="applyFilters" :disabled="isLoading">Apply Filters</button>
+    <button @click="applyFilters" :disabled="isLoading">应用筛选</button>
   </div>
 </template>
 
