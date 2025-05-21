@@ -116,6 +116,7 @@ const handleMenuItemClick = (event) => {
 }
 
 .main-nav li {
+  font-size:1.5rem;
   margin-left: 25px; /* Increase navigation item spacing */
 }
 
