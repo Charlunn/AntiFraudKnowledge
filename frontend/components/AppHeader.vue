@@ -9,7 +9,7 @@
         <ul>
           <li><NuxtLink to="/">首页</NuxtLink></li>
           <!-- 添加诈骗模拟聊天页面链接，仅登录后显示 -->
-          <li v-if="authStore.isLoggedIn"><NuxtLink to="/chat">诈骗模拟</NuxtLink></li>
+          <li><NuxtLink to="/chat">诈骗模拟</NuxtLink></li>
           <!-- 移除或其他导航链接 -->
           <!-- <li><NuxtLink to="/some-other-page">其他页面</NuxtLink></li> -->
         </ul>
