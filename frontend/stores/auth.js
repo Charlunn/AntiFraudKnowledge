@@ -6,31 +6,55 @@ import { useRuntimeConfig } from '#app';
 const isBrowser = () => typeof window !== 'undefined';
 
 export const useAuthStore = defineStore('auth', {
+  // STATE: Returns a clean, predictable object on the server.
+  // Hydration will be handled by a specific action on the client.
   state: () => ({
-    isAuthenticated: isBrowser() ? !!localStorage.getItem('accessToken') : false,
-    accessToken: isBrowser() ? localStorage.getItem('accessToken') : null,
-    refreshToken: isBrowser() ? localStorage.getItem('refreshToken') : null,
-    user: isBrowser() ? JSON.parse(localStorage.getItem('user') || 'null') : null,
+    isAuthenticated: false,
+    accessToken: null,
+    refreshToken: null,
+    user: null,
     isRefreshing: false,
   }),
+
   getters: {
     isLoggedIn: (state) => state.isAuthenticated,
     getAccessToken: (state) => state.accessToken,
     getRefreshToken: (state) => state.refreshToken,
     getUser: (state) => state.user,
   },
+
   actions: {
+    // HYDRATE ACTION: This action will be called ONLY on the client-side.
+    hydrate() {
+      if (!isBrowser()) return;
+      this.accessToken = localStorage.getItem('accessToken');
+      this.refreshToken = localStorage.getItem('refreshToken');
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          this.user = JSON.parse(storedUser);
+        } else {
+          this.user = null;
+        }
+        this.isAuthenticated = !!this.accessToken;
+      } catch (e) {
+        console.error("Failed to parse user from localStorage", e);
+        this.user = null;
+        this.isAuthenticated = false;
+      }
+    },
+
     async login(identifier, password) {
       const runtimeConfig = useRuntimeConfig();
       const API_BASE_URL = runtimeConfig.public.apiBase;
 
       let loginData = {};
       if (identifier.includes('@')) {
-          loginData = { email: identifier, password: password };
+          loginData = { email: identifier, password };
       } else if (/^\d+$/.test(identifier)) {
-           loginData = { phone_number: identifier, password: password };
+           loginData = { phone_number: identifier, password };
       } else {
-          loginData = { username: identifier, password: password };
+          loginData = { username: identifier, password };
       }
 
       try {
@@ -50,71 +74,31 @@ export const useAuthStore = defineStore('auth', {
 
         return result;
       } catch (error) {
+        this.logout();
         throw error;
       }
     },
-    async register(formData) {
-         const runtimeConfig = useRuntimeConfig();
-         const API_BASE_URL = runtimeConfig.public.apiBase;
-         try {
-            const response = await axios.post(`${API_BASE_URL}/users/register/`, formData);
-            return response.data;
-         } catch (error) {
-            throw error;
-         }
-    },
+
     async fetchUserInfo() {
+      if (!this.accessToken) return;
       const runtimeConfig = useRuntimeConfig();
       const API_BASE_URL = runtimeConfig.public.apiBase;
-      const accessToken = this.accessToken || (isBrowser() ? localStorage.getItem('accessToken') : null);
-
-      if (!accessToken) {
-          this.logout();
-          return;
-      }
 
       try {
-          const response = await axios.get(`${API_BASE_URL}/users/profile/`, {
-              headers: { Authorization: `Bearer ${accessToken}` }
-          });
-          this.user = response.data;
-          if (isBrowser()) {
-            localStorage.setItem('user', JSON.stringify(response.data));
-          }
+        const response = await axios.get(`${API_BASE_URL}/users/profile/`, {
+            headers: { Authorization: `Bearer ${this.accessToken}` }
+        });
+        this.user = response.data;
+        if (isBrowser()) {
+          localStorage.setItem('user', JSON.stringify(response.data));
+        }
       } catch (error) {
-          console.error('Error fetching user info:', error);
-          this.logout();
-          throw error;
+        console.error('Error fetching user info, logging out.', error);
+        this.logout(); // Logout on failure
+        throw error;
       }
-  },
-    async refreshToken() {
-        const runtimeConfig = useRuntimeConfig();
-        const API_BASE_URL = runtimeConfig.public.apiBase;
-        const refreshToken = this.refreshToken || (isBrowser() ? localStorage.getItem('refreshToken') : null);
-
-        if (!refreshToken) {
-            this.logout();
-            return null;
-        }
-
-        try {
-            this.isRefreshing = true;
-            const response = await axios.post(`${API_BASE_URL}/users/token/refresh/`, { refresh: refreshToken });
-            const newAccessToken = response.data.access;
-
-            this.accessToken = newAccessToken;
-            if (isBrowser()) {
-              localStorage.setItem('accessToken', newAccessToken);
-            }
-            this.isRefreshing = false;
-            return newAccessToken;
-        } catch (error) {
-            console.error('Error refreshing token:', error);
-            this.logout();
-            this.isRefreshing = false;
-            throw error;
-        }
     },
+
     logout() {
       this.isAuthenticated = false;
       this.accessToken = null;
@@ -126,26 +110,43 @@ export const useAuthStore = defineStore('auth', {
         localStorage.removeItem('user');
       }
     },
-    initializeAuth() {
-      if (!isBrowser()) return; // Prevent running on server
 
-      const accessToken = localStorage.getItem('accessToken');
-      const refreshToken = localStorage.getItem('refreshToken');
+    // ... other actions like register, refreshToken can remain largely the same ...
+    // But ensure they correctly interact with the new state management
+    async register(formData) {
+         const runtimeConfig = useRuntimeConfig();
+         const API_BASE_URL = runtimeConfig.public.apiBase;
+         try {
+            const response = await axios.post(`${API_BASE_URL}/users/register/`, formData);
+            return response.data;
+         } catch (error) {
+            throw error;
+         }
+    },
 
-      if (accessToken && refreshToken) {
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-        try {
-             this.fetchUserInfo().then(() => {
-                this.isAuthenticated = true;
-             });
-        } catch (error) {
-             console.error('Failed to initialize auth:', error);
-             this.logout();
+    async refreshToken() {
+        if (!this.refreshToken) {
+            this.logout();
+            return null;
         }
-      } else {
-          this.logout();
-      }
+        this.isRefreshing = true;
+        const runtimeConfig = useRuntimeConfig();
+        const API_BASE_URL = runtimeConfig.public.apiBase;
+        try {
+            const response = await axios.post(`${API_BASE_URL}/users/token/refresh/`, { refresh: this.refreshToken });
+            const newAccessToken = response.data.access;
+            this.accessToken = newAccessToken;
+            if (isBrowser()) {
+              localStorage.setItem('accessToken', newAccessToken);
+            }
+            return newAccessToken;
+        } catch (error) {
+            console.error('Error refreshing token:', error);
+            this.logout();
+            throw error;
+        } finally {
+            this.isRefreshing = false;
+        }
     },
   },
 });
