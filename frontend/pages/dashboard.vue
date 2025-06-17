@@ -44,6 +44,8 @@ import * as echarts from 'echarts';
 import 'echarts-wordcloud';
 import GraphChart from '~/components/GraphChart.vue';
 
+// All your chart data and logic remains the same as the original clean version
+
 // --- Force-Directed Graph Data ---
 const graphData = ref({
   nodes: [
@@ -70,151 +72,148 @@ const handleNodeDblClick = (nodeId) => {
   console.log(`Node ${nodeId} double-clicked`);
 };
 
-// --- Pie Chart Data ---
+// --- Chart Data Definitions ---
 const scamTypeData = ref([
-  { value: 335, name: '网络钓鱼' },
-  { value: 310, name: '冒充公检法' },
-  { value: 234, name: '刷单诈骗' },
-  { value: 135, name: '投资理财' },
+  { value: 335, name: '网络钓鱼' }, { value: 310, name: '冒充公检法' },
+  { value: 234, name: '刷单诈骗' }, { value: 135, name: '投资理财' },
   { value: 1548, name: '其他' }
 ]);
-
 const scamMethodData = ref([
-  { value: 400, name: '虚假链接' },
-  { value: 350, name: '电话恐吓' },
-  { value: 300, name: '高回报承诺' },
-  { value: 250, name: '索要验证码' },
+  { value: 400, name: '虚假链接' }, { value: 350, name: '电话恐吓' },
+  { value: 300, name: '高回报承诺' }, { value: 250, name: '索要验证码' },
   { value: 200, name: '其他' }
 ]);
-
-// --- Word Cloud Data ---
 const wordCloudData = ref([
-    { name: '银行', value: 100 },
-    { name: '验证码', value: 95 },
-    { name: '投资', value: 90 },
-    { name: '紧急', value: 85 },
-    { name: '亲人', value: 80 },
-    { name: '中奖', value: 75 },
-    { name: '官方', value: 70 },
-    { name: '客服', value: 65 },
-    { name: '退款', value: 60 },
-    { name: '链接', value: 55 },
-    { name: '涉案', value: 50 },
+    { name: '银行', value: 100 }, { name: '验证码', value: 95 }, { name: '投资', value: 90 },
+    { name: '紧急', value: 85 }, { name: '亲人', value: 80 }, { name: '中奖', value: 75 },
+    { name: '官方', value: 70 }, { name: '客服', value: 65 }, { name: '退款', value: 60 },
+    { name: '链接', value: 55 }, { name: '涉案', value: 50 },
 ]);
-
-// --- Sankey Chart Data ---
 const sankeyData = ref({
     nodes: [
-        { name: '短信' }, { name: '电话' },
-        { name: '刷单' }, { name: '投资' },
+        { name: '短信' }, { name: '电话' }, { name: '刷单' }, { name: '投资' },
         { name: '高回报' }, { name: '假冒身份' }
     ],
     links: [
-        { source: '短信', target: '刷单', value: 8 },
-        { source: '短信', target: '投资', value: 5 },
-        { source: '电话', target: '投资', value: 7 },
-        { source: '电话', target: '假冒身份', value: 10 },
-        { source: '刷单', target: '高回报', value: 8 },
-        { source: '投资', target: '高回报', value: 12 },
+        { source: '短信', target: '刷单', value: 8 }, { source: '短信', target: '投资', value: 5 },
+        { source: '电话', target: '投资', value: 7 }, { source: '电话', target: '假冒身份', value: 10 },
+        { source: '刷单', target: '高回报', value: 8 }, { source: '投资', target: '高回报', value: 12 },
     ]
 });
-
-// --- Bar Chart Data ---
 const barChartData = ref({
     categories: ['2019', '2020', '2021', '2022', '2023'],
     series: [
-        { name: '立案数', data: [210, 250, 280, 320, 350] },
-        { name: '受理数', data: [300, 340, 380, 410, 450] }
+        { name: '立案数', data: [210, 250, 280, 320, 350], type: 'bar' },
+        { name: '受理数', data: [300, 340, 380, 410, 450], type: 'bar' }
     ]
 });
+const achievementData = ref({
+    categories: ['学习成就', '模拟成就', '分享成就'],
+    data: [75, 50, 25]
+});
+const radarData = ref({
+    indicator: [
+        { name: '金融知识', max: 100 }, { name: '心理防线', max: 100 },
+        { name: '社交媒体警惕性', max: 100 }, { name: '识别能力', max: 100 },
+        { name: '应急处理', max: 100 }
+    ],
+    data: [{ value: [80, 70, 85, 90, 75], name: '我的防骗能力' }]
+});
+
+// --- Chart Initialization Functions ---
+
+function initPieChart(elementId, name, data, radius) {
+    const chartDom = document.getElementById(elementId);
+    if (!chartDom) return;
+    const myChart = echarts.init(chartDom);
+    myChart.setOption({
+        tooltip: { trigger: 'item' },
+        legend: { top: '5%', left: 'center' },
+        series: [{
+            name, type: 'pie', radius, data,
+            emphasis: { itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0, 0, 0, 0.5)' } }
+        }]
+    });
+}
+
+function initWordCloudChart() {
+    const chartDom = document.getElementById('wordcloud-chart');
+    if (!chartDom) return;
+    const myChart = echarts.init(chartDom);
+    myChart.setOption({
+        series: [{
+            type: 'wordCloud',
+            shape: 'circle',
+            data: wordCloudData.value,
+            textStyle: {
+                fontFamily: 'sans-serif',
+                fontWeight: 'bold',
+                color: () => `rgb(${[Math.round(Math.random() * 160), Math.round(Math.random() * 160), Math.round(Math.random() * 160)].join(',')})`
+            }
+        }]
+    });
+}
+
+function initSankeyChart() {
+    const chartDom = document.getElementById('sankey-chart');
+    if (!chartDom) return;
+    const myChart = echarts.init(chartDom);
+    myChart.setOption({
+        tooltip: { trigger: 'item', triggerOn: 'mousemove' },
+        series: [{
+            type: 'sankey',
+            data: sankeyData.value.nodes,
+            links: sankeyData.value.links,
+            emphasis: { focus: 'adjacency' },
+            lineStyle: { color: 'gradient', curveness: 0.5 }
+        }]
+    });
+}
+
+function initBarChart() {
+    const chartDom = document.getElementById('bar-chart-case-numbers');
+    if (!chartDom) return;
+    const myChart = echarts.init(chartDom);
+    myChart.setOption({
+        tooltip: { trigger: 'axis' },
+        legend: { data: ['立案数', '受理数'] },
+        xAxis: { type: 'category', data: barChartData.value.categories },
+        yAxis: { type: 'value' },
+        series: barChartData.value.series
+    });
+}
+
+function initHorizontalBarChart() {
+    const chartDom = document.getElementById('horizontal-bar-chart-achievement');
+    if (!chartDom) return;
+    const myChart = echarts.init(chartDom);
+    myChart.setOption({
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        xAxis: { type: 'value', max: 100 },
+        yAxis: { type: 'category', data: achievementData.value.categories },
+        series: [{ name: '完成度', type: 'bar', data: achievementData.value.data }]
+    });
+}
+
+function initRadarChart() {
+    const chartDom = document.getElementById('radar-chart-user-ability');
+    if (!chartDom) return;
+    const myChart = echarts.init(chartDom);
+    myChart.setOption({
+        tooltip: {},
+        radar: { indicator: radarData.value.indicator },
+        series: [{ type: 'radar', data: radarData.value.data }]
+    });
+}
 
 onMounted(() => {
-  // --- Initialize Pie Chart: Scam Types ---
-  const pieChartScamTypes = echarts.init(document.getElementById('pie-chart-scam-types'));
-  pieChartScamTypes.setOption({
-    tooltip: { trigger: 'item' },
-    legend: { top: '5%', left: 'center' },
-    series: [{
-      name: '诈骗类型',
-      type: 'pie',
-      radius: ['40%', '70%'],
-      avoidLabelOverlap: false,
-      itemStyle: {
-        borderRadius: 10,
-        borderColor: '#fff',
-        borderWidth: 2
-      },
-      label: { show: false, position: 'center' },
-      emphasis: {
-        label: { show: true, fontSize: '20', fontWeight: 'bold' }
-      },
-      labelLine: { show: false },
-      data: scamTypeData.value
-    }]
-  });
-
-  // --- Initialize Pie Chart: Scam Methods ---
-  const pieChartScamMethods = echarts.init(document.getElementById('pie-chart-scam-methods'));
-  pieChartScamMethods.setOption({
-    tooltip: { trigger: 'item' },
-    legend: { top: '5%', left: 'center' },
-    series: [{
-      name: '诈骗手法',
-      type: 'pie',
-      radius: '50%',
-      data: scamMethodData.value,
-      emphasis: {
-        itemStyle: {
-          shadowBlur: 10,
-          shadowOffsetX: 0,
-          shadowColor: 'rgba(0, 0, 0, 0.5)'
-        }
-      }
-    }]
-  });
-
-  // --- Initialize Word Cloud ---
-  const wordCloudChart = echarts.init(document.getElementById('wordcloud-chart'));
-  wordCloudChart.setOption({
-    series: [{
-        type: 'wordCloud',
-        shape: 'circle',
-        data: wordCloudData.value,
-        textStyle: {
-            fontFamily: 'sans-serif',
-            fontWeight: 'bold',
-            color: function () {
-                return 'rgb(' + [
-                    Math.round(Math.random() * 160),
-                    Math.round(Math.random() * 160),
-                    Math.round(Math.random() * 160)
-                ].join(',') + ')';
-            }
-        },
-    }]
-  });
-
-  // --- Initialize Sankey Chart ---
-  const sankeyChart = echarts.init(document.getElementById('sankey-chart'));
-  sankeyChart.setOption({
-    tooltip: { trigger: 'item', triggerOn: 'mousemove' },
-    series: [{
-        type: 'sankey',
-        data: sankeyData.value.nodes,
-        links: sankeyData.value.links,
-        emphasis: { focus: 'adjacency' },
-        lineStyle: { color: 'gradient', curveness: 0.5 }
-    }]
-  });
-
-  // --- Initialize Bar Chart ---
-  const barChart = echarts.init(document.getElementById('bar-chart-case-numbers'));
-  barChart.setOption({
-    tooltip: { trigger: 'axis' },
-    legend: { data: ['立案数', '受理数'] },
-    xAxis: { type: 'category', data: barChartData.value.categories },
-    yAxis: { type: 'value' },
-    series: barChartData.value.series.map(s => ({ ...s, type: 'bar' }))
-  });
+    initPieChart('pie-chart-scam-types', '诈骗类型', scamTypeData.value, ['40%', '70%']);
+    initPieChart('pie-chart-scam-methods', '诈骗手法', scamMethodData.value, '50%');
+    initWordCloudChart();
+    initSankeyChart();
+    initBarChart();
+    initHorizontalBarChart();
+    initRadarChart();
 });
+
 </script>

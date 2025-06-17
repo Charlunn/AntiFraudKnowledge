@@ -6,11 +6,6 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   modules: ['@pinia/nuxt', 'nuxt-echarts', '@vueuse/nuxt', '@nuxt/ui'],
-  
-  build: {
-    transpile: ['echarts', 'echarts-wordcloud'],
-  },
-
   // Nuxt UI 配置 (可选)
   ui: {
     // global: true, // 全局注册组件
