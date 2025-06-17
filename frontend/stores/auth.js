@@ -2,13 +2,16 @@ import { defineStore } from 'pinia';
 import axios from 'axios';
 import { useRuntimeConfig } from '#app';
 
+// Helper function to check if we are in a browser environment
+const isBrowser = () => typeof window !== 'undefined';
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    isAuthenticated: false,
-    accessToken: null,
-    refreshToken: null,
-    user: null, // To store basic user info like username, avatar etc.
-    isRefreshing: false, // Add this: To track if token is currently being refreshed
+    isAuthenticated: isBrowser() ? !!localStorage.getItem('accessToken') : false,
+    accessToken: isBrowser() ? localStorage.getItem('accessToken') : null,
+    refreshToken: isBrowser() ? localStorage.getItem('refreshToken') : null,
+    user: isBrowser() ? JSON.parse(localStorage.getItem('user') || 'null') : null,
+    isRefreshing: false,
   }),
   getters: {
     isLoggedIn: (state) => state.isAuthenticated,
@@ -17,9 +20,9 @@ export const useAuthStore = defineStore('auth', {
     getUser: (state) => state.user,
   },
   actions: {
-    async login(identifier, password) { // Modify login action to take identifier and password
-      const runtimeConfig = useRuntimeConfig(); // Access runtime config
-      const API_BASE_URL = runtimeConfig.public.apiBase; // Get the API base URL
+    async login(identifier, password) {
+      const runtimeConfig = useRuntimeConfig();
+      const API_BASE_URL = runtimeConfig.public.apiBase;
 
       let loginData = {};
       if (identifier.includes('@')) {
@@ -37,37 +40,33 @@ export const useAuthStore = defineStore('auth', {
         this.accessToken = result.access;
         this.refreshToken = result.refresh;
 
-        localStorage.setItem('accessToken', result.access);
-        localStorage.setItem('refreshToken', result.refresh);
+        if (isBrowser()) {
+          localStorage.setItem('accessToken', result.access);
+          localStorage.setItem('refreshToken', result.refresh);
+        }
 
-        // After getting tokens, fetch user info
         await this.fetchUserInfo();
+        this.isAuthenticated = true;
 
-        this.isAuthenticated = true; // Set authenticated to true after fetching user info
-
-
-        return result; // Return result for potential use in component
+        return result;
       } catch (error) {
-        // Re-throw error for component to handle
         throw error;
       }
     },
-    async register(formData) { // Add register action to the store
-         const runtimeConfig = useRuntimeConfig(); // Access runtime config
-         const API_BASE_URL = runtimeConfig.public.apiBase; // Get the API base URL
-
+    async register(formData) {
+         const runtimeConfig = useRuntimeConfig();
+         const API_BASE_URL = runtimeConfig.public.apiBase;
          try {
             const response = await axios.post(`${API_BASE_URL}/users/register/`, formData);
-            const result = response.data;
-            return result;
+            return response.data;
          } catch (error) {
-            throw error; // Re-throw error
+            throw error;
          }
     },
     async fetchUserInfo() {
       const runtimeConfig = useRuntimeConfig();
       const API_BASE_URL = runtimeConfig.public.apiBase;
-      const accessToken = this.accessToken || localStorage.getItem('accessToken');
+      const accessToken = this.accessToken || (isBrowser() ? localStorage.getItem('accessToken') : null);
 
       if (!accessToken) {
           this.logout();
@@ -75,51 +74,45 @@ export const useAuthStore = defineStore('auth', {
       }
 
       try {
-          // Use the correct backend endpoint for fetching user profile
           const response = await axios.get(`${API_BASE_URL}/users/profile/`, {
-              headers: {
-                  Authorization: `Bearer ${accessToken}`
-              }
+              headers: { Authorization: `Bearer ${accessToken}` }
           });
-          const userData = response.data;
-          this.user = userData; // Store the fetched user data
-          localStorage.setItem('user', JSON.stringify(userData)); // Also update local storage
+          this.user = response.data;
+          if (isBrowser()) {
+            localStorage.setItem('user', JSON.stringify(response.data));
+          }
       } catch (error) {
           console.error('Error fetching user info:', error);
           this.logout();
           throw error;
       }
   },
-    async refreshToken() { // Add this action for token refreshing
+    async refreshToken() {
         const runtimeConfig = useRuntimeConfig();
         const API_BASE_URL = runtimeConfig.public.apiBase;
-        const refreshToken = this.refreshToken || localStorage.getItem('refreshToken');
+        const refreshToken = this.refreshToken || (isBrowser() ? localStorage.getItem('refreshToken') : null);
 
         if (!refreshToken) {
-            // If no refresh token, logout the user
             this.logout();
             return null;
         }
 
         try {
-            this.isRefreshing = true; // Set refreshing state
-            const response = await axios.post(`${API_BASE_URL}/users/token/refresh/`, {
-                refresh: refreshToken
-            });
+            this.isRefreshing = true;
+            const response = await axios.post(`${API_BASE_URL}/users/token/refresh/`, { refresh: refreshToken });
             const newAccessToken = response.data.access;
 
             this.accessToken = newAccessToken;
-            localStorage.setItem('accessToken', newAccessToken);
-
-            this.isRefreshing = false; // Reset refreshing state
-            console.log('Token refreshed successfully.');
-            return newAccessToken; // Return the new access token
+            if (isBrowser()) {
+              localStorage.setItem('accessToken', newAccessToken);
+            }
+            this.isRefreshing = false;
+            return newAccessToken;
         } catch (error) {
             console.error('Error refreshing token:', error);
-            // If refresh fails, logout the user
             this.logout();
-            this.isRefreshing = false; // Reset refreshing state
-            throw error; // Re-throw error
+            this.isRefreshing = false;
+            throw error;
         }
     },
     logout() {
@@ -127,31 +120,31 @@ export const useAuthStore = defineStore('auth', {
       this.accessToken = null;
       this.refreshToken = null;
       this.user = null;
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
-      console.log('User logged out.');
+      if (isBrowser()) {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+      }
     },
-    async initializeAuth() {
+    initializeAuth() {
+      if (!isBrowser()) return; // Prevent running on server
+
       const accessToken = localStorage.getItem('accessToken');
       const refreshToken = localStorage.getItem('refreshToken');
 
       if (accessToken && refreshToken) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
-        // Try to fetch user info to confirm valid session
         try {
-             await this.fetchUserInfo();
-             this.isAuthenticated = true; // Set authenticated to true after fetching user info
-             console.log('Auth initialized: User is authenticated.');
+             this.fetchUserInfo().then(() => {
+                this.isAuthenticated = true;
+             });
         } catch (error) {
-             // If fetching user info fails, it means the token might be invalid/expired
-             console.error('Failed to initialize auth, tokens might be invalid:', error);
-             this.logout(); // Log out if user info cannot be fetched
+             console.error('Failed to initialize auth:', error);
+             this.logout();
         }
       } else {
-          this.logout(); // No tokens found, ensure logged out state
-          console.log('Auth initialized: No tokens found, user is logged out.');
+          this.logout();
       }
     },
   },
