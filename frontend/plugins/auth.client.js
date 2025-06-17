@@ -5,9 +5,8 @@ import axios from 'axios';
 export default defineNuxtPlugin(async (nuxtApp) => {
   const authStore = useAuthStore();
 
-  // On the client side, hydrate the store from localStorage.
-  // This is the core of the fix.
-  authStore.hydrate();
+  // On the client side, initialize the store from localStorage.
+  authStore.initializeAuth();
 
   // The existing Axios interceptor logic remains unchanged.
   // It handles token refreshing for API requests.
