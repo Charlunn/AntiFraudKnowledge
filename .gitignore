@@ -82,6 +82,7 @@ docker-compose.override.yml
 *.mobile
 *.book.md
 *.log.com
+*.sock
 
 # 用户上传/生成内容
 /uploads/
