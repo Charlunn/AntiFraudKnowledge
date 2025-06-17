@@ -46,7 +46,7 @@ import GraphChart from '~/components/GraphChart.vue';
 
 // All your chart data and logic remains the same as the original clean version
 
-// --- Force-Directed Graph Data ---
+// --- 力导向图的数据 ---
 const graphData = ref({
   nodes: [
     { id: '1', name: '网络诈骗', category: '诈骗类型' },
