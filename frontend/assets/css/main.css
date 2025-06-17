@@ -131,4 +131,34 @@ select:focus {
     border-radius: 15px; /* 更大的圆角用于主要区域 */
     box-shadow: 0 8px 24px var(--shadow-color); /* 柔和的阴影 */
     padding: 20px;
+} 
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+  gap: 20px;
+  padding: 20px;
 }
+
+.chart-container {
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 8px 24px var(--shadow-color);
+  background-color: var(--surface-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-container h2 {
+    margin-bottom: 15px;
+    text-align: center;
+    color: var(--text-color);
+    font-size: 1.2rem;
+}
+
+[id$='-chart'], .echarts-instance {
+  width: 100%;
+  height: 350px;
+  flex-grow: 1;
+}
+
