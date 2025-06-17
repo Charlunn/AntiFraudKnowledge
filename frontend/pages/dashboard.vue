@@ -107,10 +107,11 @@ const barChartData = ref({
         { name: '受理数', data: [300, 340, 380, 410, 450], type: 'bar' }
     ]
 });
-const achievementData = ref({
-    categories: ['学习成就', '模拟成就', '分享成就'],
-    data: [75, 50, 25]
-});
+//旧版成就
+// const achievementData = ref({
+//     categories: ['学习成就', '模拟成就', '分享成就'],
+//     data: [75, 50, 25]
+// });
 const radarData = ref({
     indicator: [
         { name: '金融知识', max: 100 }, { name: '心理防线', max: 100 },

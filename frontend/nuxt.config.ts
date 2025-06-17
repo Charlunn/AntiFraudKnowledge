@@ -11,23 +11,29 @@ export default defineNuxtConfig({
     // global: true, // 全局注册组件
     // icons: ['mdi', 'heroicons'] // 使用的图标集
   },
-  // ECharts 按需加载配置 [14, 19, 20, 21, 22]
+  // ECharts 按需加载配置
   echarts: {
-    charts: ['GraphChart'], // 必须包含 GraphChart [17, 23, 24, 25, 26, 27]
+    charts: [
+      'GraphChart', //力导向图
+      'PieChart',//饼图
+      'BarChart',//柱状图
+      'RadarChart',//雷达图
+      'SankeyChart'//桑基图
+    ],
     components: [
-      'LegendComponent', // 图例 [13, 17, 37]
-      'TitleComponent', // 标题 (可选)
-      // 'ToolboxComponent', // 工具箱 (可选, 如保存图片)
-      // 'DataZoomComponent', // 区域缩放 (如果需要)
+      'LegendComponent',
+      'TitleComponent',
+      'TooltipComponent',
+      'GridComponent',
     ],
     features: []
   },
 
-  // 运行时配置，用于 API URL [10]
+  // 运行时配置，用于 API URL
   runtimeConfig: {
     public: {
       // 从环境变量读取，提供本地开发默认值，简化初始设置
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://127.0.0.1:8000/api' // Default to your backend URL
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://127.0.0.1:8000/api' // 默认到后端url
     }
   },
 
