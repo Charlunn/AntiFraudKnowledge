@@ -58,6 +58,18 @@ export const useAuthStore = defineStore('auth', {
         throw error; // Re-throw to handle in component
       }
     },
+    async register(userData) {
+      try {
+        const response = await axios.post('/api/users/register/', userData);
+        // Assuming successful registration might return tokens or user data
+        // If your backend automatically logs in after registration, you might set tokens here
+        // For now, just return true on success
+        return response.data;
+      } catch (error) {
+        console.error('Registration failed:', error);
+        throw error; // Re-throw to handle in component
+      }
+    },
     async refreshToken() {
         this.isRefreshing = true;
         try {
