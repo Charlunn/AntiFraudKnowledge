@@ -88,4 +88,4 @@ docker-compose.override.yml
 /uploads/
 /public/static/
 db/mysql/mysql.sock
-db/
+db/*
