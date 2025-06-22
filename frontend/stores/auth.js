@@ -22,6 +22,7 @@ export const useAuthStore = defineStore('auth', {
       if (refreshToken) {
         localStorage.setItem('refreshToken', refreshToken);
       }
+      axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
     },
     setUser(user) {
       this.user = user;
@@ -32,6 +33,7 @@ export const useAuthStore = defineStore('auth', {
       this.user = null;
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
+      delete axios.defaults.headers.common['Authorization'];
     },
     initializeAuth() {
         const token = localStorage.getItem('accessToken');
@@ -43,6 +45,19 @@ export const useAuthStore = defineStore('auth', {
             // You might want to fetch user details here if they are not stored locally
         }
     },
+    async login(credentials) {
+      try {
+        const response = await axios.post('/api/users/login/', credentials);
+        const { access, refresh, user } = response.data;
+        this.setTokens(access, refresh);
+        this.setUser(user);
+        return true;
+      } catch (error) {
+        console.error('Login failed:', error);
+        this.logout();
+        throw error; // Re-throw to handle in component
+      }
+    },
     async refreshToken() {
         this.isRefreshing = true;
         try {
@@ -51,11 +66,11 @@ export const useAuthStore = defineStore('auth', {
             });
             const newAccessToken = response.data.access;
             this.setTokens(newAccessToken, this.refreshToken);
-            axios.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+            // axios.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
             return newAccessToken;
-        } catch (error) {
+        } catch (refreshError) {
             this.logout();
-            throw error;
+            throw refreshError;
         } finally {
             this.isRefreshing = false;
         }
