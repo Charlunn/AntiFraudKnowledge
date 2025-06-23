@@ -47,7 +47,7 @@ export const useAuthStore = defineStore('auth', {
     },
     async login(credentials) {
       try {
-        const response = await axios.post('/api/users/login/', credentials);
+        const response = await axios.post('/users/login/', credentials);
         const { access, refresh, user } = response.data;
         this.setTokens(access, refresh);
         this.setUser(user);
@@ -60,7 +60,7 @@ export const useAuthStore = defineStore('auth', {
     },
     async register(userData) {
       try {
-        const response = await axios.post('/api/users/register/', userData);
+        const response = await axios.post('/users/register/', userData);
         // Assuming successful registration might return tokens or user data
         // If your backend automatically logs in after registration, you might set tokens here
         // For now, just return true on success
@@ -73,7 +73,7 @@ export const useAuthStore = defineStore('auth', {
     async refreshToken() {
         this.isRefreshing = true;
         try {
-            const response = await axios.post('/api/users/token/refresh/', {
+            const response = await axios.post('/users/token/refresh/', {
                 refresh: this.refreshToken,
             });
             const newAccessToken = response.data.access;

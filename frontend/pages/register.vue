@@ -87,7 +87,7 @@ const handleRegistration = async () => {
   } catch (error) {
     console.error('Error during registration:', error);
     if (error.response) {
-        errorMessage.value = error.response.data.message || '注册失败，请稍后再试。一个月只能注册一次。';
+        errorMessage.value = error.response.data.message || '注册失败，请稍后再试';
     } else if (error.request) {
         errorMessage.value = '网络错误，请稍后再试。无法连接到服务器。';
     } else {

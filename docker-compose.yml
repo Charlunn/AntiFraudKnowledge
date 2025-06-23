@@ -42,6 +42,7 @@ services:
       - dev_network
     environment:
       - CHOKIDAR_USEPOLLING=true
+      - DOCKER_ENV=true
 
   neo4j:
     image: neo4j:latest

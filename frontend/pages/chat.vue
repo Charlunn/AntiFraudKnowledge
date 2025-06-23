@@ -126,7 +126,6 @@ const chatArea = ref(null);
 const messages = ref([]); 
 
 const runtimeConfig = useRuntimeConfig();
-const API_BASE_URL = runtimeConfig.public.apiBase;
 const authStore = useAuthStore();
 
 const parseBackendMessage = (msg) => {
@@ -217,7 +216,7 @@ const startInitialAIResponse = async () => {
   isLoading.value = true;
   messages.value = [];
   try {
-    const response = await axios.post(`${API_BASE_URL}/chat/`, { message: '你好' }, {
+    const response = await axios.post('/chat/', { message: '你好' }, {
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authStore.getAccessToken}` }
     });
     const data = response.data;
@@ -273,7 +272,7 @@ const sendMessage = async () => {
   scrollToBottom(); 
 
   try {
-    const response = await axios.post(`${API_BASE_URL}/chat/`, { message: userMessageText }, {
+    const response = await axios.post('/chat/', { message: userMessageText }, {
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authStore.getAccessToken}` }
     });
     const data = response.data;
@@ -328,7 +327,7 @@ const sendMessage = async () => {
 
 const endConversationOnServer = async () => {
     try {
-        await axios.post(`${API_BASE_URL}/chat/end/`, {}, {
+        await axios.post('/chat/end/', {}, {
             headers: { 'Authorization': `Bearer ${authStore.getAccessToken}` }
         });
         // console.log('Backend conversation state ended.');
@@ -354,7 +353,7 @@ const endConversation = () => {
 const startNewConversation = async () => {
   isLoading.value = true;
   try {
-    const response = await axios.post(`${API_BASE_URL}/chat/reset/`, {}, {
+    const response = await axios.post('/chat/reset/', {}, {
       headers: { 'Authorization': `Bearer ${authStore.getAccessToken}` }
     });
     if (response.data.success === true) {

@@ -103,7 +103,6 @@ definePageMeta({
 const authStore = useAuthStore();
 const router = useRouter(); // 初始化 router
 const runtimeConfig = useRuntimeConfig(); // 获取运行时配置
-const API_BASE_URL = runtimeConfig.public.apiBase; // 获取 API 基础 URL
 
 const editingNickname = ref(false);
 const newNickname = ref('');
@@ -139,7 +138,7 @@ const toggleEditNickname = async () => {
     // 保存昵称
     try {
       // 调用后端 PATCH /api/users/profile/ 接口更新昵称，使用 axios
-      const response = await axios.patch(`${API_BASE_URL}/users/profile/`, { // 使用 axios.patch
+      const response = await axios.patch('/users/profile/', { // 使用 axios.patch
         nickname: newNickname.value
       }, {
         headers: {
@@ -191,7 +190,7 @@ const changePassword = async () => {
 
   try {
      // 调用后端 POST /api/users/change-password/ 接口修改密码，使用 axios
-     const response = await axios.put(`${API_BASE_URL}/users/change-password/`, { // 使用 axios.post
+     const response = await axios.put('/users/change-password/', { // 使用 axios.post
        old_password: oldPassword.value,
        new_password: newPassword.value,
        new_password2: confirmPassword.value // 注意这里是 new_password2
@@ -248,7 +247,7 @@ const handleEmailAction = async () => {
 
        try {
          // 调用后端 PATCH /api/users/profile/ 接口绑定/换绑邮箱
-         const response = await axios.patch(`${API_BASE_URL}/users/profile/`, {
+         const response = await axios.patch('/users/profile/', {
            email: newEmail // 发送新的邮箱地址
          }, {
            headers: {
@@ -282,7 +281,7 @@ const handlePhoneAction = async () => {
 
        try {
          // 调用后端 PATCH /api/users/profile/ 接口绑定/换绑手机号
-         const response = await axios.patch(`${API_BASE_URL}/users/profile/`, {
+         const response = await axios.patch('/users/profile/', {
            phone_number: newPhoneNumber // 发送新的手机号
          }, {
            headers: {
