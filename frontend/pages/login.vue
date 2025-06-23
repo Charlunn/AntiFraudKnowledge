@@ -41,7 +41,7 @@ const handleLogin = async () => {
 
   try {
     // Call the login action from the store
-    await authStore.login(formData.value.identifier, formData.value.password);
+    await authStore.login(formData.value);
 
     console.log('Login successful!');
     router.push('/'); // Redirect to home page

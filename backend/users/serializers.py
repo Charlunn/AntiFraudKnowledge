@@ -55,38 +55,38 @@ class UserLoginSerializer(TokenObtainPairSerializer):
     username_field = 'username'
 
     def validate(self, attrs):
-        username = attrs.get('username')
-        print(username)
+        # 从 attrs 中获取 email, phone_number, username, password
         email = attrs.get('email')
         phone_number = attrs.get('phone_number')
+        username = attrs.get('username')
         password = attrs.get('password')
-        print(password)
-
 
         if not (username or email or phone_number):
-            raise serializers.ValidationError("Please provide username, email, or phone number.")
+            raise serializers.ValidationError("请提供账号、邮箱或手机号。")
 
         user = None
         if username:
             user = authenticate(request=self.context.get('request'), username=username, password=password)
         elif email:
             try:
-                user = CustomUser.objects.get(email=email)
-                user = authenticate(request=self.context.get('request'), username=user.username, password=password)
+                user_obj = CustomUser.objects.get(email=email)
+                user = authenticate(request=self.context.get('request'), username=user_obj.username, password=password)
             except CustomUser.DoesNotExist:
-                raise serializers.ValidationError("Invalid email or password.")
+                raise serializers.ValidationError("邮箱或密码不正确。")
         elif phone_number:
              try:
-                user = CustomUser.objects.get(phone_number=phone_number)
-                user = authenticate(request=self.context.get('request'), username=user.username, password=password)
+                user_obj = CustomUser.objects.get(phone_number=phone_number)
+                user = authenticate(request=self.context.get('request'), username=user_obj.username, password=password)
              except CustomUser.DoesNotExist:
-                raise serializers.ValidationError("Invalid phone number or password.")
+                raise serializers.ValidationError("手机号或密码不正确。")
 
         if user and user.is_active:
+            # 确保无论通过哪种方式登录，'username' 字段都在 attrs 中存在并是正确的
             attrs['username'] = user.username
+            # 调用父类的 validate 方法来生成 token
             return super().validate(attrs)
         else:
-            raise serializers.ValidationError("Invalid credentials")
+            raise serializers.ValidationError("账号或密码不正确。")
 
 
 class UserProfileSerializer(serializers.ModelSerializer):

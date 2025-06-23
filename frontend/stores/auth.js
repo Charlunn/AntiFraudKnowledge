@@ -45,9 +45,19 @@ export const useAuthStore = defineStore('auth', {
             // You might want to fetch user details here if they are not stored locally
         }
     },
-    async login(credentials) {
+    async login({ identifier, password }) {
       try {
-        const response = await axios.post('/users/login/', credentials);
+        let payload = { password };
+        // Simple logic to determine identifier type
+        if (identifier.includes('@')) {
+          payload.email = identifier;
+        } else if (/^\d+$/.test(identifier)) { // Check if it's all digits for phone number
+          payload.phone_number = identifier;
+        } else {
+          payload.username = identifier;
+        }
+
+        const response = await axios.post('/users/login/', payload);
         const { access, refresh, user } = response.data;
         this.setTokens(access, refresh);
         this.setUser(user);
