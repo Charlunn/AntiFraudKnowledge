@@ -51,44 +51,6 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-class UserLoginSerializer(TokenObtainPairSerializer):
-    username_field = 'username'
-
-    def validate(self, attrs):
-        # 从 attrs 中获取 email, phone_number, username, password
-        email = attrs.get('email')
-        phone_number = attrs.get('phone_number')
-        username = attrs.get('username')
-        password = attrs.get('password')
-
-        if not (username or email or phone_number):
-            raise serializers.ValidationError("请提供账号、邮箱或手机号。")
-
-        user = None
-        if username:
-            user = authenticate(request=self.context.get('request'), username=username, password=password)
-        elif email:
-            try:
-                user_obj = CustomUser.objects.get(email=email)
-                user = authenticate(request=self.context.get('request'), username=user_obj.username, password=password)
-            except CustomUser.DoesNotExist:
-                raise serializers.ValidationError("邮箱或密码不正确。")
-        elif phone_number:
-             try:
-                user_obj = CustomUser.objects.get(phone_number=phone_number)
-                user = authenticate(request=self.context.get('request'), username=user_obj.username, password=password)
-             except CustomUser.DoesNotExist:
-                raise serializers.ValidationError("手机号或密码不正确。")
-
-        if user and user.is_active:
-            # 确保无论通过哪种方式登录，'username' 字段都在 attrs 中存在并是正确的
-            attrs['username'] = user.username
-            # 调用父类的 validate 方法来生成 token
-            return super().validate(attrs)
-        else:
-            raise serializers.ValidationError("账号或密码不正确。")
-
-
 class UserProfileSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(required=False)
 
@@ -113,6 +75,19 @@ class UserProfileSerializer(serializers.ModelSerializer):
         # 在这里可以处理更复杂的更新逻辑，例如触发验证码发送
         # 目前只进行简单的更新
         return super().update(instance, validated_data)
+
+
+class UserLoginSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        # Call the parent class's validate method to get the tokens
+        data = super().validate(attrs)
+
+        # Add the user data to the response
+        # The user object is available via self.user after successful validation
+        user_serializer = UserProfileSerializer(self.user)
+        data['user'] = user_serializer.data
+
+        return data
 
 
 class ChangePasswordSerializer(serializers.Serializer):
