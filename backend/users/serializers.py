@@ -29,12 +29,21 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         validated_data.pop('password2')
         avatar_file = validated_data.pop('avatar', None)
 
+        email = validated_data.get('email')
+        phone_number = validated_data.get('phone_number')
+
+        # Convert empty strings to None for fields that allow null=True and have unique=True
+        if email == '':
+            validated_data['email'] = None
+        if phone_number == '':
+            validated_data['phone_number'] = None
+
         user = CustomUser.objects.create_user(
             username=validated_data['username'],
             password=validated_data['password'],
             nickname=validated_data['nickname'],
-            email=validated_data.get('email', ''),
-            phone_number=validated_data.get('phone_number', '')
+            email=validated_data.get('email'),
+            phone_number=validated_data.get('phone_number')
         )
         user.user_type = 'normal'
         if avatar_file:
