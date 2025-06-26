@@ -17,7 +17,7 @@
       </nav>
       <div class="user-area">
         <!-- 显示用户信息或登录/注册链接 -->
-        <div v-if="authStore.isLoggedIn" class="logged-in-user" @mouseover="showDropdown = true" @mouseleave="showDropdown = false">
+        <div v-if="authStore.isAuthenticated" class="logged-in-user" @mouseover="showDropdown = true" @mouseleave="showDropdown = false">
           <div class="user-display">
             <!-- 用户头像，如果 avatar 为 null 则显示默认头像 -->
             <img :src="authStore.user?.avatar || '/default-avatar.png'" alt="User Avatar" class="user-avatar">

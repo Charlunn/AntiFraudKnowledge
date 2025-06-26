@@ -25,7 +25,12 @@ export const useAuthStore = defineStore('auth', {
       axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
     },
     setUser(user) {
+      console.log('Setting user data:', user);
       this.user = user;
+      // 存储用户信息到本地存储，以便页面刷新后恢复
+      if (user) {
+        localStorage.setItem('userData', JSON.stringify(user));
+      }
     },
     logout() {
       this.accessToken = null;
@@ -33,16 +38,31 @@ export const useAuthStore = defineStore('auth', {
       this.user = null;
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
+      localStorage.removeItem('userData'); // 清除用户数据
       delete axios.defaults.headers.common['Authorization'];
     },
     initializeAuth() {
         const token = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
+        const userData = localStorage.getItem('userData');
+        
         if (token) {
             this.accessToken = token;
             this.refreshToken = refreshToken;
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-            // You might want to fetch user details here if they are not stored locally
+            
+            // 从本地存储恢复用户数据
+            if (userData) {
+                try {
+                    this.user = JSON.parse(userData);
+                    console.log('Restored user data from localStorage:', this.user);
+                } catch (e) {
+                    console.error('Failed to parse user data from localStorage:', e);
+                }
+            } else {
+                // 如果没有用户数据但有token，尝试获取用户信息
+                this.fetchUserProfile();
+            }
         }
     },
     async login({ identifier, password }) {
@@ -57,8 +77,18 @@ export const useAuthStore = defineStore('auth', {
           payload.username = identifier;
         }
 
+        console.log('Login request payload:', payload);
         const response = await axios.post('/users/login/', payload);
+        console.log('Login response data:', response.data);
+        
         const { access, refresh, user } = response.data;
+        
+        if (!user) {
+          console.error('No user data received in login response');
+          throw new Error('No user data in response');
+        }
+        
+        console.log('User data from login:', user);
         this.setTokens(access, refresh);
         this.setUser(user);
         return true;
@@ -97,5 +127,17 @@ export const useAuthStore = defineStore('auth', {
             this.isRefreshing = false;
         }
     },
+    // 添加获取用户信息的方法
+    async fetchUserProfile() {
+      try {
+        if (this.accessToken) {
+          const response = await axios.get('/users/profile/');
+          console.log('Fetched user profile:', response.data);
+          this.setUser(response.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch user profile:', error);
+      }
+    }
   },
 });
