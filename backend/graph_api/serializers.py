@@ -73,7 +73,35 @@ class EchartsGraphSerializer(serializers.Serializer):
             logger.warning(f"Could not determine a unique ID for node: {node_dict}. Skipping node.")
             return None
 
-        node_name = node_dict.get('name', node_id) # Use name or fallback to the generated ID
+        # 根据节点类型选择合适的显示名称属性
+        # 检查节点是否有 'labels' 属性，这是 Neo4j 节点的标签列表
+        labels = node_dict.get('labels', [])
+        
+        # 默认使用 name 属性
+        node_name = node_dict.get('name', None)
+        
+        # 如果是 Keyword 节点，优先使用 term 属性
+        if 'Keyword' in labels and 'term' in node_dict:
+            node_name = node_dict['term']
+        # 如果是 AssetFlow 节点，优先使用 method 属性
+        elif 'AssetFlow' in labels and 'method' in node_dict:
+            node_name = node_dict['method']
+        
+        # 如果仍然没有找到合适的名称，尝试其他可能的属性
+        if node_name is None:
+            # 按优先级尝试不同的属性
+            for attr in ['name', 'term', 'method', 'description', 'type', 'value']:
+                if attr in node_dict and node_dict[attr]:
+                    node_name = node_dict[attr]
+                    break
+        
+        # 如果所有尝试都失败，使用一个更友好的回退值而不是 node_id
+        if node_name is None:
+            # 尝试使用标签作为名称前缀
+            if labels:
+                node_name = f"{labels[0]}-{node_id[-8:]}"  # 使用标签和ID的最后8位
+            else:
+                node_name = f"Node-{node_id[-8:]}"  # 使用通用前缀和ID的最后8位
 
         # Simple category logic: Use 'type' or 'label' key if present, else default
         # You might need more specific logic based on your data's conventions
