@@ -35,6 +35,11 @@
             <div v-else-if="!isLoading && currentNodes.length === 0 && !error" class="no-data">
                 No graph data to display. Perform a filter or check API.
             </div>
+            
+            <!-- 平台级数据可视化区域 -->
+            <div class="statistics-section">
+              <PlatformStatistics />
+            </div>
         </main>
     </div>
 </template>
@@ -47,6 +52,7 @@ import { storeToRefs } from 'pinia';
 // 导入组件
 import GraphFilterSidebar from '~/components/GraphFilterSidebar.vue'; // 使用 Nuxt 的 ~ 别名
 import GraphChart from '~/components/GraphChart.vue';
+import PlatformStatistics from '~/components/PlatformStatistics.vue'; // 导入平台级数据可视化组件
 // AppHeader 和 AppFooter 不应该在这里导入和使用，它们在 app.vue 中
 
 const graphStore = useGraphStore();
@@ -216,7 +222,7 @@ onMounted(() => {
     align-items: center;
     flex-grow: 1; /* 让这些元素占据可用空间 */
     font-size: 1.3em; /* 字体稍大 */
-    color: var(--subtle-text-color); /* 应用中灰色文字 */
+    color: var(--subtle-text-color); /* 应用中灰色文字颜色 */
     text-align: center;
     padding: 20px;
     border-radius: 10px; /* 添加圆角 */
@@ -234,6 +240,11 @@ onMounted(() => {
     /* 图表容器的圆角和阴影将在 GraphChart.vue 内部设置 */
 }
 
+.statistics-section {
+    margin-top: 30px;
+    width: 100%;
+}
+
 /* media queries for responsiveness */
 @media (max-width: 768px) {
     .app-layout {
@@ -249,7 +260,6 @@ onMounted(() => {
     .main-content {
         padding: 10px;
     }
-
 }
 .button-box{
       position: absolute;

@@ -68,26 +68,58 @@ const handleRegistration = async () => {
   errorMessage.value = '';
   loading.value = true;
 
-  // TODO: Implement frontend validation
-
-  const data = new FormData();
-  for (const key in formData.value) {
-    if (formData.value[key]) {
-      data.append(key, formData.value[key]);
-    }
+  // 前端验证
+  if (formData.value.password !== formData.value.password2) {
+    errorMessage.value = '两次输入的密码不一致';
+    loading.value = false;
+    return;
   }
 
   try {
-    // Call the register action from the store
-    await authStore.register(data);
+    // 检查是否有头像文件上传
+    if (formData.value.avatar) {
+      // 如果有文件上传，使用FormData
+      const data = new FormData();
+      for (const key in formData.value) {
+        if (formData.value[key]) {
+          data.append(key, formData.value[key]);
+        }
+      }
+      await authStore.register(data);
+    } else {
+      // 如果没有文件上传，直接使用JSON格式
+      await authStore.register({
+        username: formData.value.username,
+        nickname: formData.value.nickname,
+        password: formData.value.password,
+        password2: formData.value.password2,
+        email: formData.value.email || '',
+        phone_number: formData.value.phone_number || '',
+      });
+    }
 
     alert('注册成功！'); // TODO: Replace with a better notification
     router.push('/login'); // Redirect to login page
 
   } catch (error) {
-    console.error('Error during registration:', error);
-    if (error.response) {
-        errorMessage.value = error.response.data.message || '注册失败，请稍后再试';
+    console.error('Registration failed:', error);
+    if (error.response && error.response.data) {
+      // 显示详细的错误信息
+      const errorData = error.response.data;
+      if (typeof errorData === 'object') {
+        // 如果是对象，尝试提取错误消息
+        const errorMessages = [];
+        for (const key in errorData) {
+          if (Array.isArray(errorData[key])) {
+            errorMessages.push(`${key}: ${errorData[key].join(', ')}`);
+          } else if (typeof errorData[key] === 'string') {
+            errorMessages.push(`${key}: ${errorData[key]}`);
+          }
+        }
+        errorMessage.value = errorMessages.join('\n') || '注册失败，请检查表单信息';
+      } else {
+        errorMessage.value = errorData.message || '注册失败，请稍后再试';
+      }
     } else if (error.request) {
         errorMessage.value = '网络错误，请稍后再试。无法连接到服务器。';
     } else {

@@ -100,13 +100,30 @@ export const useAuthStore = defineStore('auth', {
     },
     async register(userData) {
       try {
-        const response = await axios.post('/users/register/', userData);
-        // Assuming successful registration might return tokens or user data
-        // If your backend automatically logs in after registration, you might set tokens here
-        // For now, just return true on success
+        console.log('Registration data:', userData);
+        
+        let config = {};
+        
+        // 检查是否是FormData类型（包含文件上传）
+        if (userData instanceof FormData) {
+          config = {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          };
+          console.log('Using FormData for registration with file upload');
+        } else {
+          console.log('Using JSON for registration without file upload');
+        }
+        
+        const response = await axios.post('/users/register/', userData, config);
+        console.log('Registration response:', response.data);
         return response.data;
       } catch (error) {
         console.error('Registration failed:', error);
+        if (error.response && error.response.data) {
+          console.error('Server error details:', error.response.data);
+        }
         throw error; // Re-throw to handle in component
       }
     },

@@ -52,7 +52,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'graph_api',
     'users',
-    'chatapi'
+    'chatapi',
+    'statistics'  # 添加新的统计应用
 ]
 TEMPLATES = [
     {

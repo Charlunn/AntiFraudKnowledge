@@ -39,6 +39,11 @@
       <p>正在加载用户信息...</p>
     </div>
 
+    <!-- 用户统计数据可视化 -->
+    <div class="user-statistics-section">
+      <UserStatistics />
+    </div>
+
     <!-- 修改密码和删除账号功能 -->
     <div class="action-section">
       <h3>修改密码</h3>
@@ -71,6 +76,7 @@ import { ref, onMounted } from 'vue';
 import { useAuthStore } from '~/stores/auth';
 import axios from 'axios';
 import { useRouter } from 'vue-router';
+import UserStatistics from '~/components/UserStatistics.vue'; // 导入用户统计组件
 
 // 定义页面元数据，指示此页面需要用户认证
 definePageMeta({
@@ -215,7 +221,7 @@ onMounted(() => {
 <style scoped>
 .personal-info-container {
   padding: 20px;
-  max-width: 600px;
+  max-width: 800px;
   margin: 20px auto;
   background-color: var(--surface-color);
   border-radius: 15px;
@@ -228,7 +234,7 @@ h1 {
   margin-bottom: 30px;
 }
 
-.user-details, .action-section {
+.user-details, .action-section, .user-statistics-section {
   margin-bottom: 30px;
   padding: 20px;
   border: 1px solid var(--border-color);
@@ -248,8 +254,8 @@ h1 {
   height: 100px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--primary-color);
   margin-bottom: 10px;
+  border: 3px solid var(--primary-color);
 }
 
 .form-group {
@@ -260,74 +266,63 @@ h1 {
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
-  color: var(--subtle-text-color);
-}
-
-.form-group input[type="text"],
-.form-group input[type="email"],
-.form-group input[type="password"] {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  font-size: 1rem;
-  background-color: var(--input-background);
   color: var(--text-color);
 }
 
-.form-group input[type="text"][disabled] {
-  background-color: var(--disabled-input-background);
-  cursor: not-allowed;
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  font-size: 16px;
 }
 
-button[type="submit"],
-.delete-button {
-  width: 100%;
-  padding: 12px;
+button {
   background-color: var(--primary-color);
   color: white;
   border: none;
-  border-radius: 8px;
+  padding: 10px 15px;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 1.1rem;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
-  margin-top: 10px;
+  font-size: 16px;
+  transition: background-color 0.3s;
 }
 
-button[type="submit"]:hover:not(:disabled),
-.delete-button:hover {
+button:hover {
   background-color: var(--primary-color-dark);
-  box-shadow: 0 4px 8px var(--hover-shadow-color);
 }
 
-button[type="submit"]:disabled {
+button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
-  opacity: 0.7;
 }
 
 .delete-button {
-  background-color: var(--danger-color);
+  background-color: #e53e3e;
 }
 
 .delete-button:hover {
-  background-color: var(--danger-color-dark);
+  background-color: #c53030;
 }
 
 .success-message {
-  color: green;
-  text-align: center;
+  color: #2f855a;
   margin-top: 10px;
 }
 
 .error-message {
-  color: red;
-  text-align: center;
+  color: #e53e3e;
   margin-top: 10px;
 }
 
-p {
-  color: var(--text-color);
+.user-statistics-section {
+  margin-top: 30px;
 }
 
+@media (max-width: 768px) {
+  .personal-info-container {
+    padding: 15px;
+    margin: 10px;
+}
+}
 </style>

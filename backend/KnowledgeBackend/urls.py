@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/graph/', include('graph_api.urls', namespace='graph_api')),  # 包含应用URL并指定命名空间
     path('api/chat/',include('chatapi.urls',namespace='chat_api')),
     path('api/users/', include('users.urls')),
+    path('api/statistics/', include('statistics.urls', namespace='statistics')),  # 添加统计应用的URL路由
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
