@@ -7,10 +7,12 @@ ENV PYTHONUNBUFFERED=1
 # 设置工作目录
 WORKDIR /app
 
-# 更换 APT 镜像源为清华源（适用于 Debian 12+）
-RUN printf 'deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm main contrib non-free non-free-firmware\n'
-        'deb https://mirrors.tuna.tsinghua.edu.cn/debian-security/ bookworm-security main contrib non-free non-free-firmware\n' > /etc/apt/sources.list
 
+# 替换 deb 源到清华，更新并安装软件
+RUN sed -i 's@deb.debian.org@mirrors.tuna.tsinghua.edu.cn@g; s@security.debian.org@mirrors.tuna.tsinghua.edu.cn@g' /etc/apt/sources.list \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends git openssh-client \
+ && rm -rf /var/lib/apt/lists/*
 # 安装系统依赖（包括 Git 和 SSH）
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
