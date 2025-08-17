@@ -1,0 +1,6 @@
+{
+  "version": 2,
+  "buildCommand": "cd frontend && npm ci --registry=https://registry.npmmirror.com && npm run build",
+  "outputDirectory": "frontend/.output/public",
+  "framework": "nuxt"
+}
