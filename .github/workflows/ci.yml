@@ -8,13 +8,25 @@ on:
 
 jobs:
   build:
+    # 你的机器是自托管 runner
     runs-on: [self-hosted, main]
 
     steps:
+      # ------- 仅给 GitHub 配置代理（国内流量不走代理） -------
+      - name: Setup Git proxy for GitHub only
+        run: |
+          git config --global http.https://github.com.proxy http://127.0.0.1:7890
+          git config --global http.https://raw.githubusercontent.com.proxy http://127.0.0.1:7890
+          git config --global http.https://objects.githubusercontent.com.proxy http://127.0.0.1:7890
+          git config --global http.https://actions.githubusercontent.com.proxy http://127.0.0.1:7890
+
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
 
-      # ---------- Frontend ----------
+      # -------------------- Frontend --------------------
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -31,7 +43,7 @@ jobs:
           npm ci
           npm run build
 
-      # ---------- Backend ----------
+      # -------------------- Backend --------------------
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -39,7 +51,7 @@ jobs:
           cache: 'pip'
           cache-dependency-path: backend/requirements.txt
 
-      # 关键修复：补上 pkg-config；同时根据你用的库选择 MySQL 或 MariaDB 的 dev 包
+      # mysqlclient 构建所需系统依赖（关键：pkg-config）
       - name: Install system dependencies (for mysqlclient)
         run: |
           sudo apt-get update
@@ -47,10 +59,10 @@ jobs:
             build-essential \
             pkg-config \
             default-libmysqlclient-dev
-          # 如果你的后端连的是 MariaDB（不是 Oracle MySQL），改用下面两行替换上一行：
+          # 如果后端连接 MariaDB，请改为：
           # sudo apt-get install -y build-essential pkg-config libmariadb-dev-compat libmariadb-dev
 
-      - name: Configure pip mirror
+      - name: Configure pip mirror (CN)
         run: |
           python -m pip install --upgrade pip
           pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
@@ -66,6 +78,7 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: [self-hosted, main]
+
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.0
