@@ -8,8 +8,8 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR /app
 
 # 更换 APT 镜像源为清华源（适用于 Debian 12+）
-RUN echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
-    echo "deb https://mirrors.tuna.tsinghua.edu.cn/debian-security/ bookworm-security main contrib non-free non-free-firmware" >> /etc/apt/sources.list
+RUN printf 'deb https://mirrors.tuna.tsinghua.edu.cn/debian/ bookworm main contrib non-free non-free-firmware\n'
+        'deb https://mirrors.tuna.tsinghua.edu.cn/debian-security/ bookworm-security main contrib non-free non-free-firmware\n' > /etc/apt/sources.list
 
 # 安装系统依赖（包括 Git 和 SSH）
 RUN apt-get update && \
