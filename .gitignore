@@ -1,91 +1,50 @@
-# --- 通用规则 ---
-# 系统文件
+# OS
 .DS_Store
 Thumbs.db
-*.swp
-*.bak
-~$*
 
-# 编辑器/IDE
+# Editors
 .vscode/
 .idea/
-*.iml
-
-# --- 语言相关 ---
-# Java
-*.class
-*.jar
-*.war
-*.ear
-/target/
-/bin/
-/build/
-.gradle/
-
-# Android
-/local.properties
-*.keystore
-*.apk
-*.aab
-/app/release/
 
 # Python
 __pycache__/
 *.py[cod]
 *.so
-.Python
+*.egg-info/
+.env
 env/
 venv/
-*.egg-info/
 pip-log.txt
 
-# Node.js
+# Django
+db.sqlite3
+*.sqlite3
+
+# Node
 node_modules/
 npm-debug.log*
 yarn-error.log
-/.pnp
-.pnp.js
+pnpm-debug.log*
 
-# --- 项目特定文件 ---
-# 配置/密钥
-*.env
-*.key
-*.cert
-config.json
-secrets/
+# Builds
+dist/
+build/
+.out/
+.next/
+.nuxt/
 
-# 日志/临时文件
+# Logs & Temp
 *.log
 logs/
 tmp/
 
-# --- 构建/依赖 ---
-/dist/
-/out/
-/.next/
-/.serverless/
-/backend/.venv/
+# Firebase
+.firebase/
 
-# --- Docker ---
+# Docker
 docker-compose.override.yml
 .dockerignore
 
-# --- GitLab Crypt ---
-.gitlab-crypt/
-
-# --- 其他 ---
-# 测试文件（根据需要取消注释）
-# /test/
-# /coverage/
-
-# 动态生成文件
-*.mobile
-*.book.md
-*.log.com
-*.sock
-
-# 用户上传/生成内容
-/uploads/
-/public/static/
-db/mysql/mysql.sock
-db/*
+# Uploads
+uploads/
+public/static/
