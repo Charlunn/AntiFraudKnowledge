@@ -8,6 +8,7 @@ on:
 
 jobs:
   build:
+    runs-on: [self-hosted, main]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -49,7 +50,7 @@ jobs:
   deploy:
     needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, main]
     steps:
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.0
