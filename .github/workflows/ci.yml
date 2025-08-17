@@ -8,11 +8,10 @@ on:
 
 jobs:
   build:
-    # 你的机器是自托管 runner
     runs-on: [self-hosted, main]
 
     steps:
-      # ------- 仅给 GitHub 配置代理（国内流量不走代理） -------
+      # 只给 GitHub 域名走代理，解决拉代码超时
       - name: Setup Git proxy for GitHub only
         run: |
           git config --global http.https://github.com.proxy http://127.0.0.1:7890
@@ -26,7 +25,7 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
-      # -------------------- Frontend --------------------
+      # ---------- Frontend ----------
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -43,7 +42,7 @@ jobs:
           npm ci
           npm run build
 
-      # -------------------- Backend --------------------
+      # ---------- Backend ----------
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -51,15 +50,11 @@ jobs:
           cache: 'pip'
           cache-dependency-path: backend/requirements.txt
 
-      # mysqlclient 构建所需系统依赖（关键：pkg-config）
       - name: Install system dependencies (for mysqlclient)
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            build-essential \
-            pkg-config \
-            default-libmysqlclient-dev
-          # 如果后端连接 MariaDB，请改为：
+          sudo apt-get install -y build-essential pkg-config default-libmysqlclient-dev
+          # 若连接 MariaDB，请改为：
           # sudo apt-get install -y build-essential pkg-config libmariadb-dev-compat libmariadb-dev
 
       - name: Configure pip mirror (CN)
@@ -80,15 +75,28 @@ jobs:
     runs-on: [self-hosted, main]
 
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.0
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          script: |
-            cd /path/to/AntiFraudKnowledge
-            git pull
-            docker compose pull
-            docker compose up -d
+          fetch-depth: 0
+          submodules: recursive
+
+      # 如果 compose 文件在仓库根目录，working-directory 写成 "."
+      # 如果你要部署到固定目录（非工作区），把 rsync 打开即可
+      # - name: Sync to release directory (optional)
+      #   run: |
+      #     rsync -a --delete ./ /srv/AntiFraudKnowledge/
+
+      - name: Deploy locally with Docker Compose
+        working-directory: .
+        run: |
+          # 如果需要登录私有镜像仓库，在这里 docker login
+          docker compose pull
+          docker compose up -d --remove-orphans
+          docker system prune -f
+
+      # 可选：健康检查/打印日志
+      - name: Check containers
+        run: |
+          docker ps
+          docker compose logs -n 100 || true
