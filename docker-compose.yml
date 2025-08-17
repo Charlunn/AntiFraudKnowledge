@@ -1,4 +1,3 @@
-
 services:
   backend:
     build:
@@ -6,24 +5,21 @@ services:
       dockerfile: Dockerfile.backend
     volumes:
       - ./backend:/app
-      - ~/.gitconfig:/root/.gitconfig
-      - ~/.ssh:/root/.ssh
-      - ~/.git-credentials:/root/.git-credentials
     ports:
       - "8000:8000"
     networks:
       - dev_network
     environment:
-      - DB_ENGINE=django.db.backends.mysql
-      - DB_NAME=mydatabase
-      - DB_USER=myuser
-      - DB_PASSWORD=mypassword
-      - DB_HOST=mysql
-      - DB_PORT=3306
-      - NEO4J_URI=neo4j://neo4j:7687
-      - NEO4J_USER=neo4j
-      - NEO4J_PASSWORD=password
-      - PYTHONUNBUFFERED=1
+      DB_ENGINE: django.db.backends.mysql
+      DB_NAME: mydatabase
+      DB_USER: myuser
+      DB_PASSWORD: mypassword
+      DB_HOST: mysql
+      DB_PORT: 3306
+      NEO4J_URI: bolt://neo4j:7687
+      NEO4J_USER: neo4j
+      NEO4J_PASSWORD: password
+      PYTHONUNBUFFERED: 1
     depends_on:
       - mysql
       - neo4j
@@ -40,8 +36,10 @@ services:
     networks:
       - dev_network
     environment:
-      - CHOKIDAR_USEPOLLING=true
-      - DOCKER_ENV=true
+      CHOKIDAR_USEPOLLING: "true"
+      DOCKER_ENV: "true"
+    depends_on:
+      - backend
 
   neo4j:
     image: neo4j:latest
@@ -53,21 +51,21 @@ services:
     networks:
       - dev_network
     environment:
-      - NEO4J_AUTH=neo4j/password
+      NEO4J_AUTH: neo4j/password
 
   mysql:
     image: mysql:8
     volumes:
-    - ./db/mysql:/var/lib/mysql
+      - ./db/mysql:/var/lib/mysql
     ports:
-    - "3306:3306"
+      - "3306:3306"
     networks:
-    - dev_network
+      - dev_network
     environment:
-    - MYSQL_ROOT_PASSWORD=123456 # 你可以设置一个新的密码
-    - MYSQL_DATABASE=mydatabase
-    - MYSQL_USER=user
-    - MYSQL_PASSWORD=123456
+      MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
 
 networks:
   dev_network:
@@ -75,4 +73,3 @@ networks:
 
 volumes:
   node_modules_volume:
-#    以下为流水线测试7
