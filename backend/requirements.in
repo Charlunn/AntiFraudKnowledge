@@ -1,22 +1,21 @@
-# Django Framework
+# Core Dependencies
 Django
 django-cors-headers
 django-rest-framework
-
-# Authentication
-djangorestframework-simplejwt
-
-# Database Drivers
 neo4j
-psycopg2-binary
-
-# Utilities
 openai
 python-dotenv
 thulac
 stanfordcorenlp
 pypinyin
 Pillow
+djangorestframework-simplejwt
 numpy
 pandas
+psycopg2-binary
 gunicorn
+
+# Development tools
+black
+flake8
+pip-tools

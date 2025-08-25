@@ -15,8 +15,9 @@ import os
 import logging.config
 from datetime import timedelta
 from dotenv import load_dotenv
+
 load_dotenv()
-DASHSCOPE_API_KEY = os.environ.get("DASHSCOPE_API_KEY") # 可以在这里获取，也可以直接在 views.py 中获取
+DASHSCOPE_API_KEY = os.environ.get("DASHSCOPE_API_KEY")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,102 +26,107 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+ie@z)yn^oa@yt(=@%68jt$)^lskoa4bk(heahqm6f#aw+8r2d'
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "insecure-secret-key")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
 
-ALLOWED_HOSTS = [
-    '47.109.18.154',
-    '127.0.0.1',
-    'localhost'
-]
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'corsheaders',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',
-    'graph_api',
-    'users',
-    'chatapi',
-    'statistics'  # 添加新的统计应用
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "corsheaders",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "rest_framework",
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
+    "graph_api",
+    "users",
+    "chatapi",
+    "stats",  # 添加新的统计应用
 ]
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # 可选：自定义模板目录
-        'APP_DIRS': True,  # 必须为 True，允许从应用目录加载模板
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [os.path.join(BASE_DIR, "templates")],  # 可选：自定义模板目录
+        "APP_DIRS": True,  # 必须为 True，允许从应用目录加载模板
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # Should be as high as possible
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",  # Should be as high as possible
+    "django.middleware.common.CommonMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-CORS_ALLOW_ALL_ORIGINS = True
-ROOT_URLCONF = 'KnowledgeBackend.urls'
+CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", "true").lower() == "true"
+ROOT_URLCONF = "KnowledgeBackend.urls"
 
-WSGI_APPLICATION = 'KnowledgeBackend.wsgi.application'
+WSGI_APPLICATION = "KnowledgeBackend.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# 数据库配置通过环境变量控制，默认使用 PostgreSQL。
+# 如需切换到 SQLite 等其他数据库，可设置 DB_ENGINE 及相关变量。
+DB_ENGINE = os.getenv("DB_ENGINE", "django.db.backends.postgresql")
+DB_NAME = os.getenv("DB_NAME", "postgres")
+DB_USER = os.getenv("DB_USER", "postgres")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "postgres")
+DB_HOST = os.getenv("DB_HOST", "postgres")
+DB_PORT = os.getenv("DB_PORT", "5432")
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mydatabase',  # 使用 docker-compose.yml 中设置的数据库名
-        'USER': 'root',       # 使用 docker-compose.yml 中设置的用户名 (这里是 root)
-        'PASSWORD': '123456',   # 使用 docker-compose.yml 中设置的密码
-        'HOST': 'mysql',        # 关键：使用 MySQL 服务的名称
-        'PORT': '3306',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+    "default": {
+        "ENGINE": DB_ENGINE,
+        "NAME": DB_NAME,
+        "USER": DB_USER,
+        "PASSWORD": DB_PASSWORD,
+        "HOST": DB_HOST,
+        "PORT": DB_PORT,
     }
 }
 
+# SQLite 使用路径对象，需要转换为字符串
+if DB_ENGINE == "django.db.backends.sqlite3":
+    DATABASES["default"]["NAME"] = str(DB_NAME)
 
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
-AUTH_USER_MODEL = 'users.CustomUser'
+AUTH_USER_MODEL = "users.CustomUser"
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -128,8 +134,8 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'zh-hans' # 例如，设置为简体中文
-TIME_ZONE = 'Asia/Shanghai' # 例如，设置为上海时区
+LANGUAGE_CODE = "zh-hans"  # 例如，设置为简体中文
+TIME_ZONE = "Asia/Shanghai"  # 例如，设置为上海时区
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -138,19 +144,19 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # --- Neo4j Connection Settings ---
 # 从环境变量读取 Neo4j 连接信息，增强安全性
 # 在生产环境中，强烈建议使用环境变量或 secrets 管理工具来管理敏感凭证
 # [16, 17, 18, 19, 20, 21, 22]
-NEO4J_URI = os.environ.get('NEO4J_URI', 'bolt://localhost:7687')
-NEO4J_USERNAME = os.environ.get('NEO4J_USERNAME', 'neo4j')
-NEO4J_PASSWORD = os.environ.get('NEO4J_PASSWORD', 'password') # 请务必修改默认密码
+NEO4J_URI = os.environ.get("NEO4J_URI", "bolt://localhost:7687")
+NEO4J_USERNAME = os.environ.get("NEO4J_USERNAME", "neo4j")
+NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD", "password")  # 请务必修改默认密码
 
 # --- Django REST Framework Settings ---
 # [23, 24, 25]
@@ -167,74 +173,67 @@ REST_FRAMEWORK = {
     # 默认允许任何请求访问任何资源。
     # 示例：
     # 'DEFAULT_PERMISSION_CLASSES':
-
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
         # ... 其他认证类
     ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny', # 这通常是登录接口需要的权限
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",  # 这通常是登录接口需要的权限
         # ... 其他权限类，但不要包含 JWTAuthentication
     ],
     # ... 其他配置
-
     # 分页设置 [24, 27]
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 50  # 每页默认返回 50 条记录，可根据需求调整
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 50,  # 每页默认返回 50 条记录，可根据需求调整
 }
 SIMPLE_JWT = {
-    'TOKEN_BLACKLIST_APP': 'rest_framework_simplejwt.token_blacklist',
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # Access Token 有效期
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1), # Refresh Token 有效期
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_ENABLED': True, # 是否启用黑名单
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY, # 使用项目的 SECRET_KEY 进行签名
-    'VERIFYING_KEY': None,
-    'AUDIENCE': None,
-    'ISSUER': None,
-    'JWK_URL': None,
-    'LEEWAY': 0,
-
-    'AUTH_HEADER_TYPES': ('Bearer',), # 认证头类型
-    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
-    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
-
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
-    'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
-
-    'JTI_CLAIM': 'jti',
-
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
-
-    'TOKEN_OBTAIN_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenObtainPairSerializer',
-    'TOKEN_REFRESH_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenRefreshSerializer',
-    'TOKEN_VERIFY_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenVerifySerializer',
-    'TOKEN_BLACK_LIST_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenBlacklistSerializer',
+    "TOKEN_BLACKLIST_APP": "rest_framework_simplejwt.token_blacklist",
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),  # Access Token 有效期
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),  # Refresh Token 有效期
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_ENABLED": True,  # 是否启用黑名单
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,  # 使用项目的 SECRET_KEY 进行签名
+    "VERIFYING_KEY": None,
+    "AUDIENCE": None,
+    "ISSUER": None,
+    "JWK_URL": None,
+    "LEEWAY": 0,
+    "AUTH_HEADER_TYPES": ("Bearer",),  # 认证头类型
+    "AUTH_HEADER_NAME": "HTTP_AUTHORIZATION",
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "TOKEN_TYPE_CLAIM": "token_type",
+    "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
+    "JTI_CLAIM": "jti",
+    "SLIDING_TOKEN_LIFETIME": timedelta(minutes=5),
+    "SLIDING_TOKEN_REFRESH_LIFETIME": timedelta(days=1),
+    "TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainPairSerializer",
+    "TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSerializer",
+    "TOKEN_VERIFY_SERIALIZER": "rest_framework_simplejwt.serializers.TokenVerifySerializer",
+    "TOKEN_BLACK_LIST_SERIALIZER": "rest_framework_simplejwt.serializers.TokenBlacklistSerializer",
 }
 # --- Logging Configuration ---
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
         },
-        'simple': {
-            'format': '{levelname} {message}',
-            'style': '{',
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
         },
     },
-    'handlers': {
-        'console': {
-            'level': 'DEBUG', # 开发时可以设为 DEBUG，生产环境建议 INFO 或 WARNING
-            'class': 'logging.StreamHandler',
-            'formatter': 'simple',
+    "handlers": {
+        "console": {
+            "level": "DEBUG",  # 开发时可以设为 DEBUG，生产环境建议 INFO 或 WARNING
+            "class": "logging.StreamHandler",
+            "formatter": "simple",
         },
         # 可以添加文件处理器等
         # 'file': {
@@ -244,22 +243,22 @@ LOGGING = {
         #     'formatter': 'verbose',
         # },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console'], # 可以添加 'file'
-            'level': os.getenv('DJANGO_LOG_LEVEL', 'INFO'),
-            'propagate': True,
+    "loggers": {
+        "django": {
+            "handlers": ["console"],  # 可以添加 'file'
+            "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+            "propagate": True,
         },
-        'graph_api': { # 我们应用的日志
-            'handlers': ['console'], # 可以添加 'file'
-            'level': 'DEBUG', # 开发时详细记录
-            'propagate': False,
+        "graph_api": {  # 我们应用的日志
+            "handlers": ["console"],  # 可以添加 'file'
+            "level": "DEBUG",  # 开发时详细记录
+            "propagate": False,
         },
-        'neo4j': { # Neo4j 驱动日志
-             'handlers': ['console'],
-             'level': 'INFO', # 通常设为 INFO 或 WARNING
-             'propagate': False,
-         },
+        "neo4j": {  # Neo4j 驱动日志
+            "handlers": ["console"],
+            "level": "INFO",  # 通常设为 INFO 或 WARNING
+            "propagate": False,
+        },
     },
 }
 # Static files (CSS, JavaScript, Images)
@@ -267,8 +266,8 @@ LOGGING = {
 
 
 # Media files (user uploads)
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media' # 或者 os.path.join(BASE_DIR, 'media')
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"  # 或者 os.path.join(BASE_DIR, 'media')
 
 # 配置日志
 logging.config.dictConfig(LOGGING)

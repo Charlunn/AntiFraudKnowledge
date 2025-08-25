@@ -1,0 +1,23 @@
+# Production Python image
+FROM python:3.13-slim
+
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN sed -i 's@deb.debian.org@mirrors.tuna.tsinghua.edu.cn@g; s@security.debian.org@mirrors.tuna.tsinghua.edu.cn@g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends git libpq-dev build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+CMD ["gunicorn", "KnowledgeBackend.wsgi:application", "--bind", "0.0.0.0:8000"]

@@ -2,10 +2,11 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import axios from 'axios';
-
-const API_BASE_URL = 'http://127.0.0.1:8000/api';
+import { useRuntimeConfig } from '#imports';
 
 export const useStatisticsStore = defineStore('statistics', () => {
+  const config = useRuntimeConfig();
+  const API_BASE_URL = config.public.apiBase;
   // 平台级数据
   const platformStats = ref({
     fraudTypeDistribution: [],
