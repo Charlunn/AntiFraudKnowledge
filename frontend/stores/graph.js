@@ -2,8 +2,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import axios from 'axios'; // Import axios
-
-const API_BASE_URL = 'http://127.0.0.1:8000/api'; // 或者使用 runtimeConfig
+import { useRuntimeConfig } from '#imports';
 
 // 辅助函数：清理重复的 links (你的 API 示例数据里有重复)
 const deduplicateLinks = (links) => {
@@ -24,6 +23,8 @@ const deduplicateLinks = (links) => {
 
 
 export const useGraphStore = defineStore('graph', () => {
+    const config = useRuntimeConfig();
+    const API_BASE_URL = config.public.apiBase;
     const initialNodes = ref([]);
     const initialLinks = ref([]);
     const currentNodes = ref([]);

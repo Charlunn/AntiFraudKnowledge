@@ -2,17 +2,11 @@ services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile.backend
-    volumes:
-      - ./backend:/app
+      dockerfile: Dockerfile.prod
     ports:
       - "8000:8000"
-    networks:
-      - dev_network
     env_file:
       - .env
-    environment:
-      PYTHONUNBUFFERED: 1
     depends_on:
       - postgres
       - neo4j
@@ -20,14 +14,9 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.frontend
-    volumes:
-      - ./frontend:/app
-      - node_modules_volume:/app/node_modules
+      dockerfile: Dockerfile.prod
     ports:
       - "3000:3000"
-    networks:
-      - dev_network
     env_file:
       - .env
     depends_on:
@@ -40,8 +29,6 @@ services:
     ports:
       - "7474:7474"
       - "7687:7687"
-    networks:
-      - dev_network
     env_file:
       - .env
     environment:
@@ -53,8 +40,6 @@ services:
       - ./db/postgres:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    networks:
-      - dev_network
     env_file:
       - .env
     environment:
@@ -63,8 +48,5 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
 
 networks:
-  dev_network:
-    driver: bridge
-
-volumes:
-  node_modules_volume:
+  default:
+    name: prod_network

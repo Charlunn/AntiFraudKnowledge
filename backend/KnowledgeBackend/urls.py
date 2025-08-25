@@ -14,17 +14,22 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
 from django.contrib import admin
 from django.urls import path, include
-from django.conf import settings # 导入 settings
-from django.conf.urls.static import static # 导入 static 函数
+from django.conf import settings  # 导入 settings
+from django.conf.urls.static import static  # 导入 static 函数
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/graph/', include('graph_api.urls', namespace='graph_api')),  # 包含应用URL并指定命名空间
-    path('api/chat/',include('chatapi.urls',namespace='chat_api')),
-    path('api/users/', include('users.urls')),
-    path('api/statistics/', include('statistics.urls', namespace='statistics')),  # 添加统计应用的URL路由
+    path("admin/", admin.site.urls),
+    path(
+        "api/graph/", include("graph_api.urls", namespace="graph_api")
+    ),  # 包含应用URL并指定命名空间
+    path("api/chat/", include("chatapi.urls", namespace="chat_api")),
+    path("api/users/", include("users.urls")),
+    path(
+        "api/statistics/", include("stats.urls", namespace="statistics")
+    ),  # 添加统计应用的URL路由
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
