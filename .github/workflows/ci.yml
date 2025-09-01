@@ -87,6 +87,27 @@ jobs:
       #   run: |
       #     rsync -a --delete ./ /srv/AntiFraudKnowledge/
 
+      - name: Generate env file
+        run: |
+          cat <<EOF > config/.env
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          DEBUG=${{ secrets.DEBUG }}
+          DB_ENGINE=${{ secrets.DB_ENGINE }}
+          DB_NAME=${{ secrets.DB_NAME }}
+          DB_USER=${{ secrets.DB_USER }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_HOST=${{ secrets.DB_HOST }}
+          DB_PORT=${{ secrets.DB_PORT }}
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          NEO4J_URI=${{ secrets.NEO4J_URI }}
+          NEO4J_USERNAME=${{ secrets.NEO4J_USERNAME }}
+          NEO4J_PASSWORD=${{ secrets.NEO4J_PASSWORD }}
+          NEO4J_AUTH=${{ secrets.NEO4J_AUTH }}
+          DASHSCOPE_API_KEY=${{ secrets.DASHSCOPE_API_KEY }}
+          EOF
+
       - name: Deploy locally with Docker Compose
         working-directory: .
         run: |
