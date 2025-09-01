@@ -25,10 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+ie@z)yn^oa@yt(=@%68jt$)^lskoa4bk(heahqm6f#aw+8r2d'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-+ie@z)yn^oa@yt(=@%68jt$)^lskoa4bk(heahqm6f#aw+8r2d')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = [
     '47.109.18.154',
@@ -92,12 +92,12 @@ WSGI_APPLICATION = 'KnowledgeBackend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'mydatabase',  # 使用 docker-compose.yml 中设置的数据库名
-        'USER': 'root',       # 使用 docker-compose.yml 中设置的用户名 (这里是 root)
-        'PASSWORD': '123456',   # 使用 docker-compose.yml 中设置的密码
-        'HOST': 'mysql',        # 关键：使用 MySQL 服务的名称
-        'PORT': '3306',
+        'ENGINE': os.environ.get('DB_ENGINE', 'django.db.backends.mysql'),
+        'NAME': os.environ.get('DB_NAME', 'mydatabase'),
+        'USER': os.environ.get('DB_USER', 'root'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', '123456'),
+        'HOST': os.environ.get('DB_HOST', 'mysql'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },

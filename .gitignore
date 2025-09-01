@@ -12,6 +12,7 @@ __pycache__/
 *.so
 *.egg-info/
 .env
+.env.production
 env/
 venv/
 pip-log.txt
