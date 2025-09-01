@@ -25,6 +25,9 @@ urlpatterns = [
     path('api/chat/',include('chatapi.urls',namespace='chat_api')),
     path('api/users/', include('users.urls')),
     path('api/statistics/', include('statistics.urls', namespace='statistics')),  # 添加统计应用的URL路由
+    path('api/achievements/', include('achievements.urls', namespace='achievements')),
+    path('api/feedback/', include('feedback.urls', namespace='feedback')),
+    path('api/quiz/', include('quiz.urls', namespace='quiz')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

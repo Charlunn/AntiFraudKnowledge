@@ -5,7 +5,15 @@ from rest_framework.views import APIView
 from django.contrib.auth import login, logout
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserRegistrationSerializer, UserLoginSerializer,UserProfileSerializer, ChangePasswordSerializer # Import ChangePasswordSerializer
+from .serializers import (
+    UserRegistrationSerializer,
+    UserLoginSerializer,
+    UserProfileSerializer,
+    ChangePasswordSerializer,
+    BindEmailSerializer,
+    BindPhoneSerializer,
+    UserSettingsSerializer,
+)
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken # Import necessary models
 from .models import CustomUser
 
@@ -118,3 +126,53 @@ class DeleteUserView(APIView):
             return Response({"message": "Account deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             return Response({"detail": "Error deleting account"}, status=status.HTTP_400_BAD_REQUEST)
+class BindEmailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = BindEmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if serializer.validated_data['code'] != '123456':
+            return Response({'detail': 'Invalid code'}, status=status.HTTP_400_BAD_REQUEST)
+        request.user.email = serializer.validated_data['email']
+        request.user.save()
+        return Response({'message': 'Email bound successfully'})
+
+
+class BindPhoneView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = BindPhoneSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if serializer.validated_data['code'] != '123456':
+            return Response({'detail': 'Invalid code'}, status=status.HTTP_400_BAD_REQUEST)
+        request.user.phone_number = serializer.validated_data['phone_number']
+        request.user.save()
+        return Response({'message': 'Phone number bound successfully'})
+
+
+class UnbindEmailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        request.user.email = ''
+        request.user.save()
+        return Response({'message': 'Email unbound'})
+
+
+class UnbindPhoneView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        request.user.phone_number = None
+        request.user.save()
+        return Response({'message': 'Phone number unbound'})
+
+
+class UserSettingsView(generics.RetrieveUpdateAPIView):
+    serializer_class = UserSettingsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        return self.request.user

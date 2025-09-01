@@ -53,7 +53,10 @@ INSTALLED_APPS = [
     'graph_api',
     'users',
     'chatapi',
-    'statistics'  # 添加新的统计应用
+    'statistics',  # 添加新的统计应用
+    'achievements',
+    'feedback',
+    'quiz',
 ]
 TEMPLATES = [
     {
