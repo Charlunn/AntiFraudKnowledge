@@ -4,7 +4,19 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
     TokenVerifyView,
 )
-from .views import UserRegistrationView, UserLoginView, UserLogoutView, UserProfileView, ChangePasswordView,DeleteUserView
+from .views import (
+    UserRegistrationView,
+    UserLoginView,
+    UserLogoutView,
+    UserProfileView,
+    ChangePasswordView,
+    DeleteUserView,
+    BindEmailView,
+    BindPhoneView,
+    UnbindEmailView,
+    UnbindPhoneView,
+    UserSettingsView,
+)
 
 urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='user-register'),
@@ -15,4 +27,9 @@ urlpatterns = [
     path('profile/', UserProfileView.as_view(), name='user-profile'),
     path('change-password/', ChangePasswordView.as_view(), name='change-password'), # Change password URL
     path('delete-account/', DeleteUserView.as_view(), name='delete-account'), # Add this line
+    path('bind-email/', BindEmailView.as_view(), name='bind-email'),
+    path('bind-phone/', BindPhoneView.as_view(), name='bind-phone'),
+    path('unbind-email/', UnbindEmailView.as_view(), name='unbind-email'),
+    path('unbind-phone/', UnbindPhoneView.as_view(), name='unbind-phone'),
+    path('settings/', UserSettingsView.as_view(), name='user-settings'),
 ]

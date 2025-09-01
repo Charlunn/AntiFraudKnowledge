@@ -12,6 +12,7 @@ __pycache__/
 *.so
 *.egg-info/
 .env
+.env.production
 env/
 venv/
 pip-log.txt
@@ -44,6 +45,7 @@ tmp/
 # Docker
 docker-compose.override.yml
 .dockerignore
+db/
 
 # Uploads
 uploads/

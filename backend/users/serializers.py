@@ -111,3 +111,19 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.set_password(self.validated_data['new_password'])
         user.save()
         return user
+
+
+class UserSettingsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('language', 'theme')
+
+
+class BindEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.CharField()
+
+
+class BindPhoneSerializer(serializers.Serializer):
+    phone_number = serializers.CharField()
+    code = serializers.CharField()

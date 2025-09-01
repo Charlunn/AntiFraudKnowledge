@@ -1,6 +1,0 @@
-{
-  "version": 2,
-  "buildCommand": "cd frontend && npm ci --registry=https://registry.npmmirror.com && npm run build",
-
-  "framework": "nuxtjs"
-}
