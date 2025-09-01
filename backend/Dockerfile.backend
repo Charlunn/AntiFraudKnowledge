@@ -17,7 +17,7 @@ RUN sed -i 's@deb.debian.org@mirrors.tuna.tsinghua.edu.cn@g; s@security.debian.o
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         python3-dev \
-        default-libmysqlclient-dev \
+        libpq-dev \
         build-essential \
         pkg-config \
         git \

@@ -3,14 +3,12 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.backend
-    volumes:
-      - ./backend:/app
+    env_file:
+      - ./config/.env.production
     ports:
       - "8000:8000"
     networks:
-      - dev_network
-    env_file:
-      - ./config/.env
+      - prod_network
     depends_on:
       - postgres
       - neo4j
@@ -18,45 +16,45 @@ services:
   frontend:
     image: node:18
     working_dir: /app
+    env_file:
+      - ./config/.env.production
     volumes:
       - ./frontend:/app
-      - node_modules_volume:/app/node_modules
-    command: npm run dev
+    command: npm run build && npm run preview
     ports:
       - "3000:3000"
     networks:
-      - dev_network
-    env_file:
-      - ./config/.env
+      - prod_network
     depends_on:
       - backend
 
   neo4j:
     image: neo4j:latest
     volumes:
-      - ./db/neo4j:/data
+      - neo4j_data:/data
     ports:
       - "7474:7474"
       - "7687:7687"
     networks:
-      - dev_network
+      - prod_network
     env_file:
-      - ./config/.env
+      - ./config/.env.production
 
   postgres:
     image: postgres:15
     volumes:
-      - ./db/postgres:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     networks:
-      - dev_network
+      - prod_network
     env_file:
-      - ./config/.env
+      - ./config/.env.production
 
 networks:
-  dev_network:
+  prod_network:
     driver: bridge
 
 volumes:
-  node_modules_volume:
+  postgres_data:
+  neo4j_data:
