@@ -1,0 +1,29 @@
+# 使用 Node 22 作为基础镜像
+FROM node:22-slim
+
+# 设置工作目录
+WORKDIR /app
+
+# 使用国内镜像源，加速安装
+RUN npm config set registry https://registry.npmmirror.com/ \
+    && npm install -g pnpm \
+    && pnpm config set registry https://registry.npmmirror.com/
+
+# 如果需要原生依赖编译，安装基础工具链（可选但推荐）
+RUN apt-get update && apt-get install -y python3 make g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# 先复制依赖文件（利用 Docker 缓存）
+COPY package.json pnpm-lock.yaml* ./
+
+# 使用 pnpm 安装依赖
+RUN pnpm install
+
+# 再复制项目代码
+# COPY . .
+
+# 暴露 Nuxt 默认端口
+EXPOSE 3000
+
+# 启动 Nuxt 开发服务器
+CMD ["pnpm", "dev"]
