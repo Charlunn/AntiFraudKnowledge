@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册功能测试 - AntiFraudKnowledge</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #4285f4;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #3367d6;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        .info {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #bbdefb;
+        }
+        .instructions {
+            background-color: #fff3e0;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ff9800;
+        }
+        .timestamp {
+            color: #999;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>AntiFraudKnowledge 注册功能测试</h1>
+    
+    <div class="instructions">
+        <p><strong>测试说明：</strong></p>
+        <ul style="margin: 5px 0;">
+            <li>该表单直接连接到本地运行的后端API</li>
+            <li>已修复前端请求中的axios导入问题</li>
+            <li>测试数据会自动生成唯一用户名以避免重复</li>
+            <li>点击"测试注册"按钮后，会显示API的响应结果</li>
+        </ul>
+    </div>
+    
+    <form id="registerForm">
+        <div class="form-group">
+            <label for="username">用户名：</label>
+            <input type="text" id="username" placeholder="自动生成唯一用户名">
+        </div>
+        
+        <div class="form-group">
+            <label for="nickname">昵称：</label>
+            <input type="text" id="nickname" placeholder="测试用户昵称">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">密码：</label>
+            <input type="password" id="password" placeholder="请输入密码">
+        </div>
+        
+        <div class="form-group">
+            <label for="password2">确认密码：</label>
+            <input type="password" id="password2" placeholder="请再次输入密码">
+        </div>
+        
+        <button type="submit">测试注册</button>
+    </form>
+    
+    <div id="result" class="info">准备就绪，点击"测试注册"按钮开始测试...</div>
+
+    <script>
+        // 生成唯一的测试数据
+        function generateTestData() {
+            const timestamp = Date.now();
+            return {
+                username: `testuser_${timestamp}`,
+                nickname: `测试用户_${timestamp}`,
+                password: 'TestPass123!',
+                password2: 'TestPass123!'
+            };
+        }
+
+        // 填充表单
+        const testData = generateTestData();
+        document.getElementById('username').value = testData.username;
+        document.getElementById('nickname').value = testData.nickname;
+        document.getElementById('password').value = testData.password;
+        document.getElementById('password2').value = testData.password2;
+
+        // 显示结果
+        function showResult(type, message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = type;
+            resultDiv.textContent = message;
+        }
+
+        // 表单提交事件
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            showResult('info', '正在发送注册请求...');
+            
+            try {
+                // 获取表单数据
+                const formData = {
+                    username: document.getElementById('username').value,
+                    nickname: document.getElementById('nickname').value,
+                    password: document.getElementById('password').value,
+                    password2: document.getElementById('password2').value
+                };
+                
+                console.log('表单数据:', formData);
+                
+                // 发送请求到注册API
+                const response = await fetch('http://localhost:8000/api/users/register/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                console.log('响应状态码:', response.status);
+                console.log('响应结果:', result);
+                
+                // 显示结果
+                if (response.ok) {
+                    showResult('success', `✅ 注册成功！\n状态码: ${response.status}\n响应: ${JSON.stringify(result, null, 2)}`);
+                } else {
+                    showResult('error', `❌ 注册失败！\n状态码: ${response.status}\n错误: ${JSON.stringify(result, null, 2)}`);
+                }
+                
+            } catch (error) {
+                console.error('请求失败:', error);
+                showResult('error', `❌ 请求失败！\n错误: ${error.message}`);
+            }
+        });
+    </script>
+</body>
+</html>

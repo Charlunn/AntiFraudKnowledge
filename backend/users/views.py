@@ -1,7 +1,8 @@
-from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
+from rest_framework import generics, status
+from rest_framework.response import Response
 from django.contrib.auth import login, logout
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -16,13 +17,18 @@ from .serializers import (
 )
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken # Import necessary models
 from .models import CustomUser
+import logging
+
+logger = logging.getLogger(__name__)
 
 class UserRegistrationView(generics.CreateAPIView):
     serializer_class = UserRegistrationSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if not serializer.is_valid():
+            logger.error(f"Registration validation failed: {serializer.errors}")
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
         return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED, headers=headers)
