@@ -66,7 +66,9 @@ apiClient.interceptors.response.use((response) => {
         console.error('服务器内部错误');
         break;
       default:
-        console.error('请求失败:', data?.detail || data?.error || '未知错误');
+        // For 400 errors, the 'data' object often contains detailed validation errors.
+        // Logging the whole object provides more context than a generic message.
+        console.error('请求失败:', data || '未知错误');
     }
   } else if (error.request) {
     console.error('网络错误，请检查您的网络连接');

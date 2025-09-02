@@ -14,7 +14,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         fields = ('username', 'nickname', 'password', 'password2', 'email', 'phone_number', 'avatar') # 包含头像字段
         extra_kwargs = {
             'username': {'required': True},
-            'nickname': {'required': True},
+            'nickname': {'required': False},
             'email': {'required': False},
             'phone_number': {'required': False},
             'avatar': {'required': False}, # 明确指定 avatar 为非必填
@@ -41,7 +41,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
         user = CustomUser.objects.create_user(
             username=validated_data['username'],
             password=validated_data['password'],
-            nickname=validated_data['nickname'],
+            nickname=validated_data.get('nickname'),
             email=validated_data.get('email'),
             phone_number=validated_data.get('phone_number')
         )
