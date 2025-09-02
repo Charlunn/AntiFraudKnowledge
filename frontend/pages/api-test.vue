@@ -169,8 +169,8 @@ export default {
       registerForm: {
         username: '',
         nickname: '',
-        password: 'ComplexPass123!',
-        password2: 'ComplexPass123!'
+        password: 'Str0ngP@ssw0rdF0rTest!ng',
+        password2: 'Str0ngP@ssw0rdF0rTest!ng'
       },
       loginForm: {
         username: '',
