@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VeritySpring - My Learning Progress</title>
+<link href="data:image/x-icon;base64," rel="icon" type="image/x-icon"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<style type="text/tailwindcss">
+    :root {
+      --primary-color: #38e07b;
+      --secondary-color: #28a058;
+      --background-color: #111827;
+      --card-background: #1f2937;
+      --text-primary: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --accent-color: #4ce68b;
+      --gradient-start: #38e07b;
+      --gradient-end: #28a058;
+    }
+    body {
+      font-family: 'Spline Sans', sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-primary);
+    }
+    .gradient-border {
+      border: 2px solid transparent;
+      background-image: linear-gradient(var(--card-background), var(--card-background)),
+        linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
+    }
+    .chart-bar {
+      background-color: var(--primary-color);
+      transition: height 0.3s ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-[var(--background-color)] text-[var(--text-primary)]">
+<div class="relative flex size-full min-h-screen flex-col overflow-x-hidden">
+<div class="flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-gray-800 px-10 py-4">
+<div class="flex items-center gap-4 text-white">
+<svg class="h-8 w-8 text-[var(--primary-color)]" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M39.5563 34.1455V13.8546C39.5563 15.708 36.8773 17.3437 32.7927 18.3189C30.2914 18.916 27.263 19.2655 24 19.2655C20.737 19.2655 17.7086 18.916 15.2073 18.3189C11.1227 17.3437 8.44365 15.708 8.44365 13.8546V34.1455C8.44365 35.9988 11.1227 37.6346 15.2073 38.6098C17.7086 39.2069 20.737 39.5564 24 39.5564C27.263 39.5564 30.2914 39.2069 32.7927 38.6098C36.8773 37.6346 39.5563 35.9988 39.5563 34.1455Z" fill="currentColor"></path>
+<path clip-rule="evenodd" d="M10.4485 13.8519C10.4749 13.9271 10.6203 14.246 11.379 14.7361C12.298 15.3298 13.7492 15.9145 15.6717 16.3735C18.0007 16.9296 20.8712 17.2655 24 17.2655C27.1288 17.2655 29.9993 16.9296 32.3283 16.3735C34.2508 15.9145 35.702 15.3298 36.621 14.7361C37.3796 14.246 37.5251 13.9271 37.5515 13.8519C37.5287 13.7876 37.4333 13.5973 37.0635 13.2931C36.5266 12.8516 35.6288 12.3647 34.343 11.9175C31.79 11.0295 28.1333 10.4437 24 10.4437C19.8667 10.4437 16.2099 11.0295 13.657 11.9175C12.3712 12.3647 11.4734 12.8516 10.9365 13.2931C10.5667 13.5973 10.4713 13.7876 10.4485 13.8519ZM37.5563 18.7877C36.3176 19.3925 34.8502 19.8839 33.2571 20.2642C30.5836 20.9025 27.3973 21.2655 24 21.2655C20.6027 21.2655 17.4164 20.9025 14.7429 20.2642C13.1498 19.8839 11.6824 19.3925 10.4436 18.7877V34.1275C10.4515 34.1545 10.5427 34.4867 11.379 35.027C12.298 35.6207 13.7492 36.2054 15.6717 36.6644C18.0007 37.2205 20.8712 37.5564 24 37.5564C27.1288 37.5564 29.9993 37.2205 32.3283 36.6644C34.2508 36.2054 35.702 35.6207 36.621 35.027C37.4573 34.4867 37.5485 34.1546 37.5563 34.1275V18.7877ZM41.5563 13.8546V34.1455C41.5563 36.1078 40.158 37.5042 38.7915 38.3869C37.3498 39.3182 35.4192 40.0389 33.2571 40.5551C30.5836 41.1934 27.3973 41.5564 24 41.5564C20.6027 41.5564 17.4164 41.1934 14.7429 40.5551C12.5808 40.0389 10.6502 39.3182 9.20848 38.3869C7.84205 37.5042 6.44365 36.1078 6.44365 34.1455L6.44365 13.8546C6.44365 12.2684 7.37223 11.0454 8.39581 10.2036C9.43325 9.3505 10.8137 8.67141 12.343 8.13948C15.4203 7.06909 19.5418 6.44366 24 6.44366C28.4582 6.44366 32.5797 7.06909 35.657 8.13948C37.1863 8.67141 38.5667 9.3505 39.6042 10.2036C40.6278 11.0454 41.5563 12.2684 41.5563 13.8546Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+<h1 class="text-xl font-bold leading-tight tracking-tight">澄源 VeritySpring</h1>
+</div>
+<div class="flex flex-1 items-center justify-end gap-6">
+<nav class="flex items-center gap-8">
+<a class="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors" href="#">Home</a>
+<a class="text-sm font-medium text-[var(--text-primary)]" href="#">Courses</a>
+<a class="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors" href="#">Community</a>
+<a class="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors" href="#">Resources</a>
+</nav>
+<button class="flex items-center justify-center rounded-full h-10 w-10 bg-gray-800 text-[var(--text-secondary)] hover:bg-gray-700 hover:text-[var(--text-primary)] transition-colors">
+<svg fill="currentColor" height="20px" viewBox="0 0 256 256" width="20px" xmlns="http://www.w3.org/2000/svg">
+<path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a64,64,0,1,1,128,0c0,36.05,8.28,66.73,16,80Z"></path>
+</svg>
+</button>
+<div class="aspect-square rounded-full size-10 bg-cover bg-center" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDIv8tRWiMsyFvb0JKYdPUIwhgT6XsPfnG1XHY_p-eTXzujA8agKTy4vV64Mububo6-YpKrAs82urbHyUcYD7lgGbuWV2nFwd5uvi90NZy9UUUNLsCWLJBZ8lbE8WMfVm8XKckhXRA-hAt0D7A9x-NS0nN3fJ40PCrn-oaPPEhngcoYawGArs81Sfm2p3527tXOZ-OOK66uAscPOGMNH2oHGIeCj4x-tT1e0R4oL6y0D8Om3Y1bhW2QoJQG_7aZxVOIYVqVMyK8Og");'></div>
+</div>
+</header>
+<main class="flex-1 px-20 py-10 lg:px-40">
+<div class="mx-auto max-w-5xl">
+<h2 class="text-4xl font-bold tracking-tight text-white mb-12">My Learning Progress</h2>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 space-y-8">
+<div class="bg-[var(--card-background)] p-6 rounded-2xl gradient-border">
+<h3 class="text-xl font-semibold mb-4 text-white">Overall Progress</h3>
+<div class="flex items-center justify-between mb-2">
+<p class="text-base font-medium text-[var(--text-primary)]">Anti-Fraud Training Completion</p>
+<p class="text-base font-bold text-[var(--primary-color)]">75%</p>
+</div>
+<div class="rounded-full bg-gray-700 h-3 overflow-hidden">
+<div class="h-full rounded-full bg-gradient-to-r from-[var(--gradient-start)] to-[var(--gradient-end)]" style="width: 75%;"></div>
+</div>
+</div>
+<div class="bg-[var(--card-background)] p-6 rounded-2xl gradient-border">
+<h3 class="text-xl font-semibold mb-6 text-white">Capability Assessment Report</h3>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-8 text-center">
+<div>
+<div class="h-32 w-full flex items-end justify-center mb-2">
+<div class="w-10 chart-bar rounded-t-md" style="height: 85%; background-color: var(--primary-color);"></div>
+</div>
+<p class="text-sm font-medium text-[var(--text-secondary)]">Fraud Detection</p>
+</div>
+<div>
+<div class="h-32 w-full flex items-end justify-center mb-2">
+<div class="w-10 chart-bar rounded-t-md" style="height: 65%; background-color: #31c46c;"></div>
+</div>
+<p class="text-sm font-medium text-[var(--text-secondary)]">Risk Assessment</p>
+</div>
+<div>
+<div class="h-32 w-full flex items-end justify-center mb-2">
+<div class="w-10 chart-bar rounded-t-md" style="height: 75%; background-color: #2db361;"></div>
+</div>
+<p class="text-sm font-medium text-[var(--text-secondary)]">Compliance</p>
+</div>
+<div>
+<div class="h-32 w-full flex items-end justify-center mb-2">
+<div class="w-10 chart-bar rounded-t-md" style="height: 90%; background-color: var(--secondary-color);"></div>
+</div>
+<p class="text-sm font-medium text-[var(--text-secondary)]">Data Security</p>
+</div>
+</div>
+</div>
+</div>
+<div class="space-y-8">
+<div class="relative bg-cover bg-center rounded-2xl overflow-hidden p-6 flex flex-col justify-end min-h-[260px] gradient-border" style='background-image: linear-gradient(0deg, rgba(17, 24, 39, 0.8) 0%, rgba(17, 24, 39, 0) 60%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuDdcX2ipz2ZScDqzq12uY4-WpszlFGWHniEKG862HqoGQO4d5EX5huseQoIpCQIY7-a0owuiyeuu81yZxuwhkP5_IMtFGa0l8uOzAo5bN1sIH-ExSuxbOhweikdZwWcLgE47gvqVeMR8-GPsN2KKzD9h9KF2lWYSv-aonFRGAx_YFQNJS1eGjugXqMIUeD6koQZTdqUNC_6HkR-7wlcPY68mkX2Jui-IlcgJk4xz-Wi8FGvEFaEPu5hE7nnMQuHu3yMJGznVJevjg");'>
+<h3 class="text-2xl font-bold text-white">Advanced</h3>
+<p class="text-sm text-[var(--text-secondary)] mt-1">You've reached the Advanced level in anti-fraud awareness.</p>
+</div>
+<div class="bg-[var(--card-background)] p-6 rounded-2xl gradient-border">
+<div class="space-y-5">
+<h3 class="text-lg font-semibold text-white">Settings &amp; Reports</h3>
+<a class="flex items-center gap-4 group" href="#">
+<div class="flex items-center justify-center rounded-lg bg-gray-700 shrink-0 size-10 group-hover:bg-[var(--primary-color)] transition-colors">
+<svg fill="currentColor" height="20px" viewBox="0 0 256 256" width="20px" xmlns="http://www.w3.org/2000/svg">
+<path d="M208,40H48A16,16,0,0,0,32,56v58.78c0,89.61,75.82,119.34,91,124.39a15.53,15.53,0,0,0,10,0c15.2-5.05,91-34.78,91-124.39V56A16,16,0,0,0,208,40Zm0,74.79c0,78.42-66.35,104.62-80,109.18-13.53-4.51-80-30.69-80-109.18V56H208ZM82.34,141.66a8,8,0,0,1,11.32-11.32L112,148.68l50.34-50.34a8,8,0,0,1,11.32,11.32l-56,56a8,8,0,0,1-11.32,0Z"></path>
+</svg>
+</div>
+<div>
+<p class="text-base font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-color)] transition-colors">Privacy Settings</p>
+<p class="text-sm text-[var(--text-secondary)]">Manage your account's privacy</p>
+</div>
+</a>
+<a class="flex items-center gap-4 group" href="#">
+<div class="flex items-center justify-center rounded-lg bg-gray-700 shrink-0 size-10 group-hover:bg-[var(--primary-color)] transition-colors">
+<svg fill="currentColor" height="20px" viewBox="0 0 256 256" width="20px" xmlns="http://www.w3.org/2000/svg">
+<path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM96,56a32,32,0,0,1,64,0V80H96ZM208,208H48V96H208V208Zm-68-56a12,12,0,1,1-12-12A12,12,0,0,1,140,152Z"></path>
+</svg>
+</div>
+<div>
+<p class="text-base font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-color)] transition-colors">Security Settings</p>
+<p class="text-sm text-[var(--text-secondary)]">Manage your security settings</p>
+</div>
+</a>
+<div class="border-t border-gray-700"></div>
+<a class="flex items-center gap-4 group" href="#">
+<div class="flex items-center justify-center rounded-lg bg-gray-700 shrink-0 size-10 group-hover:bg-[var(--primary-color)] transition-colors">
+<svg fill="currentColor" height="20px" viewBox="0 0 256 256" width="20px" xmlns="http://www.w3.org/2000/svg">
+<path d="M213.66,82.34l-56-56A8,8,0,0,0,152,24H56A16,16,0,0,0,40,40V216a16,16,0,0,0,16,16H200a16,16,0,0,0,16-16V88A8,8,0,0,0,213.66,82.34ZM160,51.31,188.69,80H160ZM200,216H56V40h88V88a8,8,0,0,0,8,8h48V216Zm-42.34-61.66a8,8,0,0,1,0,11.32l-24,24a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L120,164.69V120a8,8,0,0,1,16,0v44.69l10.34-10.35A8,8,0,0,1,157.66,154.34Z"></path>
+</svg>
+</div>
+<div>
+<p class="text-base font-medium text-[var(--text-primary)] group-hover:text-[var(--accent-color)] transition-colors">Export Learning Report</p>
+<p class="text-sm text-[var(--text-secondary)]">Download your progress report</p>
+</div>
+</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>
