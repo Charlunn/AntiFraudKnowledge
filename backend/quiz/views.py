@@ -12,10 +12,18 @@ class QuestionListView(generics.ListAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        level = self.request.query_params.get('level')
         queryset = Question.objects.all()
-        if level:
-            queryset = queryset.filter(level=level)
+        level_str = self.request.query_params.get('level')
+
+        if level_str:
+            # Map string levels to integer values used in the database
+            level_map = {'easy': 1, 'medium': 2, 'hard': 3}
+            level_int = level_map.get(level_str.lower())
+
+            # If the level string is valid, filter the queryset
+            if level_int is not None:
+                queryset = queryset.filter(level=level_int)
+
         return queryset
 
 
