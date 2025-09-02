@@ -16,20 +16,21 @@ services:
       - neo4j
 
   frontend:
-    image: node:18
-    working_dir: /app
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.frontend
     volumes:
       - ./frontend:/app
       - node_modules_volume:/app/node_modules
-    command: npm run dev
     ports:
       - "3000:3000"
     networks:
       - dev_network
-    env_file:
-      - ./config/.env
-    depends_on:
-      - backend
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - DOCKER_ENV=true
+
+
 
   neo4j:
     image: neo4j:latest
