@@ -99,6 +99,20 @@ export function fetchProfile() {
 }
 
 /**
+ * 更新用户个人资料
+ * @param {Object} data - 要更新的资料，例如 { nickname: '新昵称' }
+ * @returns {Promise} - 更新结果
+ *
+ * @example
+ * updateProfile({ nickname: 'New Nickname' })
+ *   .then(response => console.log('资料更新成功', response.data))
+ *   .catch(error => console.error('更新失败', error));
+ */
+export function updateProfile(data) {
+  return apiClient.put('/users/profile/', data);
+}
+
+/**
  * 修改密码
  * @param {Object} data - 密码修改信息
  * @param {string} data.old_password - 原密码
