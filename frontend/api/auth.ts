@@ -3,56 +3,65 @@
  * 提供用户注册、登录、资料管理等功能
  */
 
-// 导入API请求工具
-import apiClient from './http.js';
+import { apiClient } from './base';
+import type {
+  User,
+  LoginRequest,
+  RegisterRequest,
+  AuthTokens,
+  ApiResponse
+} from '~/types/api';
 
 /**
  * 用户注册
- * @param {Object} data - 注册信息
- * @param {string} data.username - 用户名
- * @param {string} data.nickname - 昵称
- * @param {string} data.password - 密码
- * @param {string} data.password2 - 确认密码
- * @param {string} [data.email] - 邮箱（可选）
- * @param {string} [data.phone_number] - 手机号（可选）
- * @returns {Promise} - 注册结果
+ * @param data - 注册信息
+ * @returns 注册结果
  * 
  * @example
- * register({ username: 'testuser', nickname: '测试用户', password: 'password123', password2: 'password123' })
- *   .then(response => console.log('注册成功'))
- *   .catch(error => console.error('注册失败', error));
+ * ```typescript
+ * const result = await register({
+ *   username: 'testuser',
+ *   nickname: '测试用户',
+ *   password: 'password123',
+ *   password2: 'password123'
+ * });
+ * ```
  */
-export function register(data) {
+export async function register(data: RegisterRequest): Promise<ApiResponse<User>> {
   // 参数验证
-  if (!data || !data.username || !data.nickname || !data.password || !data.password2) {
-    return Promise.reject(new Error('用户名、昵称、密码和确认密码不能为空'));
+  if (!data.username || !data.nickname || !data.password || !data.password2) {
+    throw new Error('用户名、昵称、密码和确认密码不能为空');
   }
-  return apiClient.post('/users/register/', data);
+  
+  if (data.password !== data.password2) {
+    throw new Error('两次输入的密码不一致');
+  }
+  
+  return await apiClient.post<User>('/users/register/', data);
 }
 
 /**
  * 用户登录
  * 支持使用用户名、邮箱或手机号登录
- * @param {string} identifier - 标识符（用户名/邮箱/手机号）
- * @param {string} password - 密码
- * @returns {Promise} - 登录结果，包含访问令牌和刷新令牌
+ * @param identifier - 标识符（用户名/邮箱/手机号）
+ * @param password - 密码
+ * @returns 登录结果，包含访问令牌和刷新令牌
  * 
  * @example
- * login('testuser', 'password123')
- *   .then(response => {
- *     const { access, refresh } = response.data;
- *     useAuthStore().setTokens(access, refresh);
- *   })
- *   .catch(error => console.error('登录失败', error));
+ * ```typescript
+ * const result = await login('testuser', 'password123');
+ * const { access, refresh } = result.data;
+ * useAuthStore().setTokens(access, refresh);
+ * ```
  */
-export function login(identifier, password) {
+export async function login(identifier: string, password: string): Promise<ApiResponse<AuthTokens>> {
   // 参数验证
   if (!identifier || !password) {
-    return Promise.reject(new Error('标识符和密码不能为空'));
+    throw new Error('标识符和密码不能为空');
   }
   
   // 根据标识符类型构建请求体
-  const payload = { password };
+  const payload: any = { password };
   if (identifier.includes('@')) {
     payload.email = identifier;
   } else if (/^\d+$/.test(identifier)) {
@@ -61,41 +70,40 @@ export function login(identifier, password) {
     payload.username = identifier;
   }
   
-  return apiClient.post('/users/login/', payload);
+  return await apiClient.post<AuthTokens>('/users/login/', payload);
 }
 
 /**
  * 用户登出
- * @param {string} refreshToken - 刷新令牌
- * @returns {Promise} - 登出结果
+ * @param refreshToken - 刷新令牌
+ * @returns 登出结果
  * 
  * @example
- * logout(refreshToken)
- *   .then(() => {
- *     useAuthStore().clear();
- *     console.log('登出成功');
- *   })
- *   .catch(error => console.error('登出失败', error));
+ * ```typescript
+ * await logout(refreshToken);
+ * useAuthStore().clear();
+ * ```
  */
-export function logout(refreshToken) {
+export async function logout(refreshToken: string): Promise<ApiResponse<void>> {
   if (!refreshToken) {
-    return Promise.reject(new Error('刷新令牌不能为空'));
+    throw new Error('刷新令牌不能为空');
   }
-  return apiClient.post('/users/logout/', { refresh_token: refreshToken });
+  return await apiClient.post<void>('/users/logout/', { refresh_token: refreshToken });
 }
 
 /**
  * 获取用户个人资料
  * 需要登录权限
- * @returns {Promise} - 用户资料信息
+ * @returns 用户资料信息
  * 
  * @example
- * fetchProfile()
- *   .then(response => console.log('用户资料', response.data))
- *   .catch(error => console.error('获取资料失败', error));
+ * ```typescript
+ * const profile = await fetchProfile();
+ * console.log('用户资料', profile.data);
+ * ```
  */
-export function fetchProfile() {
-  return apiClient.get('/users/profile/');
+export async function fetchProfile(): Promise<ApiResponse<User>> {
+  return await apiClient.get<User>('/users/profile/');
 }
 
 /**
