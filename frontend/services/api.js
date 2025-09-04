@@ -1,7 +1,7 @@
 // API服务层 - 管理与后端的HTTP通信
 
 // API基础配置
-const API_BASE_URL = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api'
+const API_BASE_URL = process.env.NUXT_PUBLIC_API_BASE || '/api'
 const API_TIMEOUT = 30000 // 30秒超时
 
 // 创建HTTP客户端实例
@@ -412,6 +412,7 @@ export const systemApi = {
   reportError: (errorData) => apiClient.post('/system/errors', errorData),
   
   // 获取系统统计
+  getStats: () => apiClient.get('/system/stats'),
   getSystemStats: () => apiClient.get('/system/stats')
 }
 

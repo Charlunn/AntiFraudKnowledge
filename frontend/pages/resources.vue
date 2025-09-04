@@ -123,6 +123,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+// 修复：从正确的 API 模块导入 fetchQuestions
+import { fetchQuestions } from '~/api/quiz'
 
 // 页面布局
 definePageMeta({
@@ -141,6 +143,7 @@ useHead({
 const activeCategory = ref('all')
 const currentPage = ref(1)
 const pageSize = 12
+const loading = ref(false)
 
 // 资源分类
 const categories = [
@@ -263,14 +266,76 @@ const formatDate = (date) => {
 }
 
 const viewResource = (resource) => {
-  // TODO: 实现资源详情查看功能
-  console.log('查看资源:', resource)
+  // 增加 URL 缺省时的回退逻辑，确保默认模拟数据可用
+  const openExternal = (url) => window.open(url, '_blank')
+  if (!resource.url || resource.type === 'article') {
+    navigateTo(`/resources/${resource.id}`)
+    return
+  }
+  // 其他类型优先外部打开
+  openExternal(resource.url)
+}
+
+// 从API加载资源数据
+const loadResources = async () => {
+  try {
+    loading.value = true
+    
+    // 尝试从题目数据生成学习资源
+    const resp = await fetchQuestions().catch(() => null)
+    // 兼容不同返回结构（AxiosResponse 或 直接数组）
+    const questionsData = resp && (Array.isArray(resp) ? resp : resp.data)
+    
+    if (Array.isArray(questionsData) && questionsData.length > 0) {
+      // 基于题目数据生成学习资源
+      const generatedResources = []
+      
+      // 按难度和类别分组生成资源
+      const difficulties = ['easy', 'medium', 'hard']
+      const categories = ['case', 'guide', 'video', 'article', 'tool']
+      
+      questionsData.slice(0, 15).forEach((question, index) => {
+        const resourceType = categories[index % categories.length]
+        const difficulty = difficulties[index % difficulties.length]
+        
+        generatedResources.push({
+          id: index + 1,
+          title: question.question_text ? 
+            `${getTypeName(resourceType)}：${question.question_text.substring(0, 20)}...` :
+            `${getTypeName(resourceType)}：反欺诈知识点${index + 1}`,
+          description: question.explanation || 
+            `深入了解${getTypeName(resourceType)}相关的反欺诈知识和实践经验`,
+          type: resourceType,
+          category: resourceType,
+          tags: [
+            difficulty === 'easy' ? '基础' : difficulty === 'medium' ? '进阶' : '高级',
+            '反欺诈',
+            resourceType === 'case' ? '案例' : resourceType === 'guide' ? '指南' : '学习'
+          ],
+          views: Math.floor(Math.random() * 2000) + 100,
+          likes: Math.floor(Math.random() * 200) + 10,
+          createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          url: `/resources/${index + 1}`
+        })
+      })
+      
+      resources.value = generatedResources
+    } else {
+      // 保持原有的模拟数据
+      console.log('使用默认模拟数据')
+    }
+    
+  } catch (error) {
+    console.error('加载资源失败:', error)
+    // 保持原有的模拟数据作为备用
+  } finally {
+    loading.value = false
+  }
 }
 
 // 生命周期
 onMounted(() => {
-  // TODO: 从API加载资源数据
-  // loadResources()
+  loadResources()
 })
 </script>
 

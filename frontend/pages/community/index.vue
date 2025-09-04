@@ -28,7 +28,7 @@
           <Icon name="heroicons:chat-bubble-left-right" class="w-6 h-6 text-blue-500" />
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.total_posts }}</div>
+          <div class="stat-value">{{ stats?.total_posts || 0 }}</div>
           <div class="stat-label">总帖子数</div>
         </div>
       </div>
@@ -38,7 +38,7 @@
           <Icon name="heroicons:users" class="w-6 h-6 text-green-500" />
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.active_users }}</div>
+          <div class="stat-value">{{ stats?.active_users || 0 }}</div>
           <div class="stat-label">活跃用户</div>
         </div>
       </div>
@@ -48,7 +48,7 @@
           <Icon name="heroicons:eye" class="w-6 h-6 text-purple-500" />
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.total_views }}</div>
+          <div class="stat-value">{{ stats?.total_views || 0 }}</div>
           <div class="stat-label">总浏览量</div>
         </div>
       </div>
@@ -58,7 +58,7 @@
           <Icon name="heroicons:heart" class="w-6 h-6 text-red-500" />
         </div>
         <div class="stat-content">
-          <div class="stat-value">{{ stats.total_likes }}</div>
+          <div class="stat-value">{{ stats?.total_likes || 0 }}</div>
           <div class="stat-label">总点赞数</div>
         </div>
       </div>
@@ -569,8 +569,8 @@ const fetchPosts = async () => {
     ])
     
     posts.value = postsResponse.results || postsResponse
-    stats.value = statsResponse
-    popularTags.value = tagsResponse
+    stats.value = statsResponse?.data || statsResponse || mockStats
+    popularTags.value = tagsResponse?.data || tagsResponse || mockTags
     
     showToast('社区内容加载成功', 'success')
   } catch (err) {

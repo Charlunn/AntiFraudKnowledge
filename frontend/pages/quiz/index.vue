@@ -228,10 +228,10 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useQuizApi } from '~/composables/useApi'
+import { fetchQuestions, fetchQuizHistory, fetchUserQuizStats } from '~/api/quiz'
 import { useToast } from '~/composables/useNotification'
 import { formatDate } from '~/utils/formatters'
-import { QUIZ_DIFFICULTY, QUIZ_CATEGORIES } from '~/constants'
+import { QUIZ_CONFIG } from '~/constants'
 
 // 设置页面布局
 definePageMeta({
@@ -247,7 +247,6 @@ useHead({
 })
 
 // API和通知
-const { getQuizList } = useQuizApi()
 const { showToast } = useToast()
 
 // 响应式数据
@@ -453,28 +452,77 @@ const fetchQuizzes = async () => {
   error.value = null
   
   try {
-    const params = {
-      search: searchQuery.value,
-      category: selectedCategory.value,
-      difficulty: selectedDifficulty.value,
-      sort: sortBy.value,
-      page: currentPage.value,
-      page_size: pageSize
+    // 获取题目列表，按难度分组来模拟测验
+    const questionsResponse = await fetchQuestions()
+    const questions = questionsResponse.data || []
+    
+    // 获取用户统计数据
+    let userStats = null
+    try {
+      const statsResponse = await fetchUserQuizStats()
+      userStats = statsResponse.data
+    } catch (statsErr) {
+      console.warn('Failed to fetch user stats:', statsErr)
     }
     
-    const response = await getQuizList(params)
-    quizzes.value = response.results || response
+    // 将题目按难度分组，创建测验列表
+    const quizMap = new Map()
     
-    showToast('测验列表加载成功', 'success')
+    questions.forEach(question => {
+      const level = question.level || 'beginner'
+      if (!quizMap.has(level)) {
+        quizMap.set(level, {
+          id: level,
+          title: `${getDifficultyLabel(level)}反欺诈知识测验`,
+          description: `测试您在${getDifficultyLabel(level)}水平的反欺诈知识掌握程度`,
+          category: '反欺诈知识',
+          difficulty: level,
+          question_count: 0,
+          time_limit: level === 'beginner' ? 30 : level === 'intermediate' ? 45 : 60,
+          attempts: 0,
+          average_score: 0,
+          pass_rate: 0,
+          user_best_score: null,
+          created_at: new Date().toISOString(),
+          rating: 4.5,
+          questions: []
+        })
+      }
+      
+      const quiz = quizMap.get(level)
+      quiz.questions.push(question)
+      quiz.question_count++
+    })
+    
+    // 如果有用户统计数据，更新相关信息
+    if (userStats && userStats.level_stats) {
+      Object.entries(userStats.level_stats).forEach(([level, stats]) => {
+        if (quizMap.has(level)) {
+          const quiz = quizMap.get(level)
+          quiz.attempts = stats.attempts || 0
+          quiz.average_score = Math.round(stats.average_score || 0)
+          quiz.user_best_score = Math.round(stats.best_score || 0) || null
+          quiz.pass_rate = quiz.average_score >= 60 ? Math.round(quiz.average_score * 0.8) : 50
+        }
+      })
+    }
+    
+    quizzes.value = Array.from(quizMap.values())
+    
+    if (quizzes.value.length > 0) {
+      showToast('测验列表加载成功', 'success')
+    } else {
+      // 如果没有题目，使用模拟数据
+      quizzes.value = mockQuizzes
+      showToast('使用模拟数据', 'info')
+    }
   } catch (err) {
     error.value = '获取测验列表失败: ' + err.message
     showToast('获取测验列表失败', 'error')
     console.error('Failed to fetch quizzes:', err)
     
-    // 开发环境下使用模拟数据
-    if (process.dev) {
-      quizzes.value = mockQuizzes
-    }
+    // 出错时使用模拟数据
+    quizzes.value = mockQuizzes
   } finally {
     loading.value = false
   }
@@ -497,7 +545,15 @@ const applySorting = () => {
 }
 
 const getDifficultyLabel = (difficulty) => {
-  return QUIZ_DIFFICULTY[difficulty]?.label || difficulty
+  const difficultyMap = {
+    'beginner': '初级',
+    'intermediate': '中级', 
+    'advanced': '高级',
+    'easy': '简单',
+    'medium': '中等',
+    'hard': '困难'
+  }
+  return difficultyMap[difficulty] || difficulty
 }
 
 const navigateToQuiz = (quizId) => {

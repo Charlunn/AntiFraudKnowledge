@@ -103,23 +103,52 @@ export async function fetchProfile(): Promise<ApiResponse<User>> {
 }
 
 /**
+ * 更新用户个人资料
+ * 需要登录权限
+ * @param data - 用户资料更新数据
+ * @returns 更新后的用户资料信息
+ * 
+ * @example
+ * ```typescript
+ * const updatedProfile = await updateProfile({
+ *   username: 'newusername',
+ *   email: 'newemail@example.com'
+ * });
+ * console.log('更新后的用户资料', updatedProfile.data);
+ * ```
+ */
+export async function updateProfile(data: Partial<User>): Promise<ApiResponse<User>> {
+  if (!data || Object.keys(data).length === 0) {
+    throw new Error('更新数据不能为空');
+  }
+  return await apiClient.put<User>('/users/profile/', data);
+}
+
+/**
  * 修改密码
  * @param data - 密码修改信息
- * @param data.old_password - 原密码
+ * @param data.current_password - 当前密码
  * @param data.new_password - 新密码
- * @param data.new_password2 - 确认新密码
  * @returns 修改结果
  * 
  * @example
- * changePassword({ old_password: 'oldpass', new_password: 'newpass', new_password2: 'newpass' })
+ * changePassword({ current_password: 'oldpass', new_password: 'newpass' })
  *   .then(() => console.log('密码修改成功'))
  *   .catch(error => console.error('密码修改失败', error));
  */
-export async function changePassword(data: {old_password: string, new_password: string, new_password2: string}): Promise<ApiResponse<void>> {
-  if (!data || !data.old_password || !data.new_password || !data.new_password2) {
-    throw new Error('原密码、新密码和确认密码不能为空');
+export async function changePassword(data: {current_password: string, new_password: string}): Promise<ApiResponse<void>> {
+  if (!data || !data.current_password || !data.new_password) {
+    throw new Error('当前密码和新密码不能为空');
   }
-  return await apiClient.post<void>('/users/change-password/', data);
+  
+  // 转换为后端期望的格式
+  const payload = {
+    old_password: data.current_password,
+    new_password: data.new_password,
+    new_password2: data.new_password // 后端需要确认密码字段
+  };
+  
+  return await apiClient.post<void>('/users/change-password/', payload);
 }
 
 /**

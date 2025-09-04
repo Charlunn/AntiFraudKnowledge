@@ -312,10 +312,10 @@ const toggleTheme = () => {
   isDark.value = !isDark.value
   if (isDark.value) {
     document.documentElement.classList.add('dark')
-    localStorage.setItem('theme', 'dark')
+    window.localStorage.setItem('theme', 'dark')
   } else {
     document.documentElement.classList.remove('dark')
-    localStorage.setItem('theme', 'light')
+    window.localStorage.setItem('theme', 'light')
   }
 }
 
@@ -335,7 +335,7 @@ const handleResize = () => {
 // 生命周期
 onMounted(() => {
   // 初始化主题
-  const savedTheme = localStorage.getItem('theme')
+  const savedTheme = window.localStorage.getItem('theme')
   if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
     isDark.value = true
     document.documentElement.classList.add('dark')

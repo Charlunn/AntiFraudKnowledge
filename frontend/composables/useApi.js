@@ -10,7 +10,7 @@ import {
   searchApi 
 } from '~/services/api'
 import { handleError } from '~/utils/errorHandler'
-import { appStorage } from '~/utils/storage'
+import { storage } from '~/utils/storage'
 
 // 通用数据获取composable
 export const useApiData = (key, fetchFn, options = {}) => {
@@ -31,7 +31,7 @@ export const useApiData = (key, fetchFn, options = {}) => {
   const getCachedData = () => {
     if (!cache) return null
     
-    const cached = appStorage.get(`api_cache_${key}`)
+    const cached = storage.local.get(`api_cache_${key}`)
     if (cached && cached.timestamp && Date.now() - cached.timestamp < cacheTime) {
       return cached.data
     }
@@ -41,7 +41,7 @@ export const useApiData = (key, fetchFn, options = {}) => {
   // 设置缓存
   const setCachedData = (responseData) => {
     if (cache) {
-      appStorage.set(`api_cache_${key}`, {
+      storage.local.set(`api_cache_${key}`, {
         data: responseData,
         timestamp: Date.now()
       })
@@ -280,7 +280,7 @@ export const useCommunityApi = () => {
   const getCommunityStats = () => {
     return useApiData(
       'community_stats',
-      () => communityApi.getStats(),
+      () => communityApi.getCommunityStats(),
       { cache: true, cacheTime: 10 * 60 * 1000 }
     )
   }
@@ -293,12 +293,19 @@ export const useCommunityApi = () => {
     )
   }
 
+  const togglePostLike = async (postId) => {
+    // 模拟点赞功能
+    return { success: true }
+  }
+
   return {
     getPosts,
+    getCommunityPosts: getPosts, // 添加别名以匹配页面中的调用
     getPostDetails,
     getPostComments,
     getCommunityStats,
-    getPopularTags
+    getPopularTags,
+    togglePostLike
   }
 }
 

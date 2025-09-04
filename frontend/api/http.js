@@ -18,16 +18,16 @@ const apiClient = axios.create({
  * 自动添加认证token并设置基础URL
  */
 apiClient.interceptors.request.use((config) => {
-  // 获取运行时配置和认证状态
+  // 获取运行时配置
   const runtime = useRuntimeConfig();
-  const auth = useAuthStore();
   
   // 设置基础URL
   config.baseURL = runtime.public.apiBase || '/api';
   
-  // 添加认证token
-  if (auth.accessToken) {
-    config.headers.Authorization = `Bearer ${auth.accessToken}`;
+  // 从cookie获取认证token
+  const authToken = useCookie('auth-token');
+  if (authToken.value) {
+    config.headers.Authorization = `Bearer ${authToken.value}`;
   }
   
   return config;

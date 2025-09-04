@@ -24,4 +24,8 @@ urlpatterns = [
     # 用户相关
     path('my-posts/', views.my_posts, name='my-posts'),
     path('my-comments/', views.my_comments, name='my-comments'),
+    
+    # 标签和统计
+    path('tags/popular/', views.get_popular_tags, name='popular-tags'),
+    path('stats/', views.get_community_stats, name='community-stats'),
 ]

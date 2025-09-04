@@ -390,7 +390,7 @@ export const authMiddleware = () => {
       if (!isAuthenticated.value) {
         const currentRoute = useRoute()
         await navigateTo({
-          path: '/auth/login',
+          path: '/login',
           query: { redirect: currentRoute.fullPath }
         })
         return false
@@ -419,7 +419,7 @@ export const authMiddleware = () => {
         if (!isAuthenticated.value) {
           const currentRoute = useRoute()
           await navigateTo({
-            path: '/auth/login',
+            path: '/login',
             query: { redirect: currentRoute.fullPath }
           })
           return false

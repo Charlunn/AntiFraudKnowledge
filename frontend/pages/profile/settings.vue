@@ -684,8 +684,11 @@ useHead({
 })
 
 // 认证和通知
-const { user, updateProfile, changePassword } = useAuth()
+const { user, updateUser } = useAuth()
 const { showToast } = useToast()
+
+// API 导入
+const { $api } = useNuxtApp()
 
 // 表单管理
 const {
@@ -710,7 +713,7 @@ const {
   setFieldValue: setPasswordField,
   resetForm: resetPasswordForm,
   submitForm: submitPasswordForm
-} = usePasswordChangeForm()
+} = useChangePasswordForm()
 
 // 响应式数据
 const activeSection = ref('profile')
@@ -861,6 +864,22 @@ const handleAvatarUpload = (event) => {
   }
 }
 
+const updateProfile = async (profileData) => {
+  try {
+    const response = await $api.auth.updateProfile(profileData)
+    if (response.success) {
+      // 更新本地用户信息
+      await updateUser(response.data)
+      return { success: true, data: response.data }
+    } else {
+      throw new Error(response.message || '更新失败')
+    }
+  } catch (error) {
+    console.error('更新个人资料失败:', error)
+    throw error
+  }
+}
+
 const handleUpdateProfile = async () => {
   try {
     const isValid = await validateProfileForm()
@@ -888,6 +907,29 @@ const handleUpdateProfile = async () => {
       title: '更新失败',
       message: err.message || '更新个人资料时发生错误'
     })
+  }
+}
+
+const changePassword = async (passwordData) => {
+  try {
+    const response = await $api.auth.changePassword({
+      current_password: passwordData.currentPassword,
+      new_password: passwordData.newPassword
+    })
+    if (response.success) {
+      // 清空密码表单
+      passwordForm.value = {
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      }
+      return { success: true }
+    } else {
+      throw new Error(response.message || '密码修改失败')
+    }
+  } catch (error) {
+    console.error('密码修改失败:', error)
+    throw error
   }
 }
 

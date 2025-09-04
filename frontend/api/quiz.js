@@ -57,3 +57,19 @@ export function submitAnswers(level, answers) {
   }
   return apiClient.post('/quiz/submit/', { level, answers });
 }
+
+/**
+ * 获取用户测验历史记录
+ * @returns {Promise} - 测验历史记录列表
+ */
+export function fetchQuizHistory() {
+  return apiClient.get('/quiz/history/');
+}
+
+/**
+ * 获取用户测验统计数据
+ * @returns {Promise} - 用户测验统计信息
+ */
+export function fetchUserQuizStats() {
+  return apiClient.get('/quiz/stats/');
+}

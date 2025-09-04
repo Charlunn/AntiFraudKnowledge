@@ -152,7 +152,7 @@ const resendVerification = async () => {
   
   try {
     // 这里需要用户邮箱信息，可能需要从localStorage获取或让用户重新输入
-    const email = localStorage.getItem('pendingVerificationEmail')
+    const email = typeof window !== 'undefined' && window.localStorage ? window.localStorage.getItem('pendingVerificationEmail') : null
     if (!email) {
       throw new Error('无法获取邮箱信息，请重新注册。')
     }

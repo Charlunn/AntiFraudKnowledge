@@ -144,23 +144,59 @@ const recentTests = ref([])
 
 // 方法
 const startChat = () => {
-  // TODO: 实现AI聊天功能
-  console.log('开始AI对话')
+  // 跳转到AI聊天页面
+  navigateTo('/ai-test/chat')
 }
 
 const startAssessment = () => {
-  // TODO: 实现AI评估功能
-  console.log('开始AI评估')
+  // 跳转到AI评估页面
+  navigateTo('/ai-test/assessment')
 }
 
 const startSimulation = () => {
-  // TODO: 实现场景模拟功能
-  console.log('开始场景模拟')
+  // 跳转到场景模拟页面
+  navigateTo('/ai-test/simulation')
 }
 
 const viewTestResult = (testId) => {
-  // TODO: 跳转到测试结果页面
-  console.log('查看测试结果:', testId)
+  // 跳转到测试结果页面
+  navigateTo(`/ai-test/results/${testId}`)
+}
+
+// 加载最近的测试记录
+const loadRecentTests = async () => {
+  try {
+    // 这里应该调用实际的API
+    // const response = await aiTestApi.getRecentTests()
+    // recentTests.value = response.data
+    
+    // 暂时使用模拟数据
+    recentTests.value = [
+      {
+        id: 1,
+        type: 'chat',
+        title: 'AI反诈骗对话',
+        score: 85,
+        completed_at: new Date().toISOString()
+      },
+      {
+        id: 2,
+        type: 'assessment',
+        title: '风险评估测试',
+        score: 92,
+        completed_at: new Date(Date.now() - 86400000).toISOString()
+      },
+      {
+        id: 3,
+        type: 'simulation',
+        title: '电信诈骗场景',
+        score: 78,
+        completed_at: new Date(Date.now() - 172800000).toISOString()
+      }
+    ]
+  } catch (error) {
+    console.error('加载测试记录失败:', error)
+  }
 }
 
 const getTestTypeClass = (type) => {
@@ -195,8 +231,7 @@ const formatDate = (date) => {
 
 // 生命周期
 onMounted(() => {
-  // TODO: 加载最近的测试记录
-  // loadRecentTests()
+  loadRecentTests()
 })
 </script>
 

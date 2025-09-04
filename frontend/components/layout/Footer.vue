@@ -202,7 +202,7 @@ onMounted(() => {
   window.addEventListener('scroll', handleScroll)
   
   // 从本地存储获取语言设置
-  const savedLanguage = localStorage.getItem('language')
+  const savedLanguage = typeof window !== 'undefined' && window.localStorage ? window.localStorage.getItem('language') : null
   if (savedLanguage) {
     selectedLanguage.value = savedLanguage
   }
@@ -214,7 +214,9 @@ onUnmounted(() => {
 
 // 监听语言变化
 watch(selectedLanguage, (newLang) => {
-  localStorage.setItem('language', newLang)
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.setItem('language', newLang)
+  }
 })
 </script>
 

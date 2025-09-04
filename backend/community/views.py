@@ -316,3 +316,83 @@ def my_comments(request):
     comments = Comment.objects.filter(author=request.user).select_related('post').order_by('-created_at')
     serializer = CommentSerializer(comments, many=True, context={'request': request})
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def get_popular_tags(request):
+    """获取热门标签"""
+    from django.db.models import Count
+    from collections import Counter
+    import re
+    
+    # 获取所有已发布帖子的标签
+    posts = Post.objects.filter(status='published').values_list('tags', flat=True)
+    all_tags = []
+    
+    for tags_str in posts:
+        if tags_str:
+            # 假设标签以逗号分隔
+            tags = [tag.strip() for tag in tags_str.split(',') if tag.strip()]
+            all_tags.extend(tags)
+    
+    # 统计标签使用频率
+    tag_counter = Counter(all_tags)
+    popular_tags = [
+        {'name': tag, 'count': count}
+        for tag, count in tag_counter.most_common(20)
+    ]
+    
+    return Response({
+        'success': True,
+        'data': popular_tags
+    })
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def get_community_stats(request):
+    """获取社区统计数据"""
+    from django.db.models import Count, Sum
+    
+    # 统计数据
+    total_posts = Post.objects.filter(status='published').count()
+    total_comments = Comment.objects.count()
+    total_likes = PostLike.objects.count() + CommentLike.objects.count()
+    total_views = PostView.objects.count()
+    
+    # 今日新增
+    today = timezone.now().date()
+    today_posts = Post.objects.filter(
+        status='published',
+        created_at__date=today
+    ).count()
+    
+    today_comments = Comment.objects.filter(
+        created_at__date=today
+    ).count()
+    
+    # 活跃用户（最近7天有发帖或评论的用户）
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    week_ago = timezone.now() - timezone.timedelta(days=7)
+    
+    active_users = User.objects.filter(
+        Q(posts__created_at__gte=week_ago) |
+        Q(comments__created_at__gte=week_ago)
+    ).distinct().count()
+    
+    stats = {
+        'total_posts': total_posts,
+        'total_comments': total_comments,
+        'total_likes': total_likes,
+        'total_views': total_views,
+        'today_posts': today_posts,
+        'today_comments': today_comments,
+        'active_users': active_users,
+    }
+    
+    return Response({
+        'success': True,
+        'data': stats
+    })

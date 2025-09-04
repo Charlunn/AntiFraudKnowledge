@@ -158,8 +158,35 @@ export const COMMUNITY_CONFIG = {
     POPULAR: 'popular',
     MOST_LIKED: 'most_liked',
     MOST_VIEWED: 'most_viewed'
+  },
+  
+  // 帖子分类
+  CATEGORIES: {
+    FRAUD_DETECTION: 'fraud_detection',
+    RISK_MANAGEMENT: 'risk_management',
+    CASE_STUDY: 'case_study',
+    TECHNOLOGY: 'technology',
+    REGULATION: 'regulation',
+    GENERAL: 'general'
   }
 }
+
+// 导出单独的社区常量以便于导入
+export const COMMUNITY_CATEGORIES = [
+  { value: 'fraud_detection', label: '欺诈检测' },
+  { value: 'risk_management', label: '风险管理' },
+  { value: 'case_study', label: '案例分析' },
+  { value: 'technology', label: '技术讨论' },
+  { value: 'regulation', label: '法规政策' },
+  { value: 'general', label: '综合讨论' }
+]
+
+export const COMMUNITY_SORT_OPTIONS = [
+  { value: 'latest', label: '最新发布' },
+  { value: 'popular', label: '热门讨论' },
+  { value: 'most_liked', label: '最多点赞' },
+  { value: 'most_viewed', label: '最多浏览' }
+]
 
 // 知识图谱相关常量
 export const GRAPH_CONFIG = {
@@ -182,6 +209,15 @@ export const GRAPH_CONFIG = {
     CONNECTS_TO: 'connects_to',
     SIMILAR_TO: 'similar_to',
     RELATED_TO: 'related_to'
+  },
+
+  // 分析类型
+  ANALYSIS_TYPES: {
+    FRAUD_DETECTION: 'fraud_detection',
+    RISK_ASSESSMENT: 'risk_assessment',
+    PATTERN_ANALYSIS: 'pattern_analysis',
+    NETWORK_ANALYSIS: 'network_analysis',
+    ANOMALY_DETECTION: 'anomaly_detection'
   },
   
   // 布局类型
@@ -465,6 +501,11 @@ export const CHART_CONFIG = {
     }
   }
 }
+
+// 单独导出图谱相关常量
+export const GRAPH_NODE_TYPES = GRAPH_CONFIG.NODE_TYPES
+export const GRAPH_RELATIONSHIP_TYPES = GRAPH_CONFIG.RELATIONSHIP_TYPES
+export const GRAPH_ANALYSIS_TYPES = GRAPH_CONFIG.ANALYSIS_TYPES
 
 // 导出所有常量
 export default {

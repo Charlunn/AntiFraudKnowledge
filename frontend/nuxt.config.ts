@@ -22,11 +22,8 @@ export default defineNuxtConfig({
   nitro: {
     devProxy: {
       '/api': {
-        target: process.env.DOCKER_ENV ? 'http://backend:8000/api' : 'http://127.0.0.1:8000/api',
-        changeOrigin: true,
-        pathRewrite: {
-          '^/api': ''
-        }
+        target: process.env.DOCKER_ENV ? 'http://backend:8000' : 'http://127.0.0.1:8000',
+        changeOrigin: true
       }
     }
   },
