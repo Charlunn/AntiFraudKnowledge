@@ -1,0 +1,474 @@
+[
+  {
+    "test_name": "用户注册",
+    "success": true,
+    "message": "注册成功，用户ID: None",
+    "timestamp": "2025-09-04T12:11:14.938849",
+    "response_data": {
+      "message": "User registered successfully"
+    }
+  },
+  {
+    "test_name": "用户登录",
+    "success": true,
+    "message": "登录成功，获取到访问令牌",
+    "timestamp": "2025-09-04T12:11:15.231130",
+    "response_data": {
+      "has_access_token": true
+    }
+  },
+  {
+    "test_name": "获取用户资料",
+    "success": true,
+    "message": "成功获取用户资料，用户名: testuser_1756959074",
+    "timestamp": "2025-09-04T12:11:15.291035",
+    "response_data": {
+      "username": "testuser_1756959074",
+      "nickname": null,
+      "email": "test_1756959074@example.com",
+      "phone_number": null,
+      "fraud_level": 0,
+      "user_type": "normal",
+      "avatar": null
+    }
+  },
+  {
+    "test_name": "获取题目列表",
+    "success": true,
+    "message": "成功获取 4 道题目",
+    "timestamp": "2025-09-04T12:11:15.360946",
+    "response_data": {
+      "count": 4
+    }
+  },
+  {
+    "test_name": "获取答题记录",
+    "success": true,
+    "message": "成功获取 4 条答题记录",
+    "timestamp": "2025-09-04T12:11:15.421162",
+    "response_data": {
+      "count": 4
+    }
+  },
+  {
+    "test_name": "获取成就列表",
+    "success": true,
+    "message": "成功获取 4 个成就",
+    "timestamp": "2025-09-04T12:11:15.479575",
+    "response_data": {
+      "count": 4
+    }
+  },
+  {
+    "test_name": "获取用户成就",
+    "success": true,
+    "message": "成功获取 4 个用户成就",
+    "timestamp": "2025-09-04T12:11:15.551144",
+    "response_data": {
+      "count": 4
+    }
+  },
+  {
+    "test_name": "创建反馈",
+    "success": true,
+    "message": "成功创建反馈，ID: 4",
+    "timestamp": "2025-09-04T12:11:15.640814",
+    "response_data": {
+      "id": 4,
+      "message": "这是一个API测试反馈",
+      "image": null,
+      "contact": "test@example.com",
+      "created_at": "2025-09-04T12:11:15.563915+08:00"
+    }
+  },
+  {
+    "test_name": "获取用户反馈",
+    "success": true,
+    "message": "成功获取 4 条反馈",
+    "timestamp": "2025-09-04T12:11:15.700454",
+    "response_data": {
+      "count": 4
+    }
+  },
+  {
+    "test_name": "获取帖子列表",
+    "success": true,
+    "message": "成功获取 4 个帖子",
+    "timestamp": "2025-09-04T12:11:15.761086",
+    "response_data": {
+      "count": 4
+    }
+  },
+  {
+    "test_name": "获取分类列表",
+    "success": true,
+    "message": "成功获取 4 个分类",
+    "timestamp": "2025-09-04T12:11:15.821145",
+    "response_data": {
+      "count": 4
+    }
+  },
+  {
+    "test_name": "获取平台统计",
+    "success": true,
+    "message": "成功获取平台统计数据",
+    "timestamp": "2025-09-04T12:11:17.374333",
+    "response_data": {
+      "fraud_type_distribution": [
+        {
+          "name": "网络钓鱼",
+          "value": 30
+        },
+        {
+          "name": "冒充公检法",
+          "value": 25
+        },
+        {
+          "name": "杀猪盘",
+          "value": 20
+        },
+        {
+          "name": "虚假投资",
+          "value": 15
+        },
+        {
+          "name": "仿冒电商客服",
+          "value": 10
+        }
+      ],
+      "tactic_frequency": [
+        {
+          "name": "发送虚假短信",
+          "value": 35
+        },
+        {
+          "name": "电话诱导",
+          "value": 30
+        },
+        {
+          "name": "建立情感信任",
+          "value": 25
+        },
+        {
+          "name": "制造紧迫感",
+          "value": 20
+        },
+        {
+          "name": "展示虚假盈利",
+          "value": 15
+        }
+      ],
+      "emotional_triggers": [
+        {
+          "name": "贪婪",
+          "value": 100
+        },
+        {
+          "name": "恐惧",
+          "value": 80
+        },
+        {
+          "name": "孤独",
+          "value": 70
+        },
+        {
+          "name": "信任",
+          "value": 65
+        },
+        {
+          "name": "紧急",
+          "value": 60
+        },
+        {
+          "name": "好奇",
+          "value": 55
+        },
+        {
+          "name": "虚荣",
+          "value": 50
+        },
+        {
+          "name": "同情",
+          "value": 45
+        }
+      ],
+      "fraud_flow": {
+        "nodes": [
+          {
+            "name": "社交软件",
+            "category": 0
+          },
+          {
+            "name": "仿冒电商客服",
+            "category": 1
+          },
+          {
+            "name": "展示虚假盈利",
+            "category": 2
+          },
+          {
+            "name": "虚假网站",
+            "category": 0
+          },
+          {
+            "name": "虚假App",
+            "category": 0
+          },
+          {
+            "name": "虚假投资",
+            "category": 1
+          },
+          {
+            "name": "要求按指示操作",
+            "category": 2
+          },
+          {
+            "name": "电话",
+            "category": 0
+          },
+          {
+            "name": "杀猪盘",
+            "category": 1
+          },
+          {
+            "name": "建立情感信任",
+            "category": 2
+          },
+          {
+            "name": "短信",
+            "category": 0
+          },
+          {
+            "name": "网络钓鱼",
+            "category": 1
+          },
+          {
+            "name": "谎称订单异常",
+            "category": 2
+          },
+          {
+            "name": "冒充公检法",
+            "category": 1
+          }
+        ],
+        "links": [
+          {
+            "source": 0,
+            "target": 1,
+            "value": 14
+          },
+          {
+            "source": 1,
+            "target": 2,
+            "value": 14
+          },
+          {
+            "source": 3,
+            "target": 1,
+            "value": 18
+          },
+          {
+            "source": 1,
+            "target": 2,
+            "value": 18
+          },
+          {
+            "source": 4,
+            "target": 5,
+            "value": 12
+          },
+          {
+            "source": 5,
+            "target": 6,
+            "value": 12
+          },
+          {
+            "source": 7,
+            "target": 8,
+            "value": 19
+          },
+          {
+            "source": 8,
+            "target": 9,
+            "value": 19
+          },
+          {
+            "source": 10,
+            "target": 11,
+            "value": 28
+          },
+          {
+            "source": 11,
+            "target": 2,
+            "value": 28
+          },
+          {
+            "source": 0,
+            "target": 8,
+            "value": 16
+          },
+          {
+            "source": 8,
+            "target": 12,
+            "value": 16
+          },
+          {
+            "source": 10,
+            "target": 11,
+            "value": 24
+          },
+          {
+            "source": 11,
+            "target": 6,
+            "value": 24
+          },
+          {
+            "source": 7,
+            "target": 1,
+            "value": 22
+          },
+          {
+            "source": 1,
+            "target": 6,
+            "value": 22
+          },
+          {
+            "source": 7,
+            "target": 5,
+            "value": 11
+          },
+          {
+            "source": 5,
+            "target": 12,
+            "value": 11
+          },
+          {
+            "source": 7,
+            "target": 13,
+            "value": 18
+          },
+          {
+            "source": 13,
+            "target": 9,
+            "value": 18
+          }
+        ]
+      },
+      "fraud_cases_yearly": [
+        {
+          "year": 2015,
+          "reported_cases": 590000,
+          "filed_cases": 210000
+        },
+        {
+          "year": 2016,
+          "reported_cases": 650000,
+          "filed_cases": 240000
+        },
+        {
+          "year": 2017,
+          "reported_cases": 730000,
+          "filed_cases": 280000
+        },
+        {
+          "year": 2018,
+          "reported_cases": 810000,
+          "filed_cases": 320000
+        },
+        {
+          "year": 2019,
+          "reported_cases": 950000,
+          "filed_cases": 390000
+        },
+        {
+          "year": 2020,
+          "reported_cases": 1200000,
+          "filed_cases": 520000
+        },
+        {
+          "year": 2021,
+          "reported_cases": 1550000,
+          "filed_cases": 670000
+        },
+        {
+          "year": 2022,
+          "reported_cases": 1720000,
+          "filed_cases": 750000
+        },
+        {
+          "year": 2023,
+          "reported_cases": 1850000,
+          "filed_cases": 820000
+        }
+      ]
+    }
+  },
+  {
+    "test_name": "获取用户统计",
+    "success": true,
+    "message": "成功获取用户统计数据",
+    "timestamp": "2025-09-04T12:11:17.671102",
+    "response_data": {
+      "achievements": [
+        {
+          "achievement_type": "学习成就",
+          "progress": 30.3
+        },
+        {
+          "achievement_type": "模拟成就",
+          "progress": 30.3
+        },
+        {
+          "achievement_type": "分享成就",
+          "progress": 30.3
+        },
+        {
+          "achievement_type": "防骗实战",
+          "progress": 30.3
+        },
+        {
+          "achievement_type": "知识掌握",
+          "progress": 30.3
+        }
+      ],
+      "skills": [
+        {
+          "skill_type": "信息识别能力",
+          "score": 40.4
+        },
+        {
+          "skill_type": "情绪应对能力",
+          "score": 40.4
+        },
+        {
+          "skill_type": "主动防御意识",
+          "score": 40.4
+        },
+        {
+          "skill_type": "风险评估能力",
+          "score": 40.4
+        },
+        {
+          "skill_type": "安全意识",
+          "score": 40.4
+        }
+      ]
+    }
+  },
+  {
+    "test_name": "发送聊天消息",
+    "success": false,
+    "message": "发送失败，状态码: 401",
+    "timestamp": "2025-09-04T12:11:18.320862",
+    "response_data": null
+  },
+  {
+    "test_name": "获取聊天历史",
+    "success": true,
+    "message": "chatapi应用暂不支持历史记录功能",
+    "timestamp": "2025-09-04T12:11:18.320862",
+    "response_data": {
+      "note": "功能未实现"
+    }
+  }
+]

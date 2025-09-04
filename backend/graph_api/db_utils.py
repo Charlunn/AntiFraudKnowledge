@@ -185,30 +185,207 @@ def read_from_neo4j(cypher_query: str, params: Optional[Dict[str, Any]] = None) 
 
     return records
 
-# --- 可选：添加写操作函数 ---
-# def _execute_write_tx(tx: Transaction, cypher_query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-#     result: Result = tx.run(cypher_query, params or {})
-#     summary = result.consume()
-#     logger.info(f"Write operation summary: {summary.counters}")
-#     # 对于写操作，通常关注摘要信息，但也可能需要返回结果
-#     return [record.data() for record in result] # 如果需要返回数据
+# --- 写操作函数 ---
+def _execute_write_tx(tx: Transaction, cypher_query: str, params: Optional[Dict[str, Any]] = None) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    """
+    在写事务中执行 Cypher 查询并处理结果。
+    返回查询结果和操作摘要信息。
+    """
+    result: Result = tx.run(cypher_query, params or {})
+    records_list = [record.data() for record in result]
+    summary = result.consume()
+    summary_info = {
+        'nodes_created': summary.counters.nodes_created,
+        'nodes_deleted': summary.counters.nodes_deleted,
+        'relationships_created': summary.counters.relationships_created,
+        'relationships_deleted': summary.counters.relationships_deleted,
+        'properties_set': summary.counters.properties_set,
+        'labels_added': summary.counters.labels_added,
+        'labels_removed': summary.counters.labels_removed
+    }
+    logger.info(f"Write operation summary: {summary_info}")
+    return records_list, summary_info
 
-# def write_to_neo4j(cypher_query: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
-#     driver = get_neo4j_driver()
-#     if not driver:
-#         raise ServiceUnavailable("Neo4j driver is not available.")
-#     results: List[Dict[str, Any]] = []
-#     try:
-#         with driver.session(database=getattr(settings, 'NEO4J_DATABASE', 'neo4j')) as session:
-#             results = session.execute_write(_execute_write_tx, cypher_query, params)
-#         logger.info(f"Write query executed successfully: {cypher_query[:100]}...")
-#     except ServiceUnavailable as e:
-#         logger.error(f"Neo4j Service Unavailable during write: {e}")
-#         raise
-#     except Neo4jError as e:
-#         logger.error(f"Neo4j database error during write: {e}")
-#         raise Exception(f"Database error during write: {e}") from e
-#     except Exception as e:
-#         logger.error(f"An unexpected error occurred during write operation: {e}")
-#         raise
-#     return results
+def write_to_neo4j(cypher_query: str, params: Optional[Dict[str, Any]] = None) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
+    """
+    执行写入 Neo4j 查询。
+
+    Args:
+        cypher_query: 要执行的 Cypher 查询语句。
+        params: 查询参数字典。
+
+    Returns:
+        元组：(查询结果列表, 操作摘要信息)
+
+    Raises:
+        ServiceUnavailable: 如果无法连接到数据库。
+        CypherSyntaxError: 如果 Cypher 查询语法错误。
+        Exception: 其他数据库错误。
+    """
+    driver = get_neo4j_driver()
+    if not driver:
+        raise ServiceUnavailable("Neo4j driver is not available.")
+    
+    results: List[Dict[str, Any]] = []
+    summary_info: Dict[str, Any] = {}
+    
+    try:
+        with driver.session(database=getattr(settings, 'NEO4J_DATABASE', 'neo4j')) as session:
+            results, summary_info = session.execute_write(_execute_write_tx, cypher_query, params)
+        logger.info(f"Write query executed successfully: {cypher_query[:100]}...")
+    except ServiceUnavailable as e:
+        logger.error(f"Neo4j Service Unavailable during write: {e}")
+        raise
+    except CypherSyntaxError as e:
+        logger.error(f"Cypher Syntax Error during write: {e}. Query: {cypher_query}")
+        raise
+    except Neo4jError as e:
+        logger.error(f"Neo4j database error during write: {e}")
+        raise Exception(f"Database error during write: {e}") from e
+    except Exception as e:
+        logger.error(f"An unexpected error occurred during write operation: {e}")
+        raise
+    
+    return results, summary_info
+
+# --- 批量操作函数 ---
+def batch_write_to_neo4j(queries_with_params: List[Tuple[str, Optional[Dict[str, Any]]]]) -> List[Tuple[List[Dict[str, Any]], Dict[str, Any]]]:
+    """
+    批量执行写入查询。
+    
+    Args:
+        queries_with_params: 查询和参数的元组列表
+    
+    Returns:
+        每个查询的结果和摘要信息列表
+    """
+    driver = get_neo4j_driver()
+    if not driver:
+        raise ServiceUnavailable("Neo4j driver is not available.")
+    
+    results = []
+    
+    try:
+        with driver.session(database=getattr(settings, 'NEO4J_DATABASE', 'neo4j')) as session:
+            for cypher_query, params in queries_with_params:
+                result, summary = session.execute_write(_execute_write_tx, cypher_query, params)
+                results.append((result, summary))
+        logger.info(f"Batch write executed successfully. {len(queries_with_params)} queries processed.")
+    except Exception as e:
+        logger.error(f"Error during batch write operation: {e}")
+        raise
+    
+    return results
+
+# --- 事务管理函数 ---
+def execute_transaction(operations: List[Tuple[str, str, Optional[Dict[str, Any]]]]) -> List[Any]:
+    """
+    在单个事务中执行多个操作。
+    
+    Args:
+        operations: 操作列表，每个操作是 (operation_type, cypher_query, params) 的元组
+                   operation_type 可以是 'read' 或 'write'
+    
+    Returns:
+        所有操作的结果列表
+    """
+    driver = get_neo4j_driver()
+    if not driver:
+        raise ServiceUnavailable("Neo4j driver is not available.")
+    
+    results = []
+    
+    def _execute_transaction(tx: Transaction):
+        for operation_type, cypher_query, params in operations:
+            if operation_type == 'read':
+                result = _execute_read_tx(tx, cypher_query, params)
+                results.append(result)
+            elif operation_type == 'write':
+                result, summary = _execute_write_tx(tx, cypher_query, params)
+                results.append((result, summary))
+            else:
+                raise ValueError(f"Unknown operation type: {operation_type}")
+    
+    try:
+        with driver.session(database=getattr(settings, 'NEO4J_DATABASE', 'neo4j')) as session:
+            session.execute_write(_execute_transaction)
+        logger.info(f"Transaction executed successfully. {len(operations)} operations processed.")
+    except Exception as e:
+        logger.error(f"Error during transaction execution: {e}")
+        raise
+    
+    return results
+
+# --- 图算法辅助函数 ---
+def create_graph_projection(projection_name: str, node_projection: str, relationship_projection: str) -> Dict[str, Any]:
+    """
+    创建图投影用于图算法。
+    
+    Args:
+        projection_name: 投影名称
+        node_projection: 节点投影配置
+        relationship_projection: 关系投影配置
+    
+    Returns:
+        创建结果
+    """
+    cypher_query = f"""
+    CALL gds.graph.project(
+        '{projection_name}',
+        {node_projection},
+        {relationship_projection}
+    )
+    YIELD graphName, nodeCount, relationshipCount
+    RETURN graphName, nodeCount, relationshipCount
+    """
+    
+    results = read_from_neo4j(cypher_query)
+    return results[0] if results else {}
+
+def drop_graph_projection(projection_name: str) -> Dict[str, Any]:
+    """
+    删除图投影。
+    
+    Args:
+        projection_name: 投影名称
+    
+    Returns:
+        删除结果
+    """
+    cypher_query = f"CALL gds.graph.drop('{projection_name}') YIELD graphName"
+    
+    try:
+        results = read_from_neo4j(cypher_query)
+        return results[0] if results else {}
+    except Exception as e:
+        logger.warning(f"Failed to drop graph projection {projection_name}: {e}")
+        return {}
+
+# --- 数据验证函数 ---
+def validate_node_exists(node_id: str) -> bool:
+    """
+    验证节点是否存在。
+    
+    Args:
+        node_id: 节点ID
+    
+    Returns:
+        节点是否存在
+    """
+    cypher_query = "MATCH (n) WHERE elementId(n) = $node_id RETURN count(n) as count"
+    results = read_from_neo4j(cypher_query, {'node_id': node_id})
+    return results[0]['count'] > 0 if results else False
+
+def validate_relationship_exists(relationship_id: str) -> bool:
+    """
+    验证关系是否存在。
+    
+    Args:
+        relationship_id: 关系ID
+    
+    Returns:
+        关系是否存在
+    """
+    cypher_query = "MATCH ()-[r]-() WHERE elementId(r) = $relationship_id RETURN count(r) as count"
+    results = read_from_neo4j(cypher_query, {'relationship_id': relationship_id})
+    return results[0]['count'] > 0 if results else False

@@ -3,7 +3,7 @@
  * 将API工具类注入到应用中，并与状态管理集成
  */
 
-import { apiClient } from '~/api/base';
+import apiClient from '~/api/http';
 import * as auth from '~/api/auth';
 import * as quiz from '~/api/quiz';
 import * as achievements from '~/api/achievements';

@@ -1,18 +1,29 @@
 # backend/graph_api/urls.py
 from django.urls import path
-from. import views
+from .views import (
+    InitialGraphView, FilteredGraphView, NodeDetailView,
+    NodeCRUDView, RelationshipCRUDView, GraphAnalysisView,
+    GraphStatisticsView, ComplexQueryView
+)
 
-# 定义 URL 模式列表
-# graph_api/urls.py
-
-from django.urls import path
-from . import views
-
-app_name = 'graph_api'  # 定义应用命名空间
-
+app_name = 'graph_api'
 
 urlpatterns = [
-    path('initial/', views.InitialGraphView.as_view(), name='initial-graph'),
-    path('filtered/', views.FilteredGraphView.as_view(), name='filtered-graph'),
-    path('nodes/<str:node_id>/', views.NodeDetailView.as_view(), name='node-detail'),
+    # 原有的基础视图
+    path('initial/', InitialGraphView.as_view(), name='initial_graph'),
+    path('filtered/', FilteredGraphView.as_view(), name='filtered_graph'),
+    path('node/<str:node_id>/', NodeDetailView.as_view(), name='node_detail'),
+    
+    # 节点和关系的CRUD操作
+    path('nodes/', NodeCRUDView.as_view(), name='node_crud'),
+    path('relationships/', RelationshipCRUDView.as_view(), name='relationship_crud'),
+    
+    # 高级图分析功能
+    path('analysis/', GraphAnalysisView.as_view(), name='graph_analysis'),
+    
+    # 数据统计功能
+    path('statistics/', GraphStatisticsView.as_view(), name='graph_statistics'),
+    
+    # 复杂查询功能
+    path('query/', ComplexQueryView.as_view(), name='complex_query'),
 ]

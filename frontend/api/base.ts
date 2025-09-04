@@ -3,7 +3,8 @@
  * 提供完善的请求拦截、响应处理和错误处理机制
  */
 
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios from 'axios';
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { useRuntimeConfig } from '#imports';
 import { useAuthStore } from '~/stores/auth';
 import type {
@@ -94,8 +95,13 @@ export class ApiClient {
    */
   private getBaseURL(): string {
     try {
+      // 检查是否在浏览器环境中
+      if (typeof window === 'undefined') {
+        return 'http://127.0.0.1:8000/api';
+      }
+      
       const config = useRuntimeConfig();
-      return config.public.apiBase || 'http://127.0.0.1:8000/api';
+      return config?.public?.apiBase || 'http://127.0.0.1:8000/api';
     } catch {
       return 'http://127.0.0.1:8000/api';
     }

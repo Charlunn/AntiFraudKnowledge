@@ -33,7 +33,8 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = [
     '47.109.18.154',
     '127.0.0.1',
-    'localhost'
+    'localhost',
+    'backend'
 ]
 
 
@@ -155,12 +156,14 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # --- Neo4j Connection Settings ---
-# 从环境变量读取 Neo4j 连接信息，增强安全性
-# 在生产环境中，强烈建议使用环境变量或 secrets 管理工具来管理敏感凭证
-# [16, 17, 18, 19, 20, 21, 22]
-NEO4J_URI = os.environ.get('NEO4J_URI', 'bolt://localhost:7687')
-NEO4J_USERNAME = os.environ.get('NEO4J_USERNAME', 'neo4j')
-NEO4J_PASSWORD = os.environ.get('NEO4J_PASSWORD', 'password') # 请务必修改默认密码
+# Docker环境中使用服务名连接
+if os.environ.get('DOCKER_ENV'):
+    NEO4J_URI = 'bolt://neo4j:7687'
+else:
+    NEO4J_URI = 'bolt://localhost:7687'
+
+NEO4J_USERNAME = 'neo4j'
+NEO4J_PASSWORD = 'password'
 
 # --- Django REST Framework Settings ---
 # [23, 24, 25]

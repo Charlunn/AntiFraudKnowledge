@@ -1,7 +1,7 @@
 # Django Framework
 django
 django-cors-headers
-django-rest-framework
+djangorestframework
 drf-yasg
 # Neo4j Database Drivers
 neo4j # 官方推荐的 Neo4j Python 驱动 [1, 2]
