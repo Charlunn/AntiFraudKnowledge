@@ -131,13 +131,14 @@
       <div class="tags-list">
         <button 
           v-for="tag in popularTags" 
-          :key="tag.name"
+          :key="tag?.name || tag"
           @click="filterByTag(tag.name)"
           class="tag-item"
           :class="{ 'active': filters.tag === tag.name }"
+          v-if="tag && tag.name"
         >
           {{ tag.name }}
-          <span class="tag-count">{{ tag.count }}</span>
+          <span class="tag-count">{{ tag.count || 0 }}</span>
         </button>
       </div>
     </div>
@@ -507,6 +508,9 @@ const mockPosts = [
 
 // 计算属性
 const filteredPosts = computed(() => {
+  if (!Array.isArray(posts.value)) {
+    return []
+  }
   let result = [...posts.value]
   
   // 分类筛选
@@ -568,9 +572,11 @@ const fetchPosts = async () => {
       getPopularTags()
     ])
     
-    posts.value = postsResponse.results || postsResponse
+    const rawPosts = postsResponse.results || postsResponse
+    posts.value = Array.isArray(rawPosts) ? rawPosts : []
     stats.value = statsResponse?.data || statsResponse || mockStats
-    popularTags.value = tagsResponse?.data || tagsResponse || mockTags
+    const rawTags = tagsResponse?.data || tagsResponse || mockTags
+    popularTags.value = Array.isArray(rawTags) ? rawTags.filter(tag => tag && tag.name) : []
     
     showToast('社区内容加载成功', 'success')
   } catch (err) {
@@ -580,9 +586,9 @@ const fetchPosts = async () => {
     
     // 开发环境下使用模拟数据
     if (process.dev) {
-      posts.value = mockPosts
+      posts.value = Array.isArray(mockPosts) ? mockPosts : []
       stats.value = mockStats
-      popularTags.value = mockTags
+      popularTags.value = Array.isArray(mockTags) ? mockTags.filter(tag => tag && tag.name) : []
     }
   } finally {
     loading.value = false

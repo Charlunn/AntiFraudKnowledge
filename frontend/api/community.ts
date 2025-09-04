@@ -70,7 +70,7 @@ export async function fetchCommunityPosts(
     params.page_size = pageSize;
   }
   
-  return await apiClient.get<PaginatedResponse<CommunityPost>>('/community/posts/', { params });
+  return await apiClient.get<PaginatedResponse<CommunityPost>>('/api/community/posts/', { params });
 }
 
 /**
@@ -91,7 +91,7 @@ export async function fetchPostDetail(
     throw new Error('帖子ID不能为空');
   }
   
-  return await apiClient.get<CommunityPost>(`/community/posts/${postId}/`);
+  return await apiClient.get<CommunityPost>(`/api/community/posts/${postId}/`);
 }
 
 /**
@@ -127,7 +127,7 @@ export async function createPost(
     throw new Error('帖子内容不能为空');
   }
   
-  return await apiClient.post<CommunityPost>('/community/posts/create/', postData);
+  return await apiClient.post<CommunityPost>('/api/community/posts/create/', postData);
 }
 
 /**
@@ -158,7 +158,7 @@ export async function updatePost(
     throw new Error('帖子ID不能为空');
   }
   
-  return await apiClient.patch<CommunityPost>(`/community/posts/${postId}/update/`, postData);
+  return await apiClient.patch<CommunityPost>(`/api/community/posts/${postId}/update/`, postData);
 }
 
 /**
@@ -179,7 +179,7 @@ export async function deletePost(
     throw new Error('帖子ID不能为空');
   }
   
-  return await apiClient.delete<void>(`/community/posts/${postId}/delete/`);
+  return await apiClient.delete<void>(`/api/community/posts/${postId}/delete/`);
 }
 
 /**
@@ -200,7 +200,7 @@ export async function togglePostLike(
     throw new Error('帖子ID不能为空');
   }
   
-  return await apiClient.post(`/community/posts/${postId}/like/`);
+  return await apiClient.post(`/api/community/posts/${postId}/like/`);
 }
 
 /**
@@ -235,7 +235,7 @@ export async function fetchPostComments(
     params.page_size = pageSize;
   }
   
-  return await apiClient.get<PaginatedResponse<CommunityComment>>(`/community/posts/${postId}/comments/`, { params });
+  return await apiClient.get<PaginatedResponse<CommunityComment>>(`/api/community/posts/${postId}/comments/`, { params });
 }
 
 /**
@@ -275,7 +275,7 @@ export async function createComment(
     data.parent_comment = parentId; // 后端使用parent_comment字段
   }
   
-  return await apiClient.post<CommunityComment>(`/community/posts/${postId}/comments/`, data);
+  return await apiClient.post<CommunityComment>(`/api/community/posts/${postId}/comments/`, data);
 }
 
 /**
@@ -302,7 +302,7 @@ export async function updateComment(
     throw new Error('评论内容不能为空');
   }
   
-  return await apiClient.patch<CommunityComment>(`/community/comments/${commentId}/update/`, {
+  return await apiClient.patch<CommunityComment>(`/api/community/comments/${commentId}/update/`, {
     content: content.trim()
   });
 }
@@ -325,7 +325,7 @@ export async function deleteComment(
     throw new Error('评论ID不能为空');
   }
   
-  return await apiClient.delete<void>(`/community/comments/${commentId}/delete/`);
+  return await apiClient.delete<void>(`/api/community/comments/${commentId}/delete/`);
 }
 
 /**
@@ -346,7 +346,7 @@ export async function toggleCommentLike(
     throw new Error('评论ID不能为空');
   }
   
-  return await apiClient.post(`/community/comments/${commentId}/like/`);
+  return await apiClient.post(`/api/community/comments/${commentId}/like/`);
 }
 
 /**
@@ -389,7 +389,7 @@ export async function searchPosts(
     params.page_size = pageSize;
   }
   
-  return await apiClient.get<PaginatedResponse<CommunityPost>>('/community/search/', { params });
+  return await apiClient.get<PaginatedResponse<CommunityPost>>('/api/community/search/', { params });
 }
 
 /**
@@ -408,7 +408,7 @@ export async function fetchCommunityCategories(): Promise<ApiResponse<Array<{
   description: string;
   created_at: string; // 后端返回创建时间而不是post_count
 }>>> {
-  return await apiClient.get('/community/categories/');
+  return await apiClient.get('/api/community/categories/');
 }
 
 // 注意：后端暂未提供热门标签API
