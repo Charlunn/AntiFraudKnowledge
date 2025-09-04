@@ -5,6 +5,7 @@ import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from neo4j.exceptions import ServiceUnavailable, CypherSyntaxError, Neo4jError
 
 from . import db_utils
@@ -16,8 +17,9 @@ logger = logging.getLogger(__name__)
 
 class BaseGraphAPIView(APIView):
     """
-    基础视图，提供统一的 Neo4j 异常处理。
+    基础视图，提供统一的 Neo4j 异常处理和权限控制。
     """
+    permission_classes = [IsAuthenticated]
 
     def handle_exception(self, exc):
         """
@@ -25,22 +27,22 @@ class BaseGraphAPIView(APIView):
         [1]
         """
         if isinstance(exc, ServiceUnavailable):
-            logger.error(f"Neo4j Service Unavailable: {exc}")
+            logger.error(f"用户 {getattr(self.request, 'user', 'unknown')} Neo4j服务不可用: {exc}")
             return Response(
-                {"error": "无法连接到图数据库，请稍后重试或联系管理员。"},
+                {"error": "无法连接到图数据库，请稍后重试或联系管理员"},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE
             )
         elif isinstance(exc, CypherSyntaxError):
-            logger.error(f"Cypher Syntax Error: {exc}")
+            logger.error(f"用户 {getattr(self.request, 'user', 'unknown')} Cypher语法错误: {exc}")
             # 不应将详细的 Cypher 错误暴露给客户端
             return Response(
-                {"error": "处理请求时发生内部错误（查询语法）。"},
+                {"error": "处理请求时发生内部错误（查询语法）"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         elif isinstance(exc, Neo4jError):
-            logger.error(f"Neo4j Database Error: {exc}")
+            logger.error(f"用户 {getattr(self.request, 'user', 'unknown')} Neo4j数据库错误: {exc}")
             return Response(
-                {"error": "处理请求时发生数据库错误。"},
+                {"error": "处理请求时发生数据库错误"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         # 对于其他未预料到的异常，调用 DRF 的默认处理程序
@@ -57,18 +59,15 @@ class InitialGraphView(BaseGraphAPIView):
         处理 GET 请求，返回 ECharts 格式的图谱数据。
         """
         try:
-            logger.info("Fetching initial graph data...")
+            logger.info(f"用户 {request.user.id} 获取初始图谱数据")
             results = db_utils.read_from_neo4j(cypher_queries.GET_INITIAL_GRAPH_CYPHER)
-            # print("下面是结果\n")
-            # print(results)
-            # print("上面是结果\n")
             serializer = serializers.EchartsGraphSerializer(instance=results)
-            logger.info("Initial graph data fetched and serialized successfully.")
+            logger.info(f"用户 {request.user.id} 初始图谱数据获取和序列化成功")
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             # 异常将由 BaseGraphAPIView 的 handle_exception 处理
             # 但我们可以在这里记录特定于此视图的上下文
-            logger.exception("Error fetching initial graph data.")
+            logger.exception(f"用户 {request.user.id} 获取初始图谱数据时发生错误")
             raise e  # 重新抛出，让 handle_exception 处理
 
 
@@ -90,7 +89,7 @@ class FilteredGraphView(BaseGraphAPIView):
         # 可能需要根据多个参数动态构建 Cypher 查询，或使用更高级的查询技术。
         if not filter_prop or filter_value is None:
             # 如果没有提供过滤参数，可以返回错误，或返回初始图谱数据
-            logger.warning("FilteredGraphView: Missing filter parameters. Returning initial graph as fallback.")
+            logger.warning(f"用户 {request.user.id} 缺少过滤参数，返回初始图谱作为备选")
             # return Response({"error": "缺少过滤参数 'filter_prop' 和 'filter_value'"}, status=status.HTTP_400_BAD_REQUEST)
             # 或者，作为备选方案，返回初始图：
             try:
@@ -98,7 +97,7 @@ class FilteredGraphView(BaseGraphAPIView):
                 serializer = serializers.EchartsGraphSerializer(instance=results)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except Exception as e:
-                logger.exception("Error fetching initial graph data as fallback in FilteredGraphView.")
+                logger.exception(f"用户 {request.user.id} 在FilteredGraphView中获取初始图谱数据作为备选时发生错误")
                 raise e
 
         # 构建参数字典
@@ -117,6 +116,7 @@ class FilteredGraphView(BaseGraphAPIView):
         # 更好的方法是有一个允许过滤的属性白名单。
         allowed_filter_props = ['name', 'user_id', 'ip_address']  # 示例白名单
         if filter_prop not in allowed_filter_props:
+            logger.warning(f"用户 {request.user.id} 尝试使用不允许的过滤属性: {filter_prop}")
             return Response({"error": f"不允许按属性 '{filter_prop}' 过滤"}, status=status.HTTP_400_BAD_REQUEST)
 
         # 动态构建查询（仍然很简单，仅匹配一个属性）
@@ -128,16 +128,16 @@ class FilteredGraphView(BaseGraphAPIView):
         query_template = f"MATCH (n {{{filter_prop}: $value}})-[r]-(m) RETURN n, r, m LIMIT 50"
         params = {'value': filter_value}
         query = query_template  # 在实际应用中，应从 cypher_queries.py 获取或构建
-        logger.info(f"Fetching filtered graph data with query: {query} and params: {params}")
+        logger.info(f"用户 {request.user.id} 使用查询获取过滤图谱数据: {query}，参数: {params}")
         # --- 结束动态过滤示例 ---
 
         try:
             results = db_utils.read_from_neo4j(query, params=params)
             serializer = serializers.EchartsGraphSerializer(instance=results)
-            logger.info("Filtered graph data fetched and serialized successfully.")
+            logger.info(f"用户 {request.user.id} 过滤图谱数据获取和序列化成功")
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
-            logger.exception("Error fetching filtered graph data.")
+            logger.exception(f"用户 {request.user.id} 获取过滤图谱数据时发生错误")
             raise e
 
 
@@ -151,21 +151,22 @@ class NodeDetailView(BaseGraphAPIView):
         处理 GET 请求，根据 URL 中的 node_id 返回节点详情。
         """
         if not node_id:
+            logger.warning(f"用户 {request.user.id} 请求节点详情时缺少节点ID")
             return Response({"error": "缺少节点 ID"}, status=status.HTTP_400_BAD_REQUEST)
 
-        logger.info(f"Fetching details for id: {node_id}")
+        logger.info(f"用户 {request.user.id} 获取节点详情，ID: {node_id}")
         params = {"node_id" : node_id}  # 假设 node_id 是我们在节点上存储的属性
         try:
             results = db_utils.read_from_neo4j(cypher_queries.GET_NODE_DETAIL_CYPHER, params=params)
 
             if not results:
-                logger.warning(f"Node not found for node_id: {node_id}")
+                logger.warning(f"用户 {request.user.id} 未找到节点，ID: {node_id}")
                 return Response({"error": "未找到指定节点"}, status=status.HTTP_404_NOT_FOUND)
 
             # NodeDetailSerializer 期望接收记录列表
             serializer = serializers.NodeDetailSerializer(instance=results)
-            logger.info(f"Node details for {node_id} fetched and serialized successfully.")
+            logger.info(f"用户 {request.user.id} 节点详情获取和序列化成功，ID: {node_id}")
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
-            logger.exception(f"Error fetching node details for node_id: {node_id}")
+            logger.exception(f"用户 {request.user.id} 获取节点详情时发生错误，ID: {node_id}")
             raise e

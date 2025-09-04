@@ -16,6 +16,9 @@ from .views import (
     UnbindEmailView,
     UnbindPhoneView,
     UserSettingsView,
+    AdminUserListView,
+    AdminUserDetailView,
+    UserStatsView,
 )
 
 urlpatterns = [
@@ -32,4 +35,9 @@ urlpatterns = [
     path('unbind-email/', UnbindEmailView.as_view(), name='unbind-email'),
     path('unbind-phone/', UnbindPhoneView.as_view(), name='unbind-phone'),
     path('settings/', UserSettingsView.as_view(), name='user-settings'),
+    path('stats/', UserStatsView.as_view(), name='user-stats'),
+    
+    # 管理员功能
+    path('admin/users/', AdminUserListView.as_view(), name='admin-user-list'),
+    path('admin/users/<int:pk>/', AdminUserDetailView.as_view(), name='admin-user-detail'),
 ]
