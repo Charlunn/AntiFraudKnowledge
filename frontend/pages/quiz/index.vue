@@ -233,6 +233,11 @@ import { useToast } from '~/composables/useNotification'
 import { formatDate } from '~/utils/formatters'
 import { QUIZ_DIFFICULTY, QUIZ_CATEGORIES } from '~/constants'
 
+// 设置页面布局
+definePageMeta({
+  layout: 'default'
+})
+
 // 页面元数据
 useHead({
   title: '知识测验 - 反欺诈知识图谱系统',

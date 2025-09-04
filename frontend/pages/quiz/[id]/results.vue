@@ -332,6 +332,11 @@ import { useToast } from '~/composables/useNotification'
 import { formatDate, formatNumber } from '~/utils/formatters'
 import { QUIZ_DIFFICULTY } from '~/constants'
 
+// 设置页面布局
+definePageMeta({
+  layout: 'default'
+})
+
 // 获取路由参数
 const route = useRoute()
 const quizId = route.params.id

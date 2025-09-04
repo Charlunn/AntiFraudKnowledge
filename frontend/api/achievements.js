@@ -12,12 +12,26 @@ import apiClient from './http.js';
  * @returns {Promise} - 用户的成就列表
  * 
  * @example
- * fetchAchievements()
+ * fetchUserAchievements()
  *   .then(response => console.log('用户成就列表', response.data))
  *   .catch(error => console.error('获取成就失败', error));
  */
-export function fetchAchievements() {
-  return apiClient.get('/achievements/');
+export function fetchUserAchievements() {
+  return apiClient.get('/achievements/my/');
+}
+
+/**
+ * 获取所有成就列表（带用户完成状态）
+ * 需要登录权限
+ * @returns {Promise} - 所有成就列表
+ * 
+ * @example
+ * fetchAllAchievements()
+ *   .then(response => console.log('所有成就列表', response.data))
+ *   .catch(error => console.error('获取成就失败', error));
+ */
+export function fetchAllAchievements() {
+  return apiClient.get('/achievements/all/');
 }
 
 /**

@@ -295,6 +295,11 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 
+// 设置页面布局
+definePageMeta({
+  layout: 'default'
+})
+
 // 路由参数
 const route = useRoute()
 const quizId = route.params.id

@@ -186,6 +186,8 @@ const navigationItems = [
   { name: '反欺诈测验', href: '/quiz' },
   { name: 'AI测试', href: '/ai-test' },
   { name: '社区', href: '/community' },
+  { name: '学习资源', href: '/resources' },
+  { name: '举报中心', href: '/report' },
 ]
 
 // 用户菜单项

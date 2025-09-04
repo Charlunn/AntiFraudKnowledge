@@ -116,6 +116,18 @@
             <NuxtLink to="/resources" class="text-red-600 font-semibold hover:text-red-700">查看资源 →</NuxtLink>
           </div>
 
+          <!-- AI智能测试 -->
+          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">AI智能测试</h3>
+            <p class="text-gray-600 mb-4">AI驱动的智能问答和个性化评估</p>
+            <NuxtLink to="/ai-test" class="text-indigo-600 font-semibold hover:text-indigo-700">开始测试 →</NuxtLink>
+          </div>
+
           <!-- 举报中心 -->
           <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
             <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">

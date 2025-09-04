@@ -175,91 +175,103 @@ const apiClient = new ApiClient()
 // 认证相关API
 export const authApi = {
   // 用户登录
-  login: (credentials) => apiClient.post('/auth/login', credentials),
+  login: (credentials) => apiClient.post('/users/login/', credentials),
   
   // 用户注册
-  register: (userData) => apiClient.post('/auth/register', userData),
+  register: (userData) => {
+    // 转换前端字段名到后端期望的字段名
+    const backendData = {
+      ...userData,
+      password2: userData.confirmPassword // 后端期望password2而不是confirmPassword
+    }
+    // 删除前端字段
+    delete backendData.confirmPassword
+    delete backendData.agreeToTerms // 后端不需要这个字段
+    
+    return apiClient.post('/users/register/', backendData)
+  },
   
   // 刷新令牌
-  refreshToken: (refreshToken) => apiClient.post('/auth/refresh', { refresh_token: refreshToken }),
+  refreshToken: (refreshData) => apiClient.post('/users/token/refresh/', refreshData),
   
   // 用户登出
-  logout: () => apiClient.post('/auth/logout'),
-  
+  logout: () => apiClient.post('/users/logout/'),
+
   // 忘记密码
-  forgotPassword: (email) => apiClient.post('/auth/forgot-password', { email }),
-  
+  forgotPassword: (email) => apiClient.post('/users/password/reset/', { email }),
+
   // 重置密码
-  resetPassword: (token, password) => apiClient.post('/auth/reset-password', { token, password }),
-  
+  resetPassword: (data) => apiClient.post('/users/password/reset/confirm/', data),
+
   // 验证邮箱
-  verifyEmail: (token) => apiClient.post('/auth/verify-email', { token }),
-  
+  verifyEmail: (data) => apiClient.post('/users/verify-email/', data),
+
   // 获取当前用户信息
-  getCurrentUser: () => apiClient.get('/auth/me')
+  getCurrentUser: () => apiClient.get('/users/profile/')
 }
 
 // 用户相关API
 export const userApi = {
   // 获取用户资料
-  getProfile: (userId) => apiClient.get(`/users/${userId}`),
+  getProfile: (userId) => apiClient.get(`/users/${userId || 'me'}/profile/`),
   
   // 更新用户资料
-  updateProfile: (userId, data) => apiClient.put(`/users/${userId}`, data),
-  
-  // 上传头像
-  uploadAvatar: (file) => apiClient.upload('/users/avatar', file),
+  updateProfile: (data) => apiClient.put('/users/profile/', data),
   
   // 修改密码
-  changePassword: (data) => apiClient.post('/users/change-password', data),
+  changePassword: (data) => apiClient.post('/users/password/change/', data),
   
   // 获取用户统计
-  getUserStats: (userId) => apiClient.get(`/users/${userId}/stats`),
+  getStats: (userId) => apiClient.get(`/users/${userId || 'me'}/stats/`),
   
   // 获取用户成就
-  getUserAchievements: (userId) => apiClient.get(`/users/${userId}/achievements`),
+  getAchievements: (userId) => apiClient.get(`/users/${userId || 'me'}/achievements/`),
   
   // 获取学习记录
-  getLearningRecords: (userId, params) => apiClient.get(`/users/${userId}/learning-records`, params),
+  getLearningRecords: (userId, params) => apiClient.get(`/users/${userId || 'me'}/learning-records/`, params),
   
-  // 获取用户帖子
-  getUserPosts: (userId, params) => apiClient.get(`/users/${userId}/posts`, params),
+  // 绑定邮箱
+  bindEmail: (data) => apiClient.post('/users/bind-email/', data),
   
-  // 更新隐私设置
-  updatePrivacySettings: (settings) => apiClient.put('/users/privacy-settings', settings),
+  // 绑定手机
+  bindPhone: (data) => apiClient.post('/users/bind-phone/', data),
   
-  // 更新通知设置
-  updateNotificationSettings: (settings) => apiClient.put('/users/notification-settings', settings),
+  // 解绑邮箱
+  unbindEmail: () => apiClient.post('/users/unbind-email/'),
   
-  // 导出用户数据
-  exportUserData: (type) => apiClient.get(`/users/export/${type}`),
+  // 解绑手机
+  unbindPhone: () => apiClient.post('/users/unbind-phone/'),
+  
+  // 用户设置
+  getSettings: () => apiClient.get('/users/settings/'),
+  updateSettings: (data) => apiClient.put('/users/settings/', data),
   
   // 删除账户
-  deleteAccount: () => apiClient.delete('/users/account')
+  deleteAccount: () => apiClient.delete('/users/delete-account/')
 }
 
 // 知识图谱相关API
 export const graphApi = {
   // 获取图谱数据
-  getGraphData: (params) => apiClient.get('/graph/data', params),
+  getGraph: (params) => apiClient.get('/graph/', params),
   
   // 搜索节点
-  searchNodes: (query, params) => apiClient.get('/graph/search', { query, ...params }),
+  searchNodes: (query, params) => apiClient.get('/graph/search/', { query, ...params }),
   
   // 获取节点详情
-  getNodeDetails: (nodeId) => apiClient.get(`/graph/nodes/${nodeId}`),
+  getNode: (nodeId) => apiClient.get(`/graph/nodes/${nodeId}/`),
   
   // 获取节点关系
-  getNodeRelations: (nodeId, params) => apiClient.get(`/graph/nodes/${nodeId}/relations`, params),
+  getNodeRelations: (nodeId, params) => apiClient.get(`/graph/nodes/${nodeId}/relations/`, params),
   
   // 执行图分析
-  executeAnalysis: (analysisType, params) => apiClient.post('/graph/analysis', { type: analysisType, ...params }),
+  executeAnalysis: (analysisType, params) => apiClient.post('/graph/analysis/', { type: analysisType, ...params }),
   
   // 执行复杂查询
-  executeComplexQuery: (query) => apiClient.post('/graph/query', query),
+  executeComplexQuery: (query) => apiClient.post('/graph/query/', query),
   
   // 获取图统计
-  getGraphStats: () => apiClient.get('/graph/stats'),
+  getGraphStats: () => apiClient.get('/graph/stats/'),
   
   // 导出图数据
   exportGraph: (format, params) => apiClient.get('/graph/export', { format, ...params })
@@ -267,95 +279,83 @@ export const graphApi = {
 
 // 测验相关API
 export const quizApi = {
-  // 获取测验列表
-  getQuizzes: (params) => apiClient.get('/quizzes', params),
+  // 获取题目列表
+  getQuestions: (params) => apiClient.get('/quiz/questions/', params),
   
-  // 获取测验详情
-  getQuizDetails: (quizId) => apiClient.get(`/quizzes/${quizId}`),
-  
-  // 开始测验
-  startQuiz: (quizId) => apiClient.post(`/quizzes/${quizId}/start`),
-  
-  // 提交答案
-  submitAnswer: (quizId, questionId, answer) => apiClient.post(`/quizzes/${quizId}/answers`, {
-    question_id: questionId,
-    answer
-  }),
-  
-  // 完成测验
-  finishQuiz: (quizId, answers) => apiClient.post(`/quizzes/${quizId}/finish`, { answers }),
-  
-  // 获取测验结果
-  getQuizResult: (quizId, attemptId) => apiClient.get(`/quizzes/${quizId}/results/${attemptId}`),
+  // 提交测验答案
+  submitQuiz: (data) => apiClient.post('/quiz/submit/', data),
   
   // 获取用户测验历史
-  getUserQuizHistory: (params) => apiClient.get('/quizzes/history', params),
+  getUserQuizHistory: (params) => apiClient.get('/quiz/history/', params),
   
-  // 获取测验统计
-  getQuizStats: (quizId) => apiClient.get(`/quizzes/${quizId}/stats`),
+  // 获取用户测验统计
+  getUserQuizStats: () => apiClient.get('/quiz/stats/'),
   
-  // 创建测验
-  createQuiz: (quizData) => apiClient.post('/quizzes', quizData),
-  
-  // 更新测验
-  updateQuiz: (quizId, quizData) => apiClient.put(`/quizzes/${quizId}`, quizData),
-  
-  // 删除测验
-  deleteQuiz: (quizId) => apiClient.delete(`/quizzes/${quizId}`)
+  // 管理员功能
+  admin: {
+    // 获取题目列表（管理员）
+    getQuestions: (params) => apiClient.get('/quiz/admin/questions/', params),
+    
+    // 获取题目详情（管理员）
+    getQuestionDetail: (id) => apiClient.get(`/quiz/admin/questions/${id}/`),
+    
+    // 获取测验统计（管理员）
+    getStats: () => apiClient.get('/quiz/admin/stats/')
+  }
 }
 
 // 社区相关API
 export const communityApi = {
   // 获取帖子列表
-  getPosts: (params) => apiClient.get('/community/posts', params),
+  getPosts: (params) => apiClient.get('/community/posts/', params),
   
   // 获取帖子详情
-  getPostDetails: (postId) => apiClient.get(`/community/posts/${postId}`),
+  getPostDetails: (postId) => apiClient.get(`/community/posts/${postId}/`),
   
   // 创建帖子
-  createPost: (postData) => apiClient.post('/community/posts', postData),
+  createPost: (postData) => apiClient.post('/community/posts/', postData),
   
   // 更新帖子
-  updatePost: (postId, postData) => apiClient.put(`/community/posts/${postId}`, postData),
+  updatePost: (postId, postData) => apiClient.put(`/community/posts/${postId}/`, postData),
   
   // 删除帖子
-  deletePost: (postId) => apiClient.delete(`/community/posts/${postId}`),
+  deletePost: (postId) => apiClient.delete(`/community/posts/${postId}/`),
   
   // 点赞帖子
-  likePost: (postId) => apiClient.post(`/community/posts/${postId}/like`),
+  likePost: (postId) => apiClient.post(`/community/posts/${postId}/like/`),
   
   // 取消点赞
-  unlikePost: (postId) => apiClient.delete(`/community/posts/${postId}/like`),
+  unlikePost: (postId) => apiClient.delete(`/community/posts/${postId}/like/`),
   
   // 收藏帖子
-  bookmarkPost: (postId) => apiClient.post(`/community/posts/${postId}/bookmark`),
+  bookmarkPost: (postId) => apiClient.post(`/community/posts/${postId}/bookmark/`),
   
   // 取消收藏
-  unbookmarkPost: (postId) => apiClient.delete(`/community/posts/${postId}/bookmark`),
+  unbookmarkPost: (postId) => apiClient.delete(`/community/posts/${postId}/bookmark/`),
   
   // 获取评论列表
-  getComments: (postId, params) => apiClient.get(`/community/posts/${postId}/comments`, params),
+  getComments: (postId, params) => apiClient.get(`/community/posts/${postId}/comments/`, params),
   
   // 创建评论
-  createComment: (postId, commentData) => apiClient.post(`/community/posts/${postId}/comments`, commentData),
+  createComment: (postId, commentData) => apiClient.post(`/community/posts/${postId}/comments/`, commentData),
   
   // 更新评论
-  updateComment: (commentId, commentData) => apiClient.put(`/community/comments/${commentId}`, commentData),
+  updateComment: (commentId, commentData) => apiClient.put(`/community/comments/${commentId}/`, commentData),
   
   // 删除评论
-  deleteComment: (commentId) => apiClient.delete(`/community/comments/${commentId}`),
+  deleteComment: (commentId) => apiClient.delete(`/community/comments/${commentId}/`),
   
   // 点赞评论
-  likeComment: (commentId) => apiClient.post(`/community/comments/${commentId}/like`),
+  likeComment: (commentId) => apiClient.post(`/community/comments/${commentId}/like/`),
   
   // 取消点赞评论
-  unlikeComment: (commentId) => apiClient.delete(`/community/comments/${commentId}/like`),
+  unlikeComment: (commentId) => apiClient.delete(`/community/comments/${commentId}/like/`),
   
   // 获取热门标签
-  getPopularTags: () => apiClient.get('/community/tags/popular'),
+  getPopularTags: () => apiClient.get('/community/tags/popular/'),
   
   // 获取社区统计
-  getCommunityStats: () => apiClient.get('/community/stats')
+  getCommunityStats: () => apiClient.get('/community/stats/')
 }
 
 // 仪表板相关API
@@ -413,6 +413,27 @@ export const systemApi = {
   
   // 获取系统统计
   getSystemStats: () => apiClient.get('/system/stats')
+}
+
+// 反馈相关API
+export const feedbackApi = {
+  // 提交反馈
+  submitFeedback: (data) => apiClient.post('/feedback/', data),
+  
+  // 获取我的反馈列表
+  getMyFeedback: (params) => apiClient.get('/feedback/user/', params),
+  
+  // 获取反馈详情
+  getFeedbackDetail: (id) => apiClient.get(`/feedback/${id}/`),
+  
+  // 管理员获取反馈列表
+  getAdminFeedbackList: (params) => apiClient.get('/feedback/admin/', params),
+  
+  // 管理员获取反馈详情
+  getAdminFeedbackDetail: (id) => apiClient.get(`/feedback/admin/${id}/`),
+  
+  // 获取反馈统计（管理员）
+  getFeedbackStats: () => apiClient.get('/feedback/admin/stats/')
 }
 
 // 导出API客户端和错误类

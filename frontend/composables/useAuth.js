@@ -71,29 +71,37 @@ export const useAuth = () => {
     authError.value = null
     
     try {
-      const response = await authApi.login(credentials)
+      // JWT TokenObtainPairSerializer期望username和password字段
+      const loginData = {
+        username: credentials.username,
+        password: credentials.password
+      }
       
-      // 保存令牌
-      authToken.value = response.access_token
-      refreshToken.value = response.refresh_token
+      const response = await authApi.login(loginData)
       
-      // 保存用户信息
-      user.value = response.user
-      isAuthenticated.value = true
-      
-      // 保存到本地存储
-      userStorage.setToken(response.access_token)
-      userStorage.setUserInfo(response.user)
-      
-      // 重定向到仪表板或指定页面
-      const redirect = useRoute().query.redirect || '/dashboard'
-      await navigateTo(redirect)
-      
-      return response
+      // JWT标准响应格式：access, refresh, user
+      if (response && response.access) {
+        // 保存令牌
+        authToken.value = response.access
+        refreshToken.value = response.refresh
+        
+        // 保存用户信息
+        user.value = response.user
+        isAuthenticated.value = true
+        
+        // 保存到本地存储
+        userStorage.setToken(response.access)
+        userStorage.setUserInfo(response.user)
+        
+        return { success: true, data: response }
+      } else {
+        console.error('登录响应数据:', response)
+        throw new Error('登录响应格式错误')
+      }
     } catch (error) {
-      const processedError = handleError(error, { action: 'login', credentials: { email: credentials.email } })
+      const processedError = handleError(error, { action: 'login', credentials: { email: credentials.username } })
       authError.value = processedError.userMessage
-      throw processedError
+      return { success: false, error: processedError.userMessage }
     } finally {
       isLoading.value = false
     }
@@ -107,28 +115,12 @@ export const useAuth = () => {
     try {
       const response = await authApi.register(userData)
       
-      // 如果注册后自动登录
-      if (response.access_token) {
-        authToken.value = response.access_token
-        refreshToken.value = response.refresh_token
-        user.value = response.user
-        isAuthenticated.value = true
-        
-        // 保存到本地存储
-        userStorage.setToken(response.access_token)
-        userStorage.setUserInfo(response.user)
-        
-        await navigateTo('/dashboard')
-      } else {
-        // 需要邮箱验证
-        await navigateTo('/auth/verify-email')
-      }
-      
-      return response
+      // 注册成功，返回结果给调用方处理
+      return { success: true, data: response }
     } catch (error) {
       const processedError = handleError(error, { action: 'register', userData: { email: userData.email, username: userData.username } })
       authError.value = processedError.userMessage
-      throw processedError
+      return { success: false, error: processedError.userMessage }
     } finally {
       isLoading.value = false
     }
@@ -174,18 +166,18 @@ export const useAuth = () => {
     }
     
     try {
-      const response = await authApi.refreshToken(refreshToken.value)
+      const response = await authApi.refreshToken({ refresh: refreshToken.value })
       
-      authToken.value = response.access_token
-      if (response.refresh_token) {
-        refreshToken.value = response.refresh_token
+      authToken.value = response.access
+      if (response.refresh) {
+        refreshToken.value = response.refresh
       }
       
-      return response.access_token
+      return response.access
     } catch (error) {
       // 刷新令牌失败，清除认证状态
       clearAuthState()
-      await navigateTo('/auth/login')
+      await navigateTo('/login')
       throw error
     }
   }

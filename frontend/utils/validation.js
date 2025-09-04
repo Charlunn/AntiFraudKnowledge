@@ -75,6 +75,7 @@ export class Validator {
       validate: (value) => {
         if (Array.isArray(value)) return value.length > 0
         if (typeof value === 'string') return value.trim().length > 0
+        if (typeof value === 'boolean') return value === true
         return value !== null && value !== undefined && value !== ''
       }
     })
@@ -355,6 +356,10 @@ export const createRegisterValidator = () => {
     .password('password')
     .required('confirmPassword', '请确认密码')
     .confirmPassword('confirmPassword', 'password')
+    .required('agreeToTerms', '请同意服务条款和隐私政策')
+    .custom('agreeToTerms', (value) => {
+      return value === true
+    }, '请同意服务条款和隐私政策')
 }
 
 export const createProfileValidator = () => {

@@ -31,5 +31,5 @@ export function sendMessage(message, reset = false) {
   if (!message || typeof message !== 'string' || message.trim() === '') {
     return Promise.reject(new Error('消息内容不能为空'));
   }
-  return apiClient.post('/chat/', { message, reset });
+  return apiClient.post('/api/chat/', { message, reset });
 }

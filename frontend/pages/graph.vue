@@ -196,6 +196,11 @@ import { useToast } from '~/composables/useNotification'
 import { formatNumber } from '~/utils/formatters'
 import { GRAPH_NODE_TYPES, GRAPH_RELATIONSHIP_TYPES, GRAPH_ANALYSIS_TYPES } from '~/constants'
 
+// 设置页面布局
+definePageMeta({
+  layout: 'default'
+})
+
 // 页面元数据
 useHead({
   title: '知识图谱可视化 - 反欺诈知识图谱系统',

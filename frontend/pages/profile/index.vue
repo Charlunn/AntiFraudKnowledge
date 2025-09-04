@@ -523,6 +523,11 @@ import { useToast } from '~/composables/useNotification'
 import { formatDate, formatNumber } from '~/utils/formatters'
 import { USER_ROLES, ACHIEVEMENT_TYPES } from '~/constants'
 
+// 设置页面布局
+definePageMeta({
+  layout: 'default'
+})
+
 // 路由参数
 const route = useRoute()
 const userId = route.params.id || 'me' // 默认为当前用户

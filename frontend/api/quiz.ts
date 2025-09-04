@@ -49,117 +49,99 @@ export async function fetchQuestions(
 
 /**
  * 提交测验答案
- * @param level - 测验难度级别
- * @param answers - 答案对象，格式为 { questionId: answerValue, ... }
- * @returns 测验结果，包含得分
+ * @param submission - 答题提交数据
+ * @returns 测验结果
  * 
  * @example
  * ```typescript
- * const result = await submitAnswers('easy', {
- *   '1': 'A',
- *   '2': 'B',
- *   '3': 'C'
+ * const result = await submitAnswers({
+ *   level: 'beginner',
+ *   answers: {
+ *     '1': 'A',
+ *     '2': 'B',
+ *     '3': 'C'
+ *   }
  * });
  * console.log('得分:', result.data.score);
  * ```
  */
 export async function submitAnswers(
-  level: string,
-  answers: Record<string, string>
+  submission: QuizSubmission
 ): Promise<ApiResponse<QuizResult>> {
-  if (!level) {
+  if (!submission.level) {
     throw new Error('测验难度级别不能为空');
   }
   
-  if (!answers || Object.keys(answers).length === 0) {
-    throw new Error('答案不能为空');
+  if (!submission.answers || typeof submission.answers !== 'object') {
+    throw new Error('答案必须是有效的对象');
   }
   
-  const data: QuizSubmission = {
-    level,
-    answers
-  };
+  // 验证level值
+  const validLevels = ['beginner', 'intermediate', 'advanced'];
+  if (!validLevels.includes(submission.level)) {
+    throw new Error(`难度级别必须是以下之一: ${validLevels.join(', ')}`);
+  }
   
-  return await apiClient.post<QuizResult>('/quiz/submit/', data);
+  // 验证答案格式
+  const validChoices = ['A', 'B', 'C', 'D'];
+  for (const [questionId, answer] of Object.entries(submission.answers)) {
+    if (!validChoices.includes(answer.toUpperCase())) {
+      throw new Error(`题目${questionId}的答案必须是以下之一: ${validChoices.join(', ')}`);
+    }
+  }
+  
+  return await apiClient.post<QuizResult>('/quiz/submit/', submission);
 }
 
 /**
  * 获取用户答题记录
- * @param page - 页码（可选）
- * @param pageSize - 每页数量（可选）
+ * @param level - 难度级别（可选）
  * @returns 答题记录列表
  * 
  * @example
  * ```typescript
- * const records = await fetchQuizRecords();
+ * const records = await fetchQuizHistory();
  * console.log('答题记录:', records.data);
  * ```
  */
-export async function fetchQuizRecords(
-  page?: number,
-  pageSize?: number
-): Promise<ApiResponse<PaginatedResponse<QuizResult>>> {
+export async function fetchQuizHistory(
+  level?: string
+): Promise<ApiResponse<QuizResult[]>> {
   const params: Record<string, any> = {};
   
-  if (page) {
-    params.page = page;
+  if (level) {
+    params.level = level;
   }
   
-  if (pageSize) {
-    params.page_size = pageSize;
-  }
-  
-  return await apiClient.get<PaginatedResponse<QuizResult>>('/quiz/records/', { params });
+  return await apiClient.get<QuizResult[]>('/quiz/history/', { params });
 }
 
 /**
- * 获取测验统计信息
- * @returns 测验统计数据
+ * 获取用户测验统计数据
+ * @returns 用户测验统计信息
  * 
  * @example
  * ```typescript
- * const stats = await fetchQuizStats();
- * console.log('测验统计:', stats.data);
+ * const stats = await fetchUserQuizStats();
+ * console.log('统计数据:', stats.data);
  * ```
  */
-export async function fetchQuizStats(): Promise<ApiResponse<{
+export async function fetchUserQuizStats(): Promise<ApiResponse<{
   total_attempts: number;
   average_score: number;
   best_score: number;
-  completion_rate: number;
+  level_stats: Record<string, {
+    attempts: number;
+    average_score: number;
+    best_score: number;
+  }>;
+  recent_attempts: QuizResult[];
 }>> {
   return await apiClient.get('/quiz/stats/');
 }
 
-/**
- * 获取题目详情
- * @param questionId - 题目ID
- * @returns 题目详细信息
- * 
- * @example
- * ```typescript
- * const question = await fetchQuestionDetail(1);
- * console.log('题目详情:', question.data);
- * ```
- */
-export async function fetchQuestionDetail(questionId: number): Promise<ApiResponse<Question>> {
-  if (!questionId) {
-    throw new Error('题目ID不能为空');
-  }
-  
-  return await apiClient.get<Question>(`/quiz/questions/${questionId}/`);
-}
-
-/**
- * 获取可用的难度级别列表
- * @returns 难度级别列表
- * 
- * @example
- * ```typescript
- * const levels = await fetchQuizLevels();
- * console.log('可用难度:', levels.data);
- * ```
- */
-export async function fetchQuizLevels(): Promise<ApiResponse<string[]>> {
-  return await apiClient.get<string[]>('/quiz/levels/');
-}
+// 注意：以下功能后端暂未提供API端点：
+// - 单独的题目详情API
+// - 难度级别列表API
+// - 测验创建/编辑API（仅管理员功能）
+// 如果需要这些功能，需要在后端添加相应的视图

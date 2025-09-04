@@ -28,27 +28,18 @@ import type {
  * ```
  */
 export async function submitFeedback(
-  feedbackData: FeedbackSubmission
+  feedbackData: {
+    message: string; // 后端只需要message字段
+    contact?: string; // 可选的联系方式
+    image?: string; // 可选的图片
+  }
 ): Promise<ApiResponse<Feedback>> {
   // 参数验证
-  if (!feedbackData.type) {
-    throw new Error('反馈类型不能为空');
-  }
-  
-  if (!feedbackData.title) {
-    throw new Error('反馈标题不能为空');
-  }
-  
-  if (!feedbackData.content) {
+  if (!feedbackData.message) {
     throw new Error('反馈内容不能为空');
   }
   
-  // 验证评分范围
-  if (feedbackData.rating !== undefined && (feedbackData.rating < 1 || feedbackData.rating > 5)) {
-    throw new Error('评分必须在1-5之间');
-  }
-  
-  return await apiClient.post<Feedback>('/feedback/submit/', feedbackData);
+  return await apiClient.post<Feedback>('/feedback/create/', feedbackData);
 }
 
 /**
@@ -71,32 +62,8 @@ export async function submitFeedback(
  * const pagedFeedback = await fetchFeedbackList(undefined, undefined, 1, 10);
  * ```
  */
-export async function fetchFeedbackList(
-  type?: string,
-  status?: string,
-  page?: number,
-  pageSize?: number
-): Promise<ApiResponse<PaginatedResponse<Feedback>>> {
-  const params: Record<string, any> = {};
-  
-  if (type) {
-    params.type = type;
-  }
-  
-  if (status) {
-    params.status = status;
-  }
-  
-  if (page) {
-    params.page = page;
-  }
-  
-  if (pageSize) {
-    params.page_size = pageSize;
-  }
-  
-  return await apiClient.get<PaginatedResponse<Feedback>>('/feedback/', { params });
-}
+// 注意：后端没有提供通用的反馈列表API，只有管理员API
+// export async function fetchFeedbackList() { ... }
 
 /**
  * 获取用户的反馈列表
@@ -124,7 +91,7 @@ export async function fetchUserFeedback(
     params.page_size = pageSize;
   }
   
-  return await apiClient.get<PaginatedResponse<Feedback>>('/feedback/user/', { params });
+  return await apiClient.get<PaginatedResponse<Feedback>>('/feedback/my/', { params });
 }
 
 /**
@@ -161,26 +128,8 @@ export async function fetchFeedbackDetail(
  * console.log('反馈状态更新成功');
  * ```
  */
-export async function updateFeedbackStatus(
-  feedbackId: number,
-  status: string,
-  response?: string
-): Promise<ApiResponse<Feedback>> {
-  if (!feedbackId) {
-    throw new Error('反馈ID不能为空');
-  }
-  
-  if (!status) {
-    throw new Error('状态不能为空');
-  }
-  
-  const data: any = { status };
-  if (response) {
-    data.response = response;
-  }
-  
-  return await apiClient.patch<Feedback>(`/feedback/${feedbackId}/`, data);
-}
+// 注意：后端没有提供更新反馈状态的API
+// export async function updateFeedbackStatus() { ... }
 
 /**
  * 获取反馈统计信息
@@ -194,12 +143,12 @@ export async function updateFeedbackStatus(
  */
 export async function fetchFeedbackStats(): Promise<ApiResponse<{
   total_feedback: number;
-  pending_feedback: number;
-  resolved_feedback: number;
-  average_rating: number;
-  feedback_by_type: Record<string, number>;
+  today_feedback: number;
+  week_feedback: number;
+  month_feedback: number;
+  active_users: number;
 }>> {
-  return await apiClient.get('/feedback/stats/');
+  return await apiClient.get('/feedback/admin/stats/');
 }
 
 /**
@@ -212,9 +161,8 @@ export async function fetchFeedbackStats(): Promise<ApiResponse<{
  * console.log('反馈类型:', types.data);
  * ```
  */
-export async function fetchFeedbackTypes(): Promise<ApiResponse<string[]>> {
-  return await apiClient.get<string[]>('/feedback/types/');
-}
+// 注意：后端没有提供反馈类型列表API
+// export async function fetchFeedbackTypes() { ... }
 
 /**
  * 删除反馈（用户只能删除自己的反馈）
@@ -227,12 +175,5 @@ export async function fetchFeedbackTypes(): Promise<ApiResponse<string[]>> {
  * console.log('反馈删除成功');
  * ```
  */
-export async function deleteFeedback(
-  feedbackId: number
-): Promise<ApiResponse<void>> {
-  if (!feedbackId) {
-    throw new Error('反馈ID不能为空');
-  }
-  
-  return await apiClient.delete<void>(`/feedback/${feedbackId}/`);
-}
+// 注意：后端只有管理员可以删除反馈，路径为 /feedback/admin/{id}/
+// export async function deleteFeedback() { ... }

@@ -29,5 +29,5 @@ export function submitFeedback(data) {
   if (!data || !data.message || typeof data.message !== 'string' || data.message.trim() === '') {
     return Promise.reject(new Error('反馈内容不能为空'));
   }
-  return apiClient.post('/feedback/', data);
+  return apiClient.post('/feedback/create/', data);
 }

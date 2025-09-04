@@ -42,7 +42,7 @@ export const useForm = (initialData = {}, options = {}) => {
   })
 
   const canSubmit = computed(() => {
-    return !isSubmitting.value && isValid.value && isDirty.value
+    return !isSubmitting.value && !hasErrors.value && isDirty.value && isValid.value
   })
 
   // 防抖验证
@@ -64,16 +64,17 @@ export const useForm = (initialData = {}, options = {}) => {
     isValidating.value = true
     
     try {
-      const result = await formValidator.validateField(field, value)
+      const isValid = formValidator.validateField(field, value, formData)
       
-      if (result.isValid) {
+      if (isValid) {
         delete fieldErrors.value[field]
       } else {
-        fieldErrors.value[field] = result.errors
+        const errors = formValidator.getFieldErrors(field)
+        fieldErrors.value[field] = errors
       }
       
       updateValidationState()
-      return result.isValid
+      return isValid
     } catch (error) {
       console.warn('Field validation error:', error)
       return false
@@ -89,10 +90,20 @@ export const useForm = (initialData = {}, options = {}) => {
     isValidating.value = true
     
     try {
-      const result = await formValidator.validate(formData)
-      fieldErrors.value = result.errors
+      const isValid = formValidator.validate(formData)
+      
+      // 获取所有字段的错误
+      const allErrors = {}
+      for (const field of Object.keys(formData)) {
+        const errors = formValidator.getFieldErrors(field)
+        if (errors && errors.length > 0) {
+          allErrors[field] = errors
+        }
+      }
+      
+      fieldErrors.value = allErrors
       updateValidationState()
-      return result.isValid
+      return isValid
     } catch (error) {
       console.warn('Form validation error:', error)
       return false
@@ -297,12 +308,14 @@ export const useForm = (initialData = {}, options = {}) => {
 // 登录表单
 export const useLoginForm = (onSubmit, options = {}) => {
   const initialData = {
-    email: '',
+    username: '',
     password: '',
-    remember: false
+    rememberMe: false
   }
 
-  const validator = createLoginValidator()
+  const validator = new Validator()
+  validator.required('username', '请输入用户名或邮箱')
+  validator.required('password', '请输入密码')
 
   return useForm(initialData, {
     validator,
@@ -322,12 +335,42 @@ export const useRegisterForm = (onSubmit, options = {}) => {
   }
 
   const validator = createRegisterValidator()
-
-  return useForm(initialData, {
+  
+  const form = useForm(initialData, {
     validator,
     onSubmit,
     ...options
   })
+  
+  // 重写canSubmit逻辑，添加注册特定的验证
+  const canSubmit = computed(() => {
+    const { formData, isSubmitting, hasErrors, isValid } = form
+    
+    // 检查所有必填字段是否已填写
+    const hasAllRequiredFields = 
+      formData.username.trim() !== '' &&
+      formData.email.trim() !== '' &&
+      formData.password.trim() !== '' &&
+      formData.confirmPassword.trim() !== ''
+    
+    // 检查密码是否匹配
+    const passwordsMatch = formData.password === formData.confirmPassword
+    
+    // 检查是否同意条款
+    const agreedToTerms = formData.agreeToTerms === true
+    
+    return !isSubmitting.value && 
+           !hasErrors.value && 
+           isValid.value && 
+           hasAllRequiredFields && 
+           passwordsMatch && 
+           agreedToTerms
+  })
+  
+  return {
+    ...form,
+    canSubmit
+  }
 }
 
 // 密码重置表单

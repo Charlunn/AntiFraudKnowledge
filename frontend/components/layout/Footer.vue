@@ -160,7 +160,7 @@ const quickLinks = [
   { name: 'AI智能测试', href: '/ai-test' },
   { name: '社区讨论', href: '/community' },
   { name: '学习资源', href: '/resources' },
-  { name: '最新动态', href: '/news' }
+  { name: '举报中心', href: '/report' }
 ]
 
 // 帮助支持链接

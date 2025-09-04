@@ -36,7 +36,7 @@
                 type="text"
                 required
                 @blur="handleFieldBlur('username')"
-                class="block w-full pl-10 pr-3 py-3 border border-neutral-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-neutral-900 dark:text-dark-text placeholder-neutral-500 dark:placeholder-dark-text-secondary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors duration-200 hover-lift"
+                class="block w-full pl-10 pr-3 py-3 border border-neutral-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-bg text-neutral-900 dark:text-dark-text placeholder-neutral-500 dark:placeholder-dark-text-secondary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors duration-200"
                 :class="{
                   'border-error-500 focus:ring-error-500': hasFieldError('username'),
                   'border-success-500 focus:ring-success-500': formData.username && isValidUsername && !hasFieldError('username')
@@ -195,11 +195,11 @@
             <div class="flex items-center h-5">
               <input
                 id="agree-terms"
-                v-model="formData.agreeTerms"
+                v-model="formData.agreeToTerms"
                 type="checkbox"
                 required
                 class="h-4 w-4 text-primary-600 focus:ring-primary-500 border-neutral-300 dark:border-dark-border rounded bg-white dark:bg-dark-bg"
-                :class="{ 'border-error-500': hasFieldError('agreeTerms') }"
+                :class="{ 'border-error-500': hasFieldError('agreeToTerms') }"
               >
             </div>
             <div class="ml-3 text-sm">
@@ -216,6 +216,10 @@
             </div>
           </div>
 
+
+
+
+          
           <!-- 注册按钮 -->
           <div>
             <button
@@ -280,10 +284,17 @@ const {
   submitSuccess,
   fieldErrors,
   canSubmit,
+  isValid,
+  isDirty,
+  hasErrors,
+  isValidating,
   submitForm,
   handleFieldBlur,
   hasFieldError,
-  getFieldError
+  getFieldError,
+  setFieldValue,
+  validateField,
+  validateForm
 } = useRegisterForm(async (userData) => {
   const result = await register(userData)
   

@@ -45,7 +45,7 @@ export async function sendMessage(
     data.session_id = sessionId;
   }
   
-  return await apiClient.post('/chat/send/', data);
+  return await apiClient.post('/chat/', data);
 }
 
 /**
@@ -74,7 +74,8 @@ export async function fetchChatSessions(
     params.page_size = pageSize;
   }
   
-  return await apiClient.get<PaginatedResponse<ChatSession>>('/chat/sessions/', { params });
+  // 注意：后端暂不支持会话列表功能
+  throw new Error('后端暂不支持会话列表功能');
 }
 
 /**
@@ -109,7 +110,8 @@ export async function fetchChatHistory(
     params.page_size = pageSize;
   }
   
-  return await apiClient.get<PaginatedResponse<ChatMessage>>(`/chat/sessions/${sessionId}/messages/`, { params });
+  // 注意：后端暂不支持获取会话消息功能
+  throw new Error('后端暂不支持获取会话消息功能');
 }
 
 /**
@@ -132,7 +134,8 @@ export async function createChatSession(
     data.title = title;
   }
   
-  return await apiClient.post<ChatSession>('/chat/sessions/', data);
+  // 注意：后端暂不支持创建会话功能
+  throw new Error('后端暂不支持创建会话功能');
 }
 
 /**
@@ -153,7 +156,8 @@ export async function deleteChatSession(
     throw new Error('会话ID不能为空');
   }
   
-  return await apiClient.delete<void>(`/chat/sessions/${sessionId}/`);
+  // 注意：后端暂不支持删除会话功能
+  throw new Error('后端暂不支持删除会话功能');
 }
 
 /**
@@ -201,7 +205,8 @@ export async function fetchChatStats(): Promise<ApiResponse<{
   active_sessions: number;
   average_messages_per_session: number;
 }>> {
-  return await apiClient.get('/chat/stats/');
+  // 注意：后端暂不支持聊天统计功能
+  throw new Error('后端暂不支持聊天统计功能');
 }
 
 /**
@@ -268,5 +273,6 @@ export async function searchChatMessages(
     params.page_size = pageSize;
   }
   
-  return await apiClient.get<PaginatedResponse<ChatMessage>>('/chat/search/', { params });
+  // 注意：后端暂不支持搜索聊天记录功能
+  throw new Error('后端暂不支持搜索聊天记录功能');
 }

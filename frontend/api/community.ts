@@ -35,14 +35,31 @@ export async function fetchCommunityPosts(
   category?: string,
   sortBy: 'latest' | 'popular' | 'hot' = 'latest',
   page?: number,
-  pageSize?: number
+  pageSize?: number,
+  search?: string,
+  tags?: string
 ): Promise<ApiResponse<PaginatedResponse<CommunityPost>>> {
-  const params: Record<string, any> = {
-    sort: sortBy
-  };
+  const params: Record<string, any> = {};
+  
+  // 后端使用ordering参数进行排序
+  if (sortBy === 'latest') {
+    params.ordering = '-created_at';
+  } else if (sortBy === 'popular') {
+    params.ordering = '-view_count';
+  } else if (sortBy === 'hot') {
+    params.ordering = '-like_count';
+  }
   
   if (category) {
     params.category = category;
+  }
+  
+  if (search) {
+    params.search = search;
+  }
+  
+  if (tags) {
+    params.tags = tags;
   }
   
   if (page) {
@@ -97,9 +114,9 @@ export async function createPost(
   postData: {
     title: string;
     content: string;
-    category?: string;
-    tags?: string[];
-    images?: string[];
+    category: number; // 后端需要分类ID，不是字符串
+    tags?: string; // 后端接收字符串格式的标签，用逗号分隔
+    status?: 'draft' | 'published'; // 帖子状态
   }
 ): Promise<ApiResponse<CommunityPost>> {
   if (!postData.title || postData.title.trim() === '') {
@@ -110,7 +127,7 @@ export async function createPost(
     throw new Error('帖子内容不能为空');
   }
   
-  return await apiClient.post<CommunityPost>('/community/posts/', postData);
+  return await apiClient.post<CommunityPost>('/community/posts/create/', postData);
 }
 
 /**
@@ -132,16 +149,16 @@ export async function updatePost(
   postData: Partial<{
     title: string;
     content: string;
-    category: string;
-    tags: string[];
-    images: string[];
+    category: number; // 后端需要分类ID
+    tags: string; // 后端接收字符串格式的标签
+    status: 'draft' | 'published';
   }>
 ): Promise<ApiResponse<CommunityPost>> {
   if (!postId) {
     throw new Error('帖子ID不能为空');
   }
   
-  return await apiClient.patch<CommunityPost>(`/community/posts/${postId}/`, postData);
+  return await apiClient.patch<CommunityPost>(`/community/posts/${postId}/update/`, postData);
 }
 
 /**
@@ -162,7 +179,7 @@ export async function deletePost(
     throw new Error('帖子ID不能为空');
   }
   
-  return await apiClient.delete<void>(`/community/posts/${postId}/`);
+  return await apiClient.delete<void>(`/community/posts/${postId}/delete/`);
 }
 
 /**
@@ -255,10 +272,39 @@ export async function createComment(
   };
   
   if (parentId) {
-    data.parent_id = parentId;
+    data.parent_comment = parentId; // 后端使用parent_comment字段
   }
   
   return await apiClient.post<CommunityComment>(`/community/posts/${postId}/comments/`, data);
+}
+
+/**
+ * 更新评论
+ * @param commentId - 评论ID
+ * @param content - 新的评论内容
+ * @returns 更新结果
+ * 
+ * @example
+ * ```typescript
+ * const updatedComment = await updateComment(456, '更新后的评论内容');
+ * console.log('评论更新成功:', updatedComment.data);
+ * ```
+ */
+export async function updateComment(
+  commentId: number,
+  content: string
+): Promise<ApiResponse<CommunityComment>> {
+  if (!commentId) {
+    throw new Error('评论ID不能为空');
+  }
+  
+  if (!content || content.trim() === '') {
+    throw new Error('评论内容不能为空');
+  }
+  
+  return await apiClient.patch<CommunityComment>(`/community/comments/${commentId}/update/`, {
+    content: content.trim()
+  });
 }
 
 /**
@@ -279,7 +325,7 @@ export async function deleteComment(
     throw new Error('评论ID不能为空');
   }
   
-  return await apiClient.delete<void>(`/community/comments/${commentId}/`);
+  return await apiClient.delete<void>(`/community/comments/${commentId}/delete/`);
 }
 
 /**
@@ -357,106 +403,19 @@ export async function searchPosts(
  * ```
  */
 export async function fetchCommunityCategories(): Promise<ApiResponse<Array<{
-  id: string;
+  id: number; // 后端返回数字ID
   name: string;
   description: string;
-  post_count: number;
+  created_at: string; // 后端返回创建时间而不是post_count
 }>>> {
   return await apiClient.get('/community/categories/');
 }
 
-/**
- * 获取热门标签
- * @param limit - 限制返回数量（可选）
- * @returns 热门标签列表
- * 
- * @example
- * ```typescript
- * const tags = await fetchPopularTags(10);
- * console.log('热门标签:', tags.data);
- * ```
- */
-export async function fetchPopularTags(
-  limit?: number
-): Promise<ApiResponse<Array<{
-  tag: string;
-  count: number;
-}>>> {
-  const params: Record<string, any> = {};
-  
-  if (limit) {
-    params.limit = limit;
-  }
-  
-  return await apiClient.get('/community/tags/popular/', { params });
-}
+// 注意：后端暂未提供热门标签API
+// export async function fetchPopularTags() { ... }
 
-/**
- * 举报帖子
- * @param postId - 帖子ID
- * @param reason - 举报原因
- * @param description - 详细描述（可选）
- * @returns 举报结果
- * 
- * @example
- * ```typescript
- * await reportPost(123, 'spam', '这是垃圾信息');
- * console.log('举报提交成功');
- * ```
- */
-export async function reportPost(
-  postId: number,
-  reason: string,
-  description?: string
-): Promise<ApiResponse<void>> {
-  if (!postId) {
-    throw new Error('帖子ID不能为空');
-  }
-  
-  if (!reason) {
-    throw new Error('举报原因不能为空');
-  }
-  
-  const data: any = { reason };
-  
-  if (description) {
-    data.description = description;
-  }
-  
-  return await apiClient.post<void>(`/community/posts/${postId}/report/`, data);
-}
+// 注意：后端暂未提供举报帖子API
+// export async function reportPost() { ... }
 
-/**
- * 举报评论
- * @param commentId - 评论ID
- * @param reason - 举报原因
- * @param description - 详细描述（可选）
- * @returns 举报结果
- * 
- * @example
- * ```typescript
- * await reportComment(456, 'inappropriate', '不当言论');
- * console.log('举报提交成功');
- * ```
- */
-export async function reportComment(
-  commentId: number,
-  reason: string,
-  description?: string
-): Promise<ApiResponse<void>> {
-  if (!commentId) {
-    throw new Error('评论ID不能为空');
-  }
-  
-  if (!reason) {
-    throw new Error('举报原因不能为空');
-  }
-  
-  const data: any = { reason };
-  
-  if (description) {
-    data.description = description;
-  }
-  
-  return await apiClient.post<void>(`/community/comments/${commentId}/report/`, data);
-}
+// 注意：后端暂未提供举报评论API
+// export async function reportComment() { ... }
