@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class Question(models.Model):
@@ -22,8 +23,8 @@ class Question(models.Model):
     option_b = models.CharField(max_length=500)
     option_c = models.CharField(max_length=500)
     option_d = models.CharField(max_length=500)
-    correct_answer = models.CharField(max_length=1, choices=ANSWER_CHOICES)
-    created_at = models.DateTimeField(auto_now_add=True)
+    correct_answer = models.CharField(max_length=1, choices=ANSWER_CHOICES, default='A')
+    created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

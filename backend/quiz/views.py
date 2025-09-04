@@ -33,6 +33,9 @@ class QuestionListView(generics.ListAPIView):
         if level:
             queryset = queryset.filter(level=level)
         
+        # 先进行随机排序，再进行切片
+        queryset = queryset.order_by('?')
+        
         try:
             limit = int(limit)
             if limit > 0:
@@ -40,7 +43,7 @@ class QuestionListView(generics.ListAPIView):
         except (ValueError, TypeError):
             queryset = queryset[:10]
             
-        return queryset.order_by('?')  # 随机排序
+        return queryset
 
 
 class SubmitQuizView(APIView):
