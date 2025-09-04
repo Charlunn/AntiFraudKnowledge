@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { userStorage } from '~/utils/storage';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -8,11 +9,14 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     initialize() {
       if (process.client) {
-        const saved = localStorage.getItem('auth');
-        if (saved) {
-          const data = JSON.parse(saved);
-          this.accessToken = data.accessToken;
-          this.refreshToken = data.refreshToken;
+        try {
+          this.accessToken = userStorage.getToken();
+          const userInfo = userStorage.getUserInfo();
+          if (userInfo && userInfo.refreshToken) {
+            this.refreshToken = userInfo.refreshToken;
+          }
+        } catch (error) {
+          console.warn('Failed to initialize auth store:', error);
         }
       }
     },
@@ -20,14 +24,26 @@ export const useAuthStore = defineStore('auth', {
       this.accessToken = access;
       this.refreshToken = refresh;
       if (process.client) {
-        localStorage.setItem('auth', JSON.stringify({ accessToken: access, refreshToken: refresh }));
+        try {
+          userStorage.setToken(access);
+          // 保存 refresh token 到用户信息中
+          const userInfo = userStorage.getUserInfo() || {};
+          userInfo.refreshToken = refresh;
+          userStorage.setUserInfo(userInfo);
+        } catch (error) {
+          console.warn('Failed to save tokens:', error);
+        }
       }
     },
     clear() {
       this.accessToken = null;
       this.refreshToken = null;
       if (process.client) {
-        localStorage.removeItem('auth');
+        try {
+          userStorage.clearUserData();
+        } catch (error) {
+          console.warn('Failed to clear auth data:', error);
+        }
       }
     },
   },

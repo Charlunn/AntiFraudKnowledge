@@ -1,7 +1,7 @@
 <template>
-  <div class="graph-page">
+  <div class="graph-page fadeInUp">
     <!-- 页面头部 -->
-    <div class="page-header">
+    <div class="page-header fadeInDown">
       <h1>知识图谱可视化</h1>
       <div class="header-actions">
         <ClientOnly>
@@ -16,11 +16,11 @@
     </div>
 
     <!-- 查询面板 -->
-    <div v-if="showQueryPanel" class="query-panel">
+    <div v-if="showQueryPanel" class="query-panel slideInLeft">
       <div class="query-section">
         <h3>基础查询</h3>
         <div class="query-form">
-          <div class="form-group">
+          <div class="form-group fadeInUp delay-100">
             <label>节点类型:</label>
             <select v-model="queryParams.node_types" multiple class="form-control">
               <option v-for="type in availableNodeTypes" :key="type" :value="type">
@@ -29,7 +29,7 @@
             </select>
           </div>
           
-          <div class="form-group">
+          <div class="form-group fadeInUp delay-200">
             <label>关系类型:</label>
             <select v-model="queryParams.relationship_types" multiple class="form-control">
               <option v-for="type in availableRelationshipTypes" :key="type" :value="type">
@@ -38,7 +38,7 @@
             </select>
           </div>
           
-          <div class="form-group">
+          <div class="form-group fadeInUp delay-300">
             <label>限制数量:</label>
             <input v-model.number="queryParams.limit" type="number" class="form-control" min="1" max="1000" />
           </div>
@@ -55,7 +55,7 @@
       </div>
 
       <!-- 高级分析 -->
-      <div class="query-section">
+      <div class="query-section fadeInUp delay-100">
         <h3>图分析</h3>
         <div class="analysis-form">
           <div class="form-group">
@@ -98,7 +98,7 @@
       </div>
 
       <!-- 复杂查询 -->
-      <div class="query-section">
+      <div class="query-section fadeInUp delay-200">
         <h3>复杂查询</h3>
         <div class="complex-query-form">
           <div class="form-group">
@@ -127,20 +127,20 @@
     </div>
 
     <!-- 统计信息面板 -->
-    <div class="stats-panel">
-      <div class="stat-item">
+    <div class="stats-panel slideInRight">
+      <div class="stat-item hover-lift">
         <span class="stat-label">节点数量:</span>
         <span class="stat-value">{{ nodeCount }}</span>
       </div>
-      <div class="stat-item">
+      <div class="stat-item hover-lift">
         <span class="stat-label">关系数量:</span>
         <span class="stat-value">{{ linkCount }}</span>
       </div>
-      <div class="stat-item">
+      <div class="stat-item hover-lift">
         <span class="stat-label">节点类型:</span>
         <span class="stat-value">{{ nodeTypes?.length || 0 }}</span>
       </div>
-      <div class="stat-item">
+      <div class="stat-item hover-lift">
         <span class="stat-label">已选择:</span>
         <span class="stat-value">{{ selectedNodes?.size || 0 }}</span>
       </div>
@@ -191,8 +191,10 @@
 <script setup>
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import GraphVisualization from '~/components/GraphVisualization.vue'
-import { useGraphData } from '~/composables/useGraphData'
-// 类型将在运行时从useGraphData中获取
+import { useGraphApi } from '~/composables/useApi'
+import { useToast } from '~/composables/useNotification'
+import { formatNumber } from '~/utils/formatters'
+import { GRAPH_NODE_TYPES, GRAPH_RELATIONSHIP_TYPES, GRAPH_ANALYSIS_TYPES } from '~/constants'
 
 // 页面元数据
 useHead({
@@ -202,25 +204,23 @@ useHead({
   ]
 })
 
-// 使用图数据管理
-const {
-  graphData,
-  loading,
-  error,
-  selectedNodes,
-  expandedNodes,
-  nodeCount,
-  linkCount,
-  nodeTypes,
-  fetchInitialGraph,
-  fetchFilteredGraph,
-  performAnalysis,
-  performComplexQuery,
-  expandNode,
-  collapseNode,
-  toggleNodeSelection,
-  resetGraph
-} = useGraphData()
+// API和通知
+const { getGraphData, getGraphAnalysis, getGraphQuery, expandGraphNode } = useGraphApi()
+const { showToast } = useToast()
+
+// 响应式数据
+const graphData = ref({ nodes: [], links: [] })
+const loading = ref(false)
+const error = ref(null)
+const selectedNodes = ref([])
+const expandedNodes = ref(new Set())
+const nodeCount = computed(() => graphData.value.nodes.length)
+const linkCount = computed(() => graphData.value.links.length)
+const nodeTypes = computed(() => {
+  const types = new Set()
+  graphData.value.nodes.forEach(node => types.add(node.type))
+  return Array.from(types)
+})
 
 // 页面状态
 const showQueryPanel = ref(false)
@@ -247,14 +247,9 @@ const complexQueryParams = ref({
 
 const complexQueryConditions = ref('{}')
 
-// 可用的节点和关系类型（这些应该从后端API获取）
-const availableNodeTypes = ref([
-  'Person', 'Company', 'Account', 'Transaction', 'Device', 'Location'
-])
-
-const availableRelationshipTypes = ref([
-  'OWNS', 'TRANSFERS', 'USES', 'LOCATED_AT', 'WORKS_FOR', 'RELATED_TO'
-])
+// 可用的节点和关系类型
+const availableNodeTypes = computed(() => Object.keys(GRAPH_NODE_TYPES))
+const availableRelationshipTypes = computed(() => Object.keys(GRAPH_RELATIONSHIP_TYPES))
 
 // 计算属性
 const needsSourceNode = computed(() => {
@@ -387,9 +382,137 @@ const resetQuery = () => {
   }
 }
 
+// 核心方法
+const fetchInitialGraph = async (params = {}) => {
+  loading.value = true
+  error.value = null
+  
+  try {
+    const response = await getGraphData(params)
+    graphData.value = response
+    showToast('图谱数据加载成功', 'success')
+  } catch (err) {
+    error.value = '获取图谱数据失败: ' + err.message
+    showToast('获取图谱数据失败', 'error')
+    console.error('Failed to fetch graph data:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+const fetchFilteredGraph = async (filters) => {
+  loading.value = true
+  error.value = null
+  
+  try {
+    const response = await getGraphData(filters)
+    graphData.value = response
+    showToast('筛选结果加载成功', 'success')
+  } catch (err) {
+    error.value = '获取筛选数据失败: ' + err.message
+    showToast('获取筛选数据失败', 'error')
+    console.error('Failed to fetch filtered graph:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+const performAnalysis = async (params) => {
+  loading.value = true
+  error.value = null
+  
+  try {
+    const response = await getGraphAnalysis(params)
+    return response
+  } catch (err) {
+    error.value = '分析失败: ' + err.message
+    showToast('分析失败', 'error')
+    console.error('Failed to perform analysis:', err)
+    return null
+  } finally {
+    loading.value = false
+  }
+}
+
+const performComplexQuery = async (params) => {
+  loading.value = true
+  error.value = null
+  
+  try {
+    const response = await getGraphQuery(params)
+    return response
+  } catch (err) {
+    error.value = '查询失败: ' + err.message
+    showToast('查询失败', 'error')
+    console.error('Failed to perform query:', err)
+    return null
+  } finally {
+    loading.value = false
+  }
+}
+
+const expandNode = async (nodeId) => {
+  if (expandedNodes.value.has(nodeId)) return
+  
+  loading.value = true
+  try {
+    const response = await expandGraphNode(nodeId)
+    // 合并新的节点和链接
+    const existingNodeIds = new Set(graphData.value.nodes.map(n => n.id))
+    const newNodes = response.nodes.filter(n => !existingNodeIds.has(n.id))
+    
+    graphData.value.nodes.push(...newNodes)
+    graphData.value.links.push(...response.links)
+    
+    expandedNodes.value.add(nodeId)
+    showToast('节点展开成功', 'success')
+  } catch (err) {
+    showToast('节点展开失败', 'error')
+    console.error('Failed to expand node:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+const collapseNode = (nodeId) => {
+  // 移除与该节点相关的扩展节点和链接
+  const nodesToRemove = new Set()
+  const linksToRemove = new Set()
+  
+  // 找到需要移除的节点和链接
+  graphData.value.links.forEach(link => {
+    if (link.source === nodeId || link.target === nodeId) {
+      linksToRemove.add(link)
+      if (expandedNodes.value.has(link.source)) nodesToRemove.add(link.source)
+      if (expandedNodes.value.has(link.target)) nodesToRemove.add(link.target)
+    }
+  })
+  
+  // 移除节点和链接
+  graphData.value.nodes = graphData.value.nodes.filter(n => !nodesToRemove.has(n.id))
+  graphData.value.links = graphData.value.links.filter(l => !linksToRemove.has(l))
+  
+  expandedNodes.value.delete(nodeId)
+}
+
+const toggleNodeSelection = (nodeId) => {
+  const index = selectedNodes.value.indexOf(nodeId)
+  if (index > -1) {
+    selectedNodes.value.splice(index, 1)
+  } else {
+    selectedNodes.value.push(nodeId)
+  }
+}
+
+const resetGraph = () => {
+  graphData.value = { nodes: [], links: [] }
+  selectedNodes.value = []
+  expandedNodes.value.clear()
+  error.value = null
+}
+
 const clearError = () => {
-  // 这里需要在useGraphData中添加clearError方法
-  // error.value = null
+  error.value = null
 }
 
 const closeAnalysisResult = () => {

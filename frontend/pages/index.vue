@@ -1,581 +1,271 @@
 <template>
-  <div class="api-test-container">
-    <header>
-      <h1>API 测试中心</h1>
-      <p>通过这个界面可以全方位测试所有API接口功能，结果将显示在下方</p>
-    </header>
-
-    <div class="auth-status">
-      <div v-if="auth.accessToken">
-        <span>已登录</span>
-        <button @click="handleLogout" class="btn logout-btn">退出登录</button>
-      </div>
-      <div v-else>
-        <span>未登录</span>
-      </div>
-    </div>
-
-    <div class="test-tabs">
-      <button 
-        v-for="tab in tabs" 
-        :key="tab.id" 
-        :class="['tab-btn', { active: activeTab === tab.id }]"
-        @click="activeTab = tab.id"
-      >
-        {{ tab.name }}
-      </button>
-    </div>
-
-    <div class="test-content">
-      <!-- 认证相关测试 -->
-      <div v-if="activeTab === 'auth'" class="tab-panel">
-        <h3>用户认证</h3>
-        <div class="test-section">
-          <h4>用户注册</h4>
-          <div class="form-group">
-            <input v-model="registerForm.username" placeholder="用户名" class="form-input" />
-            <input v-model="registerForm.nickname" placeholder="昵称" class="form-input" />
-            <input v-model="registerForm.password" type="password" placeholder="密码" class="form-input" />
-            <input v-model="registerForm.password2" type="password" placeholder="确认密码" class="form-input" />
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <!-- Hero Section -->
+    <section class="relative overflow-hidden bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div class="text-center">
+          <h1 class="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl">
+            <span class="block">反诈骗知识平台</span>
+            <span class="block text-indigo-600">守护您的财产安全</span>
+          </h1>
+          <p class="mt-6 max-w-2xl mx-auto text-xl text-gray-500">
+            通过互动学习、知识图谱和社区交流，提升您的反诈骗意识和防范能力
+          </p>
+          <div class="mt-8 flex justify-center space-x-4">
+            <NuxtLink to="/quiz" class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
+              开始学习
+            </NuxtLink>
+            <NuxtLink to="/graph" class="bg-white text-indigo-600 border-2 border-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition-colors">
+              探索知识图谱
+            </NuxtLink>
           </div>
-          <button @click="handleRegister" class="btn">注册</button>
-        </div>
-
-        <div class="test-section">
-          <h4>用户登录</h4>
-          <div class="form-group">
-            <input v-model="loginForm.username" placeholder="用户名" class="form-input" />
-            <input v-model="loginForm.password" type="password" placeholder="密码" class="form-input" />
-          </div>
-          <button @click="handleLogin" class="btn">登录</button>
-        </div>
-
-        <div class="test-section">
-          <h4>获取用户资料</h4>
-          <button @click="handleFetchProfile" class="btn">获取资料</button>
-        </div>
-
-        <div class="test-section">
-          <h4>修改密码</h4>
-          <div class="form-group">
-            <input v-model="passwordForm.oldPassword" type="password" placeholder="当前密码" class="form-input" />
-            <input v-model="passwordForm.newPassword" type="password" placeholder="新密码" class="form-input" />
-          </div>
-          <button @click="handleChangePassword" class="btn">修改密码</button>
-        </div>
-
-        <div class="test-section">
-          <h4>账号设置</h4>
-          <div class="form-group">
-            <select v-model="settingsForm.language" class="form-input">
-              <option value="zh">中文</option>
-              <option value="en">英文</option>
-            </select>
-            <select v-model="settingsForm.theme" class="form-input">
-              <option value="light">浅色</option>
-              <option value="dark">深色</option>
-            </select>
-          </div>
-          <button @click="handleUpdateSettings" class="btn">更新设置</button>
-          <button @click="handleGetSettings" class="btn">获取设置</button>
-        </div>
-
-        <div class="test-section">
-          <h4>账号管理</h4>
-          <button @click="handleDeleteAccount" class="btn danger-btn">删除账号</button>
         </div>
       </div>
+    </section>
 
-      <!-- 成就相关测试 -->
-      <div v-if="activeTab === 'achievements'" class="tab-panel">
-        <h3>成就系统</h3>
-        <div class="test-section">
-          <h4>获取成就列表</h4>
-          <button @click="handleFetchAchievements" class="btn">获取成就</button>
-        </div>
-
-        <div class="test-section">
-          <h4>授予成就</h4>
-          <div class="form-group">
-            <input v-model="achievementId" type="number" placeholder="成就ID" class="form-input" />
+    <!-- Stats Section -->
+    <section class="py-16 bg-indigo-600">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
+          <div class="text-white">
+            <div class="text-3xl font-bold">{{ stats.totalUsers }}+</div>
+            <div class="text-indigo-200 mt-2">注册用户</div>
           </div>
-          <button @click="handleGrantAchievement" class="btn">授予成就</button>
-        </div>
-      </div>
-
-      <!-- 反馈相关测试 -->
-      <div v-if="activeTab === 'feedback'" class="tab-panel">
-        <h3>反馈系统</h3>
-        <div class="test-section">
-          <h4>提交反馈</h4>
-          <div class="form-group">
-            <textarea v-model="feedbackForm.message" placeholder="反馈内容" class="form-input" rows="4"></textarea>
-            <input v-model="feedbackForm.type" placeholder="反馈类型" class="form-input" />
-            <input v-model="feedbackForm.contact" placeholder="联系方式" class="form-input" />
+          <div class="text-white">
+            <div class="text-3xl font-bold">{{ stats.totalQuestions }}+</div>
+            <div class="text-indigo-200 mt-2">题目数量</div>
           </div>
-          <button @click="handleSubmitFeedback" class="btn">提交反馈</button>
-        </div>
-      </div>
-
-      <!-- 测验相关测试 -->
-      <div v-if="activeTab === 'quiz'" class="tab-panel">
-        <h3>测验系统</h3>
-        <div class="test-section">
-          <h4>获取题目</h4>
-          <div class="form-group">
-            <select v-model="quizLevel" class="form-input">
-              <option value="">所有难度</option>
-              <option value="easy">简单</option>
-              <option value="medium">中等</option>
-              <option value="hard">困难</option>
-            </select>
+          <div class="text-white">
+            <div class="text-3xl font-bold">{{ stats.totalKnowledge }}+</div>
+            <div class="text-indigo-200 mt-2">知识点</div>
           </div>
-          <button @click="handleFetchQuestions" class="btn">获取题目</button>
-        </div>
-
-        <div class="test-section">
-          <h4>提交答案</h4>
-          <div class="form-group">
-            <select v-model="submitQuizLevel" class="form-input">
-              <option value="easy">简单</option>
-              <option value="medium">中等</option>
-              <option value="hard">困难</option>
-            </select>
-            <textarea v-model="quizAnswers" placeholder="答案 JSON，例如：{'1':'A','2':'B'}" class="form-input" rows="3"></textarea>
+          <div class="text-white">
+            <div class="text-3xl font-bold">{{ stats.preventedCases }}+</div>
+            <div class="text-indigo-200 mt-2">成功防范案例</div>
           </div>
-          <button @click="handleSubmitAnswers" class="btn">提交答案</button>
         </div>
       </div>
+    </section>
 
-      <!-- 聊天相关测试 -->
-      <div v-if="activeTab === 'chat'" class="tab-panel">
-        <h3>AI 聊天</h3>
-        <div class="test-section">
-          <h4>发送消息</h4>
-          <div class="form-group">
-            <textarea v-model="chatMessage" placeholder="输入消息" class="form-input" rows="3"></textarea>
-            <label><input type="checkbox" v-model="resetChat" /> 重置对话</label>
+    <!-- Features Section -->
+    <section class="py-16">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold text-gray-900">平台功能</h2>
+          <p class="mt-4 text-xl text-gray-600">多维度提升您的反诈骗能力</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <!-- 知识测验 -->
+          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">知识测验</h3>
+            <p class="text-gray-600 mb-4">通过互动测验检验和提升反诈骗知识水平</p>
+            <NuxtLink to="/quiz" class="text-blue-600 font-semibold hover:text-blue-700">开始测验 →</NuxtLink>
           </div>
-          <button @click="handleSendMessage" class="btn">发送消息</button>
+
+          <!-- 知识图谱 -->
+          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">知识图谱</h3>
+            <p class="text-gray-600 mb-4">可视化展示诈骗类型和防范策略的关联关系</p>
+            <NuxtLink to="/graph" class="text-green-600 font-semibold hover:text-green-700">探索图谱 →</NuxtLink>
+          </div>
+
+          <!-- 社区交流 -->
+          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-6a2 2 0 012-2h8z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">社区交流</h3>
+            <p class="text-gray-600 mb-4">与其他用户分享经验，共同提升防范意识</p>
+            <NuxtLink to="/community" class="text-purple-600 font-semibold hover:text-purple-700">加入社区 →</NuxtLink>
+          </div>
+
+          <!-- 个人中心 -->
+          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">个人中心</h3>
+            <p class="text-gray-600 mb-4">查看学习进度、成就徽章和个人设置</p>
+            <NuxtLink to="/profile" class="text-yellow-600 font-semibold hover:text-yellow-700">个人中心 →</NuxtLink>
+          </div>
+
+          <!-- 学习资源 -->
+          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">学习资源</h3>
+            <p class="text-gray-600 mb-4">丰富的反诈骗案例和防范指南</p>
+            <NuxtLink to="/resources" class="text-red-600 font-semibold hover:text-red-700">查看资源 →</NuxtLink>
+          </div>
+
+          <!-- 举报中心 -->
+          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">举报中心</h3>
+            <p class="text-gray-600 mb-4">发现可疑信息？立即举报帮助他人</p>
+            <NuxtLink to="/report" class="text-orange-600 font-semibold hover:text-orange-700">立即举报 →</NuxtLink>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- 结果展示区域 -->
-    <div class="results-section">
-      <h3>API 调用结果</h3>
-      <div class="result-container">
-        <pre v-if="resultData">{{ resultData }}</pre>
-        <p v-else>请选择上方的API进行测试</p>
+    <!-- Recent Activity -->
+    <section class="py-16 bg-gray-50" v-if="auth.accessToken">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold text-gray-900">最近活动</h2>
+          <p class="mt-4 text-xl text-gray-600">继续您的学习之旅</p>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- 学习进度 -->
+          <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">学习进度</h3>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-gray-600">基础防范知识</span>
+                <span class="text-green-600 font-semibold">85%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-green-600 h-2 rounded-full" style="width: 85%"></div>
+              </div>
+              
+              <div class="flex items-center justify-between">
+                <span class="text-gray-600">网络诈骗识别</span>
+                <span class="text-blue-600 font-semibold">72%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-blue-600 h-2 rounded-full" style="width: 72%"></div>
+              </div>
+              
+              <div class="flex items-center justify-between">
+                <span class="text-gray-600">电信诈骗防范</span>
+                <span class="text-yellow-600 font-semibold">58%</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-yellow-600 h-2 rounded-full" style="width: 58%"></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 最近成就 -->
+          <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="text-xl font-semibold text-gray-900 mb-4">最近成就</h3>
+            <div class="space-y-4">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-semibold text-gray-900">初级防范专家</div>
+                  <div class="text-sm text-gray-500">完成10道基础题目</div>
+                </div>
+              </div>
+              
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-semibold text-gray-900">知识图谱探索者</div>
+                  <div class="text-sm text-gray-500">浏览50个知识节点</div>
+                </div>
+              </div>
+              
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+                <div>
+                  <div class="font-semibold text-gray-900">社区贡献者</div>
+                  <div class="text-sm text-gray-500">发布首个帖子</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- 工具类调用说明 -->
-    <div class="docs-section">
-      <h3>工具类调用文档</h3>
-      <div class="doc-content">
-        <h4>1. HTTP 基础封装 (http.js)</h4>
-        <pre>import apiClient from './http';
-
-// 基本使用方法
-try {
-  const response = await apiClient.get('/api/endpoint');
-  console.log(response.data);
-} catch (error) {
-  console.error('API调用失败:', error);
-}</pre>
-
-        <h4>2. 认证相关 (auth.js)</h4>
-        <pre>import { login, fetchProfile, logout } from '~/api/auth';
-
-// 登录示例
-const { data } = await login('username', 'password');
-const auth = useAuthStore();
-auth.setTokens(data.access, data.refresh);
-
-// 获取用户资料
-const profile = await fetchProfile();
-
-// 退出登录
-await logout(auth.refreshToken);
-auth.clear();</pre>
-
-        <h4>3. 其他工具类</h4>
-        <p>所有工具类都遵循相似的调用模式，通过async/await处理异步请求，并使用try/catch捕获可能的错误。</p>
+    <!-- CTA Section -->
+    <section class="py-16 bg-indigo-600" v-if="!auth.accessToken">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <h2 class="text-3xl font-bold text-white mb-4">立即加入我们</h2>
+        <p class="text-xl text-indigo-200 mb-8">开始您的反诈骗学习之旅，保护自己和家人的财产安全</p>
+        <div class="space-x-4">
+          <NuxtLink to="/register" class="bg-white text-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+            立即注册
+          </NuxtLink>
+          <NuxtLink to="/login" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-indigo-600 transition-colors">
+            已有账号？登录
+          </NuxtLink>
+        </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
-import { register, login, fetchProfile, changePassword, deleteAccount, getSettings, updateSettings, logout } from '~/api/auth';
-import { fetchAchievements, grantAchievement } from '~/api/achievements';
-import { submitFeedback } from '~/api/feedback';
-import { fetchQuestions, submitAnswers } from '~/api/quiz';
-import { sendMessage } from '~/api/chat';
-import { useAuthStore } from '~/stores/auth';
+import { ref, onMounted } from 'vue'
+import { useAuthStore } from '~/stores/auth'
+
+// 页面元数据
+useHead({
+  title: '反诈骗知识平台 - 守护您的财产安全',
+  meta: [
+    { name: 'description', content: '通过互动学习、知识图谱和社区交流，提升您的反诈骗意识和防范能力' },
+    { name: 'keywords', content: '反诈骗,防诈骗,网络安全,财产安全,诈骗防范' }
+  ]
+})
 
 // 状态管理
-const auth = useAuthStore();
-const activeTab = ref('auth');
-const resultData = ref(null);
+const auth = useAuthStore()
 
-// 标签页配置
-const tabs = [
-  { id: 'auth', name: '认证' },
-  { id: 'achievements', name: '成就' },
-  { id: 'feedback', name: '反馈' },
-  { id: 'quiz', name: '测验' },
-  { id: 'chat', name: '聊天' }
-];
+// 统计数据
+const stats = ref({
+  totalUsers: 15420,
+  totalQuestions: 2580,
+  totalKnowledge: 1200,
+  preventedCases: 8960
+})
 
-// 表单数据
-const registerForm = reactive({ username: 'demo', nickname: '测试用户', password: 'password123', password2: 'password123' });
-const loginForm = reactive({ username: 'demo', password: 'password123' });
-const passwordForm = reactive({ oldPassword: 'password123', newPassword: 'newpass123' });
-const settingsForm = reactive({ language: 'en', theme: 'light' });
-const achievementId = ref(1);
-const feedbackForm = reactive({ message: '测试反馈内容', type: 'suggestion', contact: 'demo@example.com' });
-const quizLevel = ref('easy');
-const submitQuizLevel = ref('easy');
-const quizAnswers = ref('{"1":"A","2":"B"}');
-const chatMessage = ref('什么是电信诈骗？');
-const resetChat = ref(false);
-
-// 初始化认证状态
-auth.initialize();
-
-// 显示结果的通用方法
-const showResult = (data, error = false) => {
-  if (error) {
-    resultData.value = `错误: ${JSON.stringify(data, null, 2)}`;
-  } else {
-    resultData.value = JSON.stringify(data, null, 2);
-  }
-};
-
-// 认证相关方法
-const handleRegister = async () => {
-  try {
-    const response = await register(registerForm);
-    showResult({ message: '注册成功', data: response.data });
-  } catch (e) {
-    showResult(e.response?.data || e.message, true);
-  }
-};
-
-const handleLogin = async () => {
-  try {
-    const { data } = await login(loginForm.username, loginForm.password);
-    auth.setTokens(data.access, data.refresh);
-    showResult({ message: '登录成功', data });
-  } catch (e) {
-    showResult(e.response?.data || e.message, true);
-  }
-};
-
-const handleFetchProfile = async () => {
-  try {
-    const profile = await fetchProfile();
-    showResult(profile.data);
-  } catch (e) {
-    showResult(e.response?.data || e.message, true);
-  }
-};
-
-const handleChangePassword = async () => {
-  try {
-    await changePassword({
-      old_password: passwordForm.oldPassword,
-      new_password: passwordForm.newPassword
-    });
-    showResult({ message: '密码修改成功' });
-  } catch (e) {
-    showResult(e.response?.data || e.message, true);
-  }
-};
-
-const handleGetSettings = async () => {
-  try {
-    const settings = await getSettings();
-    showResult(settings.data);
-  } catch (e) {
-    showResult(e.response?.data || e.message, true);
-  }
-};
-
-const handleUpdateSettings = async () => {
-  try {
-    await updateSettings(settingsForm);
-    showResult({ message: '设置更新成功' });
-  } catch (e) {
-    showResult(e.response?.data || e.message, true);
-  }
-};
-
-const handleDeleteAccount = async () => {
-  if (confirm('确定要删除账号吗？此操作不可恢复！')) {
-    try {
-      await deleteAccount();
-      auth.clear();
-      showResult({ message: '账号已删除' });
-    } catch (e) {
-      showResult(e.response?.data || e.message, true);
-    }
-  }
-};
-
-const handleLogout = async () => {
-  try {
-    await logout(auth.refreshToken);
-    auth.clear();
-    showResult({ message: '已退出登录' });
-  } catch (e) {
-    auth.clear();
-    showResult(e.response?.data || e.message, true);
-  }
-};
-
-// 成就相关方法
-const handleFetchAchievements = async () => {
-  try {
-    const ach = await fetchAchievements();
-    showResult(ach.data);
-  } catch (e) {
-    showResult(e.response?.data || e.message, true);
-  }
-};
-
-const handleGrantAchievement = async () => {
-  try {
-    await grantAchievement(Number(achievementId.value));
-    showResult({ message: '成就授予成功' });
-  } catch (e) {
-    showResult(e.response?.data || e.message, true);
-  }
-};
-
-// 反馈相关方法
-const handleSubmitFeedback = async () => {
-  try {
-    await submitFeedback(feedbackForm);
-    showResult({ message: '反馈提交成功' });
-  } catch (e) {
-    showResult(e.response?.data || e.message, true);
-  }
-};
-
-// 测验相关方法
-const handleFetchQuestions = async () => {
-  try {
-    const q = await fetchQuestions(quizLevel.value || undefined);
-    showResult(q.data);
-  } catch (e) {
-    showResult(e.response?.data || e.message, true);
-  }
-};
-
-const handleSubmitAnswers = async () => {
-  try {
-    let answers = {};
-    try {
-      answers = JSON.parse(quizAnswers.value);
-    } catch (parseError) {
-      throw new Error('答案格式错误，请输入有效的JSON');
-    }
-    const result = await submitAnswers(submitQuizLevel.value, answers);
-    showResult(result.data);
-  } catch (e) {
-    showResult(e.response?.data || e.message, true);
-  }
-};
-
-// 聊天相关方法
-const handleSendMessage = async () => {
-  try {
-    const msg = await sendMessage(chatMessage.value, resetChat.value);
-    showResult(msg.data);
-  } catch (e) {
-    showResult(e.response?.data || e.message, true);
-  }
-};
+// 组件挂载时初始化认证状态
+onMounted(() => {
+  auth.initialize()
+})
 </script>
 
 <style scoped>
-.api-test-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-}
-
-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-h1 {
-  color: #333;
-  font-size: 2.5rem;
-}
-
-h2 {
-  color: #555;
-  font-size: 1.8rem;
-  margin-top: 20px;
-}
-
-h3 {
-  color: #666;
-  font-size: 1.5rem;
-  margin-top: 15px;
-}
-
-h4 {
-  color: #777;
-  font-size: 1.2rem;
-  margin-top: 10px;
-}
-
-p {
-  color: #666;
-  line-height: 1.6;
-}
-
-.auth-status {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  margin-bottom: 20px;
-  padding: 10px;
-  background-color: #f5f5f5;
-  border-radius: 5px;
-}
-
-.test-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.tab-btn {
-  padding: 10px 20px;
-  border: 1px solid #ddd;
-  background-color: #fff;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: all 0.3s;
-}
-
-.tab-btn:hover {
-  background-color: #f5f5f5;
-}
-
-.tab-btn.active {
-  background-color: #42b983;
-  color: white;
-  border-color: #42b983;
-}
-
-.tab-panel {
-  background-color: #f9f9f9;
-  padding: 20px;
-  border-radius: 5px;
-}
-
-.test-section {
-  margin-bottom: 30px;
-  padding: 15px;
-  background-color: white;
-  border-radius: 5px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.btn {
-  padding: 10px 20px;
-  background-color: #42b983;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background-color 0.3s;
-}
-
-.btn:hover {
-  background-color: #3aa674;
-}
-
-.logout-btn {
-  background-color: #ff6b6b;
-  margin-left: 10px;
-}
-
-.logout-btn:hover {
-  background-color: #ff5252;
-}
-
-.danger-btn {
-  background-color: #ff6b6b;
-}
-
-.danger-btn:hover {
-  background-color: #ff5252;
-}
-
-.results-section {
-  margin-top: 40px;
-}
-
-.result-container {
-  background-color: #f5f5f5;
-  padding: 20px;
-  border-radius: 5px;
-  max-height: 400px;
-  overflow-y: auto;
-}
-
-pre {
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  font-family: 'Courier New', Courier, monospace;
-}
-
-.docs-section {
-  margin-top: 40px;
-}
-
-.doc-content {
-  background-color: #f5f5f5;
-  padding: 20px;
-  border-radius: 5px;
-}
-
-.doc-content h4 {
-  margin-top: 20px;
-  color: #333;
-}
-
-.doc-content pre {
-  background-color: #333;
-  color: #fff;
-  padding: 15px;
-  border-radius: 5px;
-  overflow-x: auto;
+/* 自定义样式 */
+.hero-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f0f9ff' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 </style>

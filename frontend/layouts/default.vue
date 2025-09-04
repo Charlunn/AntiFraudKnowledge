@@ -1,0 +1,50 @@
+<template>
+  <div class="min-h-screen bg-neutral-50 dark:bg-dark-bg transition-colors duration-300">
+    <!-- 主导航头部 -->
+    <Header />
+    
+    <!-- 主要内容区域 -->
+    <main class="flex-1">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 页面内容插槽 -->
+        <slot />
+      </div>
+    </main>
+    
+    <!-- 页面底部 -->
+    <Footer />
+    
+    <!-- 全局通知组件 -->
+    <NotificationContainer />
+    
+    <!-- 全局加载指示器 -->
+    <GlobalLoading />
+  </div>
+</template>
+
+<script setup>
+import Header from '~/components/layout/Header.vue'
+import Footer from '~/components/layout/Footer.vue'
+import NotificationContainer from '~/components/ui/NotificationContainer.vue'
+import GlobalLoading from '~/components/ui/GlobalLoading.vue'
+
+// 页面元数据
+useHead({
+  titleTemplate: '%s - 反欺诈知识平台',
+  meta: [
+    { name: 'description', content: '专业的反欺诈知识学习平台，提供知识图谱、智能测验和社区交流功能' },
+    { name: 'keywords', content: '反欺诈,知识图谱,在线测验,安全教育,社区交流' },
+    { name: 'author', content: '反欺诈知识平台' },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:site_name', content: '反欺诈知识平台' },
+    { name: 'twitter:card', content: 'summary_large_image' }
+  ],
+  link: [
+    { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+  ]
+})
+</script>
+
+<style>
+/* 全局样式已在 main.css 中定义 */
+</style>

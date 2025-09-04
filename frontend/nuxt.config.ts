@@ -1,7 +1,13 @@
 import { defineNuxtConfig } from 'nuxt/config';
 
 export default defineNuxtConfig({
-  modules: ['@pinia/nuxt'],
+  modules: ['@pinia/nuxt', '@nuxtjs/tailwindcss'],
+  css: ['~/assets/css/main.css', '~/assets/css/animations.css'],
+  // 页面过渡配置
+  app: {
+    pageTransition: { name: 'page', mode: 'out-in' },
+    layoutTransition: { name: 'layout', mode: 'out-in' }
+  },
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE || (process.env.DOCKER_ENV ? 'http://backend:8000/api' : 'http://127.0.0.1:8000/api')
