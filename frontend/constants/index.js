@@ -502,6 +502,23 @@ export const CHART_CONFIG = {
   }
 }
 
+// 成就类型常量
+export const ACHIEVEMENT_TYPES = {
+  LEARNING: 'learning',
+  QUIZ: 'quiz',
+  COMMUNITY: 'community',
+  STREAK: 'streak',
+  MILESTONE: 'milestone'
+}
+
+// 成就等级
+export const ACHIEVEMENT_LEVELS = {
+  BRONZE: 'bronze',
+  SILVER: 'silver',
+  GOLD: 'gold',
+  PLATINUM: 'platinum'
+}
+
 // 单独导出图谱相关常量
 export const GRAPH_NODE_TYPES = GRAPH_CONFIG.NODE_TYPES
 export const GRAPH_RELATIONSHIP_TYPES = GRAPH_CONFIG.RELATIONSHIP_TYPES

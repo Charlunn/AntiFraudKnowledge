@@ -22,7 +22,12 @@
         <div class="header-content">
           <div class="avatar-section">
             <div class="avatar-container hover-lift">
-              <img :src="profile.avatar" :alt="profile.name" class="user-avatar" />
+              <img 
+                :src="profile.avatar || '/default-avatar.svg'"
+                :alt="profile.name" 
+                class="user-avatar"
+                @error="handleAvatarError"
+              />
               <button v-if="isOwnProfile" @click="showAvatarUpload = true" class="avatar-edit-btn">
                 <Icon name="heroicons:camera" class="w-4 h-4" />
               </button>
@@ -36,7 +41,7 @@
               <div class="user-meta">
                 <div class="meta-item">
                   <Icon name="heroicons:calendar-days" class="w-4 h-4" />
-                  <span>加入于 {{ formatDate(profile.joined_at) }}</span>
+                  <span>加入于 {{ formatDateString(profile.joined_at) }}</span>
                 </div>
                 <div class="meta-item">
                   <Icon name="heroicons:map-pin" class="w-4 h-4" />
@@ -165,7 +170,7 @@
                   
                   <div v-if="achievement.unlocked" class="achievement-date">
                     <Icon name="heroicons:calendar" class="w-3 h-3" />
-                    {{ formatDate(achievement.unlocked_at) }}
+                    {{ formatDateString(achievement.unlocked_at) }}
                   </div>
                   
                   <div v-else-if="achievement.progress" class="achievement-progress-bar">
@@ -282,7 +287,7 @@
                     <Icon name="heroicons:folder" class="w-4 h-4" />
                     {{ getCategoryLabel(post.category) }}
                   </div>
-                  <div class="post-date">{{ formatDate(post.created_at) }}</div>
+                  <div class="post-date">{{ formatDateString(post.created_at) }}</div>
                 </div>
                 
                 <h3 class="post-title">
@@ -521,6 +526,15 @@ import { useAuth } from '~/composables/useAuth'
 import { fetchUserProfile, fetchUserStats } from '~/composables/useApi'
 import { useToast } from '~/composables/useNotification'
 import { formatDate, formatNumber } from '~/utils/formatters'
+
+// 格式化函数
+const formatDateString = (date) => {
+  return formatDate.toDateString(date)
+}
+
+const formatDateTime = (date) => {
+  return formatDate.toDateTimeString(date)
+}
 import { USER_ROLES, ACHIEVEMENT_TYPES } from '~/constants'
 
 // 设置页面布局和认证中间件
@@ -804,8 +818,24 @@ const fetchProfile = async () => {
         }))
       }
     } else {
-      // 回退到模拟数据
-      profile.value = mockProfile
+      // 回退到默认数据
+      profile.value = {
+        id: 1,
+        name: currentUser.value?.username || currentUser.value?.name || '用户',
+        title: '学习者',
+        bio: '这个用户很懒，什么都没有留下。',
+        email: currentUser.value?.email || '',
+        location: '',
+        avatar: '/default-avatar.svg',
+        joined_at: new Date().toISOString(),
+        is_following: false,
+        stats: {
+          learning_hours: 0,
+          achievements: 0,
+          posts: 0,
+          likes_received: 0
+        }
+      }
     }
     
     // 如果是自己的资料，初始化编辑表单
@@ -896,6 +926,11 @@ const shareProfile = () => {
   })
 }
 
+const handleAvatarError = (event) => {
+  // 头像加载失败时使用默认头像
+  event.target.src = '/default-avatar.svg'
+}
+
 const updateProfile = async () => {
   updating.value = true
   
@@ -957,19 +992,27 @@ onMounted(() => {
 }
 
 .header-content {
-  @apply absolute inset-x-0 top-32 px-6;
+  @apply absolute inset-x-0 top-24 px-6;
+  z-index: 10;
 }
 
 .avatar-section {
   @apply flex flex-col md:flex-row items-center md:items-end gap-6 mb-6;
+  margin-top: 2rem;
 }
 
 .avatar-container {
-  @apply relative;
+  @apply relative flex-shrink-0;
+  width: 128px;
+  height: 128px;
 }
 
 .user-avatar {
   @apply w-32 h-32 rounded-full border-4 border-white shadow-lg;
+  object-fit: cover;
+  display: block;
+  width: 128px;
+  height: 128px;
 }
 
 .avatar-edit-btn {

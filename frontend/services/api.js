@@ -239,7 +239,7 @@ export const authApi = {
 // 用户相关API
 export const userApi = {
   // 获取用户资料
-  getProfile: (userId) => apiClient.get(`/users/${userId || 'me'}/profile/`),
+  getProfile: (userId) => apiClient.get('/users/profile/'),
   
   // 更新用户资料
   updateProfile: (data) => apiClient.put('/users/profile/', data),
@@ -248,7 +248,7 @@ export const userApi = {
   changePassword: (data) => apiClient.post('/users/password/change/', data),
   
   // 获取用户统计
-  getStats: (userId) => apiClient.get(`/users/${userId || 'me'}/stats/`),
+  getStats: (userId) => apiClient.get('/users/stats/'),
   
   // 获取用户成就
   getAchievements: (userId) => apiClient.get(`/users/${userId || 'me'}/achievements/`),

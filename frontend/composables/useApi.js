@@ -445,3 +445,35 @@ export default {
   useSearchApi,
   useBatchApi
 }
+
+
+/**
+ * 获取用户个人资料（简单封装）
+ * 直接返回用户数据对象，供组件单次调用
+ * @param {string|number} userId 默认为当前登录用户 "me"
+ * @returns {Promise<Object|null>} 用户资料
+ */
+export const fetchUserProfile = async (userId = 'me') => {
+  try {
+    const response = await userApi.getProfile(userId)
+    return response?.data || response
+  } catch (err) {
+    // 统一错误处理，保持与其他API一致
+    return handleError(err, { action: 'fetchUserProfile', args: [userId] })
+  }
+}
+
+/**
+ * 获取用户统计数据（简单封装）
+ * 直接返回统计信息对象，供组件单次调用
+ * @param {string|number} userId 默认为当前登录用户 "me"
+ * @returns {Promise<Object|null>} 统计数据
+ */
+export const fetchUserStats = async (userId = 'me') => {
+  try {
+    const response = await userApi.getStats(userId)
+    return response?.data || response
+  } catch (err) {
+    return handleError(err, { action: 'fetchUserStats', args: [userId] })
+  }
+}

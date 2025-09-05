@@ -181,7 +181,7 @@
                   :key="item.name"
                   :to="item.href"
                   class="flex items-center px-4 py-2 text-sm text-neutral-500 dark:text-dark-text hover:bg-neutral-50 dark:hover:bg-dark-bg transition-colors duration-200"
-                  @click="showUserMenu = false"
+                  @click="handleUserMenuClick(item.href)"
                 >
                   <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path v-if="item.icon === 'heroicons:user'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -417,6 +417,12 @@ const toggleDarkMode = () => {
       window.localStorage.setItem('theme', 'light')
     }
   }
+}
+
+const handleUserMenuClick = async (href) => {
+  showUserMenu.value = false
+  // 确保导航正常执行
+  await router.push(href)
 }
 
 const handleLogout = async () => {

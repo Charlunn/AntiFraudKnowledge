@@ -226,7 +226,10 @@ export const useAuth = () => {
           return null
         }
       }
-      throw error
+      // 对于所有其他错误，清理认证状态并返回null，而不是重新抛出错误
+      console.warn('获取用户信息失败:', error)
+      clearAuthState()
+      return null
     } finally {
       isLoading.value = false
     }
@@ -314,6 +317,8 @@ export const useAuth = () => {
         await fetchCurrentUser()
       } catch (error) {
         console.warn('Failed to fetch current user:', error)
+        // 如果获取用户信息失败，清理认证状态
+        clearAuth()
       }
     }
   }
