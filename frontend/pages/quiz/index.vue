@@ -233,9 +233,10 @@ import { useToast } from '~/composables/useNotification'
 import { formatDate } from '~/utils/formatters'
 import { QUIZ_CONFIG } from '~/constants'
 
-// 设置页面布局
+// 设置页面布局和认证中间件
 definePageMeta({
-  layout: 'default'
+  layout: 'default',
+  middleware: 'auth'
 })
 
 // 页面元数据
@@ -260,99 +261,7 @@ const sortBy = ref('created_at')
 const currentPage = ref(1)
 const pageSize = 12
 
-// 模拟数据
-const mockQuizzes = [
-  {
-    id: 1,
-    title: '反欺诈基础知识测验',
-    description: '测试您对反欺诈基本概念和原理的理解程度',
-    category: '基础知识',
-    difficulty: 'beginner',
-    question_count: 20,
-    time_limit: 30,
-    attempts: 156,
-    average_score: 78,
-    pass_rate: 85,
-    user_best_score: 82,
-    created_at: '2024-01-15T10:00:00Z',
-    rating: 4.5
-  },
-  {
-    id: 2,
-    title: '信用卡欺诈检测技术',
-    description: '深入了解信用卡欺诈的检测方法和预防策略',
-    category: '技术应用',
-    difficulty: 'intermediate',
-    question_count: 25,
-    time_limit: 45,
-    attempts: 89,
-    average_score: 72,
-    pass_rate: 76,
-    user_best_score: null,
-    created_at: '2024-01-20T14:30:00Z',
-    rating: 4.2
-  },
-  {
-    id: 3,
-    title: '机器学习在反欺诈中的应用',
-    description: '探索机器学习算法在欺诈检测中的实际应用案例',
-    category: '机器学习',
-    difficulty: 'advanced',
-    question_count: 30,
-    time_limit: 60,
-    attempts: 45,
-    average_score: 68,
-    pass_rate: 62,
-    user_best_score: 75,
-    created_at: '2024-01-25T09:15:00Z',
-    rating: 4.7
-  },
-  {
-    id: 4,
-    title: '网络欺诈识别与防范',
-    description: '学习识别和防范各种网络欺诈手段的方法',
-    category: '网络安全',
-    difficulty: 'intermediate',
-    question_count: 22,
-    time_limit: 40,
-    attempts: 112,
-    average_score: 74,
-    pass_rate: 81,
-    user_best_score: null,
-    created_at: '2024-02-01T16:45:00Z',
-    rating: 4.3
-  },
-  {
-    id: 5,
-    title: '金融风险评估模型',
-    description: '掌握金融风险评估的核心模型和评估方法',
-    category: '风险管理',
-    difficulty: 'advanced',
-    question_count: 28,
-    time_limit: 50,
-    attempts: 67,
-    average_score: 71,
-    pass_rate: 69,
-    user_best_score: 88,
-    created_at: '2024-02-05T11:20:00Z',
-    rating: 4.6
-  },
-  {
-    id: 6,
-    title: '数据挖掘与异常检测',
-    description: '运用数据挖掘技术进行异常行为检测和分析',
-    category: '数据分析',
-    difficulty: 'intermediate',
-    question_count: 24,
-    time_limit: 35,
-    attempts: 93,
-    average_score: 76,
-    pass_rate: 83,
-    user_best_score: null,
-    created_at: '2024-02-10T13:10:00Z',
-    rating: 4.4
-  }
-]
+// 测验列表数据将从API获取
 
 // 计算属性
 const categories = computed(() => {
@@ -512,17 +421,14 @@ const fetchQuizzes = async () => {
     if (quizzes.value.length > 0) {
       showToast('测验列表加载成功', 'success')
     } else {
-      // 如果没有题目，使用模拟数据
-      quizzes.value = mockQuizzes
-      showToast('使用模拟数据', 'info')
+      showToast('暂无测验数据', 'info')
     }
   } catch (err) {
     error.value = '获取测验列表失败: ' + err.message
     showToast('获取测验列表失败', 'error')
     console.error('Failed to fetch quizzes:', err)
     
-    // 出错时使用模拟数据
-    quizzes.value = mockQuizzes
+    // 出错时不使用模拟数据
   } finally {
     loading.value = false
   }

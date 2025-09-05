@@ -295,9 +295,10 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 
-// 设置页面布局
+// 设置页面布局和认证中间件
 definePageMeta({
-  layout: 'default'
+  layout: 'default',
+  middleware: 'auth'
 })
 
 // 路由参数

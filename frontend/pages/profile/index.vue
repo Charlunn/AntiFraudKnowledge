@@ -523,9 +523,10 @@ import { useToast } from '~/composables/useNotification'
 import { formatDate, formatNumber } from '~/utils/formatters'
 import { USER_ROLES, ACHIEVEMENT_TYPES } from '~/constants'
 
-// 设置页面布局
+// 设置页面布局和认证中间件
 definePageMeta({
-  layout: 'default'
+  layout: 'default',
+  middleware: 'auth'
 })
 
 // 路由参数
@@ -594,24 +595,7 @@ const categories = [
   { label: '经验分享', value: 'experience_sharing' }
 ]
 
-// 模拟用户资料数据
-const mockProfile = {
-  id: 1,
-  name: '张三',
-  title: '高级数据科学家',
-  bio: '专注于反欺诈领域的机器学习应用，拥有5年以上的数据科学经验。热爱分享技术心得，致力于推动行业发展。',
-  email: 'zhangsan@example.com',
-  location: '北京市',
-  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=zhang',
-  joined_at: '2023-01-15T00:00:00Z',
-  is_following: false,
-  stats: {
-    learning_hours: 156,
-    achievements: 12,
-    posts: 28,
-    likes_received: 342
-  }
-}
+// 用户资料数据将从API获取
 
 // 模拟成就数据
 const achievements = ref([
@@ -841,18 +825,8 @@ const fetchProfile = async () => {
     
   } catch (err) {
     error.value = '获取用户资料失败: ' + err.message
-    // 回退到模拟数据
-    profile.value = mockProfile
     showToast('获取用户资料失败', 'error')
     console.error('Failed to fetch profile:', err)
-    
-    // 开发环境下使用模拟数据
-    if (process.dev) {
-      profile.value = mockProfile
-      useHead({
-        title: `${profile.value.name} - 个人资料`
-      })
-    }
   } finally {
     loading.value = false
   }

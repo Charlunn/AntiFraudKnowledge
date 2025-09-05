@@ -50,8 +50,8 @@ export async function register(data: RegisterRequest): Promise<ApiResponse<User>
  * @example
  * ```typescript
  * const result = await login('testuser', 'password123');
- * const { access, refresh } = result.data;
- * useAuthStore().setTokens(access, refresh);
+ * const { access_token, refresh_token } = result.data;
+ * useAuthStore().setTokens(access_token, refresh_token);
  * ```
  */
 export async function login(identifier: string, password: string): Promise<ApiResponse<AuthTokens>> {
@@ -60,9 +60,9 @@ export async function login(identifier: string, password: string): Promise<ApiRe
     throw new Error('标识符和密码不能为空');
   }
   
-  // 后端期望的字段名是 account_or_email_or_phone
+  // 后端OAuth接口期望的字段名是 username 和 password
   const payload = {
-    account_or_email_or_phone: identifier,
+    username: identifier,
     password: password
   };
   

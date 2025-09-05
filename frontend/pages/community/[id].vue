@@ -381,126 +381,7 @@ const categories = [
   { label: '经验分享', value: 'experience_sharing' }
 ]
 
-// 模拟帖子数据
-const mockPost = {
-  id: 1,
-  title: '如何提高信用卡欺诈检测的准确率？',
-  content: `# 背景介绍
-
-最近在做信用卡欺诈检测项目，发现准确率总是不够理想。经过一段时间的研究和实践，总结了一些提高准确率的方法和经验，希望能对大家有所帮助。
-
-## 数据预处理
-
-### 1. 特征工程
-
-特征工程是提高模型性能的关键步骤：
-
-- **时间特征**：提取交易时间的小时、星期、月份等特征
-- **统计特征**：计算用户历史交易的均值、方差、频率等
-- **行为特征**：分析用户的消费习惯和行为模式
-
-### 2. 数据清洗
-
-- 处理缺失值和异常值
-- 标准化数值特征
-- 编码分类特征
-
-## 模型选择
-
-经过对比测试，以下几种模型效果较好：
-
-1. **随机森林**：对特征重要性有很好的解释性
-2. **XGBoost**：在不平衡数据上表现优秀
-3. **神经网络**：能够捕捉复杂的非线性关系
-
-## 实验结果
-
-| 模型 | 准确率 | 精确率 | 召回率 | F1分数 |
-|------|--------|--------|--------|---------|
-| 随机森林 | 0.92 | 0.89 | 0.85 | 0.87 |
-| XGBoost | 0.94 | 0.91 | 0.88 | 0.89 |
-| 神经网络 | 0.93 | 0.90 | 0.87 | 0.88 |
-
-## 总结
-
-通过合理的特征工程和模型选择，我们成功将准确率从85%提升到94%。希望这些经验能对大家有所帮助！`,
-  category: 'fraud_detection',
-  tags: ['信用卡欺诈', '机器学习', '准确率', '特征工程'],
-  author: {
-    id: 2,
-    name: '张三',
-    title: '高级数据科学家',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=zhang'
-  },
-  created_at: '2024-01-15T10:30:00Z',
-  updated_at: '2024-01-15T10:30:00Z',
-  views: 234,
-  likes: 45,
-  replies: 12,
-  bookmarks: 8,
-  is_liked: false,
-  is_bookmarked: true
-}
-
-// 模拟评论数据
-const mockComments = [
-  {
-    id: 1,
-    content: '非常详细的分享！特别是特征工程部分，对我很有启发。请问在处理时间特征时，有没有考虑过节假日的影响？',
-    author: {
-      id: 3,
-      name: '李四',
-      title: '数据分析师',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=li'
-    },
-    created_at: '2024-01-15T11:15:00Z',
-    likes: 8,
-    is_liked: false,
-    replies: [
-      {
-        id: 11,
-        content: '@李四 好问题！节假日确实是一个重要的特征，我们在后续的版本中加入了节假日标识，效果有一定提升。',
-        author: {
-          id: 2,
-          name: '张三',
-          title: '高级数据科学家',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=zhang'
-        },
-        created_at: '2024-01-15T12:30:00Z',
-        likes: 3,
-        is_liked: true
-      }
-    ]
-  },
-  {
-    id: 2,
-    content: '实验结果很不错！想了解一下XGBoost的具体参数设置，能分享一下吗？',
-    author: {
-      id: 4,
-      name: '王五',
-      title: '机器学习工程师',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wang'
-    },
-    created_at: '2024-01-15T14:20:00Z',
-    likes: 5,
-    is_liked: true,
-    replies: []
-  },
-  {
-    id: 3,
-    content: '感谢分享！我们团队也在做类似的项目，这些经验很宝贵。有机会可以交流一下。',
-    author: {
-      id: 5,
-      name: '赵六',
-      title: '算法工程师',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=zhao'
-    },
-    created_at: '2024-01-15T16:45:00Z',
-    likes: 2,
-    is_liked: false,
-    replies: []
-  }
-]
+// 帖子数据和评论数据将从API获取
 
 // 计算属性
 const canEdit = computed(() => {
@@ -545,14 +426,7 @@ const fetchPost = async () => {
     showToast('获取帖子详情失败', 'error')
     console.error('Failed to fetch post:', err)
     
-    // 开发环境下使用模拟数据
-    if (process.dev) {
-      post.value = mockPost
-      comments.value = mockComments
-      useHead({
-        title: `${post.value.title} - 社区讨论`
-      })
-    }
+    // 生产环境下不使用模拟数据
   } finally {
     loading.value = false
   }

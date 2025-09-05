@@ -201,9 +201,10 @@
 <script setup>
 import { useAuthStore } from '~/stores/auth'
 
-// 页面布局
+// 页面布局和认证中间件
 definePageMeta({
-  layout: 'default'
+  layout: 'default',
+  middleware: 'auth'
 })
 
 const authStore = useAuthStore()
@@ -217,10 +218,5 @@ useHead({
   ]
 })
 
-// 检查用户是否已登录
-onMounted(() => {
-  if (process.client && !authStore.isAuthenticated) {
-    navigateTo('/login')
-  }
-})
+// 认证检查已通过中间件处理，无需在组件中重复检查
 </script>

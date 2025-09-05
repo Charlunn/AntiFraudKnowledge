@@ -13,17 +13,17 @@ const isLoading = ref(false)
 const authError = ref(null)
 
 export const useAuth = () => {
-  // 令牌管理
-  const authToken = useCookie('auth-token', {
+  // OAuth 2.0 令牌管理
+  const accessToken = useCookie('access-token', {
     default: () => null,
-    maxAge: 60 * 60 * 24 * 7, // 7天
+    maxAge: 60 * 60, // 1小时 (OAuth 2.0 access token)
     secure: true,
     sameSite: 'strict'
   })
 
   const refreshToken = useCookie('refresh-token', {
     default: () => null,
-    maxAge: 60 * 60 * 24 * 30, // 30天
+    maxAge: 60 * 60 * 24, // 24小时 (OAuth 2.0 refresh token)
     secure: true,
     sameSite: 'strict'
   })
@@ -34,7 +34,7 @@ export const useAuth = () => {
     const storedUser = userStorage.getUserInfo()
     
     if (storedToken && storedUser) {
-      authToken.value = storedToken
+      accessToken.value = storedToken
       user.value = storedUser
       isAuthenticated.value = true
     }
@@ -65,32 +65,33 @@ export const useAuth = () => {
   // 检查是否为版主
   const isModerator = computed(() => hasRole(USER_ROLES.MODERATOR) || isAdmin.value)
   
-  // 用户登录
+  // OAuth 2.0 用户登录
   const login = async (credentials) => {
     isLoading.value = true
     authError.value = null
     
     try {
-      // JWT TokenObtainPairSerializer期望username和password字段
+      // OAuth 2.0 登录数据
       const loginData = {
         username: credentials.username,
-        password: credentials.password
+        password: credentials.password,
+        client_id: 'frontend-client' // OAuth 2.0 客户端ID
       }
       
       const response = await authApi.login(loginData)
       
-      // JWT标准响应格式：access, refresh, user
-      if (response && response.access) {
+      // OAuth 2.0标准响应格式：access_token, refresh_token, user
+      if (response && response.access_token) {
         // 保存令牌
-        authToken.value = response.access
-        refreshToken.value = response.refresh
+        accessToken.value = response.access_token
+        refreshToken.value = response.refresh_token
         
         // 保存用户信息
         user.value = response.user
         isAuthenticated.value = true
         
         // 保存到本地存储
-        userStorage.setToken(response.access)
+        userStorage.setToken(response.access_token)
         userStorage.setUserInfo(response.user)
         
         return { success: true, data: response }
@@ -126,24 +127,24 @@ export const useAuth = () => {
     }
   }
   
-  // 用户登出
+  // OAuth 2.0 用户登出
   const logout = async () => {
     isLoading.value = true
     
     try {
-      // 调用后端登出API
-      if (authToken.value) {
+      // 调用后端OAuth 2.0登出API
+      if (accessToken.value) {
         await authApi.logout()
       }
     } catch (error) {
-      console.warn('Logout API call failed:', error)
+      console.warn('OAuth 2.0 logout API call failed:', error)
     } finally {
       // 清除本地状态和存储
       clearAuthState()
       isLoading.value = false
       
       // 重定向到登录页面
-      await navigateTo('/auth/login')
+      await navigateTo('/login')
     }
   }
   
@@ -151,29 +152,43 @@ export const useAuth = () => {
   const clearAuthState = () => {
     user.value = null
     isAuthenticated.value = false
-    authToken.value = null
+    accessToken.value = null
     refreshToken.value = null
     authError.value = null
     
     // 清除本地存储
     userStorage.clearUserData()
+    
+    // 清除Nuxt cookies
+    if (process.client) {
+      const accessTokenCookie = useCookie('access-token')
+      const refreshTokenCookie = useCookie('refresh-token')
+      const userCookie = useCookie('user')
+      
+      accessTokenCookie.value = null
+      refreshTokenCookie.value = null
+      userCookie.value = null
+    }
   }
   
-  // 刷新访问令牌
+  // OAuth 2.0 刷新访问令牌
   const refreshAccessToken = async () => {
     if (!refreshToken.value) {
       throw new Error('No refresh token available')
     }
     
     try {
-      const response = await authApi.refreshToken({ refresh: refreshToken.value })
+      const response = await authApi.refreshToken({ 
+        refresh_token: refreshToken.value,
+        client_id: 'frontend-client'
+      })
       
-      authToken.value = response.access
-      if (response.refresh) {
-        refreshToken.value = response.refresh
+      accessToken.value = response.access_token
+      if (response.refresh_token) {
+        refreshToken.value = response.refresh_token
       }
       
-      return response.access
+      return response.access_token
     } catch (error) {
       // 刷新令牌失败，清除认证状态
       clearAuthState()
@@ -184,7 +199,7 @@ export const useAuth = () => {
   
   // 获取当前用户信息
   const fetchCurrentUser = async () => {
-    if (!authToken.value) {
+    if (!accessToken.value) {
       return null
     }
     
@@ -259,7 +274,7 @@ export const useAuth = () => {
       
       // 如果验证后自动登录
       if (response.access_token) {
-        authToken.value = response.access_token
+        accessToken.value = response.access_token
         refreshToken.value = response.refresh_token
         user.value = response.user
         isAuthenticated.value = true
@@ -292,7 +307,7 @@ export const useAuth = () => {
   
   // 检查认证状态
   const checkAuthStatus = async () => {
-    if (authToken.value && !user.value) {
+    if (accessToken.value && !user.value) {
       try {
         await fetchCurrentUser()
       } catch (error) {
@@ -305,7 +320,7 @@ export const useAuth = () => {
   initializeAuth()
   
   // 监听令牌变化
-  watch(authToken, (newToken) => {
+  watch(accessToken, (newToken) => {
     if (newToken && !user.value) {
       // 有令牌但没有用户信息，尝试获取
       fetchCurrentUser().catch(console.warn)
@@ -316,28 +331,18 @@ export const useAuth = () => {
     }
   }, { immediate: true })
   
-  // 自动刷新令牌
+  // OAuth 2.0 自动刷新令牌
   const setupTokenRefresh = () => {
-    if (!authToken.value) return
+    if (!accessToken.value) return
     
-    // 解析JWT令牌获取过期时间
-    try {
-      const payload = JSON.parse(atob(authToken.value.split('.')[1]))
-      const expirationTime = payload.exp * 1000 // 转换为毫秒
-      const currentTime = Date.now()
-      const timeUntilExpiry = expirationTime - currentTime
-      
-      // 在令牌过期前5分钟刷新
-      const refreshTime = Math.max(timeUntilExpiry - 5 * 60 * 1000, 0)
-      
-      if (refreshTime > 0) {
-        setTimeout(() => {
-          refreshAccessToken().catch(console.warn)
-        }, refreshTime)
+    // OAuth 2.0 access token 通常1小时过期，设置50分钟后刷新
+    const refreshTime = 50 * 60 * 1000 // 50分钟
+    
+    setTimeout(() => {
+      if (refreshToken.value) {
+        refreshAccessToken().catch(console.warn)
       }
-    } catch (error) {
-      console.warn('Failed to parse token for auto-refresh:', error)
-    }
+    }, refreshTime)
   }
   
   // 初始化时设置令牌刷新
@@ -445,7 +450,7 @@ export const authMiddleware = () => {
         if (!isAuthenticated.value) {
           const currentRoute = useRoute()
           await navigateTo({
-            path: '/auth/login',
+            path: '/login',
             query: { redirect: currentRoute.fullPath }
           })
           return false

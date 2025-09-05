@@ -1,13 +1,26 @@
 // API服务层 - 管理与后端的HTTP通信
 
 // API基础配置
-const API_BASE_URL = process.env.NUXT_PUBLIC_API_BASE || '/api'
+const getApiBaseUrl = () => {
+  // 在Nuxt 3中，客户端需要使用useRuntimeConfig
+  if (process.client) {
+    try {
+      const config = useRuntimeConfig()
+      return config.public.apiBase || '/api'
+    } catch {
+      return '/api'
+    }
+  }
+  // 服务端可以直接使用环境变量
+  return process.env.NUXT_PUBLIC_API_BASE || '/api'
+}
+
 const API_TIMEOUT = 30000 // 30秒超时
 
 // 创建HTTP客户端实例
 class ApiClient {
   constructor() {
-    this.baseURL = API_BASE_URL
+    this.baseURL = getApiBaseUrl()
     this.timeout = API_TIMEOUT
     this.defaultHeaders = {
       'Content-Type': 'application/json',
@@ -17,7 +30,7 @@ class ApiClient {
 
   // 获取认证头
   getAuthHeaders() {
-    const token = useCookie('auth-token').value
+    const token = useCookie('access-token').value
     return token ? { 'Authorization': `Bearer ${token}` } : {}
   }
 
@@ -39,6 +52,16 @@ class ApiClient {
     // 处理请求体
     if (config.body && typeof config.body === 'object') {
       config.body = JSON.stringify(config.body)
+    }
+
+    // 添加调试日志（仅在开发环境）
+    if (process.env.NODE_ENV === 'development') {
+      console.log('API Request:', {
+        url,
+        method: config.method,
+        headers: Object.keys(headers),
+        bodyLength: config.body ? config.body.length : 0
+      })
     }
 
     try {
@@ -174,7 +197,7 @@ const apiClient = new ApiClient()
 
 // 认证相关API
 export const authApi = {
-  // 用户登录
+  // OAuth 2.0 用户登录
   login: (credentials) => apiClient.post('/users/login/', credentials),
   
   // 用户注册
@@ -191,11 +214,14 @@ export const authApi = {
     return apiClient.post('/users/register/', backendData)
   },
   
-  // 刷新令牌
+  // OAuth 2.0 刷新令牌
   refreshToken: (refreshData) => apiClient.post('/users/token/refresh/', refreshData),
   
-  // 用户登出
+  // OAuth 2.0 用户登出
   logout: () => apiClient.post('/users/logout/'),
+
+  // OAuth 2.0 验证令牌
+  verifyToken: (token) => apiClient.post('/users/token/verify/', { token }),
 
   // 忘记密码
   forgotPassword: (email) => apiClient.post('/users/password/reset/', { email }),

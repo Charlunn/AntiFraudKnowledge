@@ -10,7 +10,8 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || (process.env.DOCKER_ENV ? 'http://backend:8000/api' : 'http://127.0.0.1:8000/api')
+      // 始终使用 /api 路径，通过代理转发到后端
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api'
     }
   },
   // 开发服务器默认配置
@@ -20,10 +21,10 @@ export default defineNuxtConfig({
   },
   // 配置代理，将API请求转发到后端
   nitro: {
-    devProxy: {
-      '/api': {
-        target: process.env.DOCKER_ENV ? 'http://backend:8000' : 'http://127.0.0.1:8000',
-        changeOrigin: true
+    // 生产环境和开发环境都使用的代理配置
+    routeRules: {
+      '/api/**': {
+        proxy: process.env.DOCKER_ENV ? 'http://backend:8000/api/**' : 'http://127.0.0.1:8000/api/**'
       }
     }
   },

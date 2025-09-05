@@ -30,13 +30,13 @@ import GlobalLoading from '~/components/ui/GlobalLoading.vue'
 
 // 页面元数据
 useHead({
-  titleTemplate: '%s - 反欺诈知识平台',
+  titleTemplate: '%s - 澄源',
   meta: [
-    { name: 'description', content: '专业的反欺诈知识学习平台，提供知识图谱、智能测验和社区交流功能' },
-    { name: 'keywords', content: '反欺诈,知识图谱,在线测验,安全教育,社区交流' },
-    { name: 'author', content: '反欺诈知识平台' },
+    { name: 'description', content: '澄源 - 专业的反欺诈知识学习平台，提供知识图谱、智能测验和社区交流功能' },
+    { name: 'keywords', content: '澄源,反欺诈,知识图谱,在线测验,安全教育,社区交流' },
+    { name: 'author', content: '澄源' },
     { property: 'og:type', content: 'website' },
-    { property: 'og:site_name', content: '反欺诈知识平台' },
+    { property: 'og:site_name', content: '澄源' },
     { name: 'twitter:card', content: 'summary_large_image' }
   ],
   link: [

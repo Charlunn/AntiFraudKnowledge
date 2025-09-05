@@ -83,11 +83,11 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, h } from 'vue'
+import { useNotification } from '~/composables/useNotification'
 
-// 通知数据
-const notifications = ref([])
-let notificationId = 0
+// 使用全局通知系统
+const { notifications, removeNotification: globalRemoveNotification, clearNotifications, addNotification } = useNotification()
 
 // 通知类型图标映射
 const iconMap = {
@@ -97,37 +97,73 @@ const iconMap = {
   info: 'InformationCircleIcon'
 }
 
-// 图标组件
+// 图标组件 - 使用h函数避免运行时编译
 const CheckCircleIcon = {
-  template: `
-    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  `
+  render() {
+    return h('svg', {
+      fill: 'none',
+      viewBox: '0 0 24 24',
+      'stroke-width': '1.5',
+      stroke: 'currentColor'
+    }, [
+      h('path', {
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        d: 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+      })
+    ])
+  }
 }
 
 const XCircleIcon = {
-  template: `
-    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  `
+  render() {
+    return h('svg', {
+      fill: 'none',
+      viewBox: '0 0 24 24',
+      'stroke-width': '1.5',
+      stroke: 'currentColor'
+    }, [
+      h('path', {
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        d: 'M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+      })
+    ])
+  }
 }
 
 const ExclamationTriangleIcon = {
-  template: `
-    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-    </svg>
-  `
+  render() {
+    return h('svg', {
+      fill: 'none',
+      viewBox: '0 0 24 24',
+      'stroke-width': '1.5',
+      stroke: 'currentColor'
+    }, [
+      h('path', {
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        d: 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z'
+      })
+    ])
+  }
 }
 
 const InformationCircleIcon = {
-  template: `
-    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-    </svg>
-  `
+  render() {
+    return h('svg', {
+      fill: 'none',
+      viewBox: '0 0 24 24',
+      'stroke-width': '1.5',
+      stroke: 'currentColor'
+    }, [
+      h('path', {
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        d: 'M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z'
+      })
+    ])
+  }
 }
 
 // 方法
@@ -178,37 +214,14 @@ const getProgressWidth = (notification) => {
   return progress
 }
 
-const addNotification = (notification) => {
-  const id = ++notificationId
-  const newNotification = {
-    id,
-    type: 'info',
-    duration: 5000,
-    startTime: Date.now(),
-    ...notification
-  }
-  
-  notifications.value.push(newNotification)
-  
-  // 自动移除
-  if (newNotification.duration > 0) {
-    setTimeout(() => {
-      removeNotification(id)
-    }, newNotification.duration)
-  }
-  
-  return id
-}
+// addNotification现在由全局useNotification提供
 
 const removeNotification = (id) => {
-  const index = notifications.value.findIndex(n => n.id === id)
-  if (index > -1) {
-    notifications.value.splice(index, 1)
-  }
+  globalRemoveNotification(id)
 }
 
 const clearAllNotifications = () => {
-  notifications.value = []
+  clearNotifications()
 }
 
 const handleAction = (notificationId, action) => {
@@ -231,10 +244,19 @@ const notificationService = {
   clear: clearAllNotifications
 }
 
-// 提供给全局使用
-if (process.client) {
-  window.$notify = notificationService
-}
+// 在组件挂载时注册全局服务
+onMounted(() => {
+  if (process.client) {
+    window.$notify = notificationService
+  }
+})
+
+// 在组件卸载时清理全局服务
+onUnmounted(() => {
+  if (process.client && window.$notify) {
+    delete window.$notify
+  }
+})
 
 // 暴露方法给父组件
 defineExpose({

@@ -257,9 +257,10 @@ import { useToast } from '~/composables/useNotification'
 import { formatDate } from '~/utils/formatters'
 import { QUIZ_DIFFICULTY } from '~/constants'
 
-// 设置页面布局
+// 设置页面布局和认证中间件
 definePageMeta({
-  layout: 'default'
+  layout: 'default',
+  middleware: 'auth'
 })
 
 // 获取路由参数

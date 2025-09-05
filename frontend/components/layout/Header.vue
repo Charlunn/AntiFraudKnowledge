@@ -10,17 +10,18 @@
                 <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
               </svg>
             </div>
-            <span class="text-xl font-semibold text-neutral-500 dark:text-dark-text">反欺诈知识平台</span>
+            <!-- 网站名称在手机端隐藏，在更大屏幕显示 -->
+            <span class="hidden sm:block text-xl font-semibold text-neutral-500 dark:text-dark-text">澄源</span>
           </NuxtLink>
         </div>
 
         <!-- 桌面端导航菜单 -->
-        <nav class="hidden md:flex items-center space-x-8 fadeInUp">
+        <nav class="hidden lg:flex items-center space-x-6 xl:space-x-8 fadeInUp">
           <NuxtLink 
-            v-for="item in navigationItems" 
+            v-for="item in primaryNavigationItems" 
             :key="item.name"
             :to="item.href"
-            class="text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 px-3 py-2 text-sm font-medium transition-colors duration-200 relative group hover-lift"
+            class="text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 px-2 xl:px-3 py-2 text-sm font-medium transition-colors duration-200 relative group hover-lift whitespace-nowrap"
             :class="{ 'text-primary-500 dark:text-primary-400': isActiveRoute(item.href) }"
           >
             {{ item.name }}
@@ -29,14 +30,93 @@
               :class="{ 'w-full': isActiveRoute(item.href) }"
             ></span>
           </NuxtLink>
+          
+          <!-- 更多菜单下拉 -->
+          <div v-if="secondaryNavigationItems.length > 0" class="relative more-menu-container">
+            <button 
+              @click="toggleMoreMenu"
+              class="text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 px-2 xl:px-3 py-2 text-sm font-medium transition-colors duration-200 relative group hover-lift flex items-center space-x-1"
+            >
+              <span>更多</span>
+              <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': showMoreMenu }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            <Transition name="dropdown">
+              <div 
+                v-if="showMoreMenu"
+                class="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-dark-surface rounded-lg shadow-modal border border-neutral-200 dark:border-dark-border py-1 z-50"
+              >
+                <NuxtLink 
+                  v-for="item in secondaryNavigationItems" 
+                  :key="item.name"
+                  :to="item.href"
+                  class="block px-4 py-2 text-sm text-neutral-500 dark:text-dark-text hover:bg-neutral-50 dark:hover:bg-dark-bg transition-colors duration-200"
+                  :class="{ 'text-primary-500 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20': isActiveRoute(item.href) }"
+                  @click="showMoreMenu = false"
+                >
+                  {{ item.name }}
+                </NuxtLink>
+              </div>
+            </Transition>
+          </div>
+        </nav>
+        
+        <!-- 中等屏幕导航菜单 -->
+        <nav class="hidden md:flex lg:hidden items-center space-x-4 fadeInUp">
+          <NuxtLink 
+            v-for="item in compactNavigationItems" 
+            :key="item.name"
+            :to="item.href"
+            class="text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 px-2 py-2 text-sm font-medium transition-colors duration-200 relative group hover-lift whitespace-nowrap"
+            :class="{ 'text-primary-500 dark:text-primary-400': isActiveRoute(item.href) }"
+          >
+            {{ item.name }}
+            <span 
+              class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 dark:bg-primary-400 transition-all duration-200 group-hover:w-full"
+              :class="{ 'w-full': isActiveRoute(item.href) }"
+            ></span>
+          </NuxtLink>
+          
+          <!-- 中等屏幕更多菜单 -->
+          <div class="relative more-menu-container">
+            <button 
+              @click="toggleMoreMenu"
+              class="text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 px-2 py-2 text-sm font-medium transition-colors duration-200 relative group hover-lift flex items-center space-x-1"
+            >
+              <span>更多</span>
+              <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': showMoreMenu }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            <Transition name="dropdown">
+              <div 
+                v-if="showMoreMenu"
+                class="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-dark-surface rounded-lg shadow-modal border border-neutral-200 dark:border-dark-border py-1 z-50"
+              >
+                <NuxtLink 
+                  v-for="item in compactSecondaryNavigationItems" 
+                  :key="item.name"
+                  :to="item.href"
+                  class="block px-4 py-2 text-sm text-neutral-500 dark:text-dark-text hover:bg-neutral-50 dark:hover:bg-dark-bg transition-colors duration-200"
+                  :class="{ 'text-primary-500 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20': isActiveRoute(item.href) }"
+                  @click="showMoreMenu = false"
+                >
+                  {{ item.name }}
+                </NuxtLink>
+              </div>
+            </Transition>
+          </div>
         </nav>
 
         <!-- 右侧操作区 -->
-        <div class="flex items-center space-x-4 fadeInRight">
-          <!-- 搜索按钮 -->
+        <div class="flex items-center space-x-2 sm:space-x-4 fadeInRight">
+          <!-- 搜索按钮 - 在小屏幕隐藏 -->
           <button 
             @click="toggleSearch"
-            class="p-2 text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 transition-colors duration-200 hover-lift"
+            class="hidden sm:block p-2 text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 transition-colors duration-200 hover-lift"
             title="搜索"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -44,10 +124,10 @@
             </svg>
           </button>
 
-          <!-- 通知按钮 -->
+          <!-- 通知按钮 - 在小屏幕隐藏 -->
           <button 
             @click="toggleNotifications"
-            class="relative p-2 text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 transition-colors duration-200"
+            class="hidden sm:block relative p-2 text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 transition-colors duration-200"
             title="通知"
           >
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,10 +138,10 @@
             </span>
           </button>
 
-          <!-- 深色模式切换 -->
+          <!-- 深色模式切换 - 在小屏幕隐藏 -->
           <button 
             @click="toggleDarkMode"
-            class="p-2 text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 transition-colors duration-200"
+            class="hidden sm:block p-2 text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 transition-colors duration-200"
             title="切换主题"
           >
             <svg v-if="!isDark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,18 +153,18 @@
           </button>
 
           <!-- 用户菜单 -->
-          <div class="relative" ref="userMenuRef">
+          <div class="relative" ref="userMenuRef" v-if="isAuthenticated">
             <button 
               @click="toggleUserMenu"
-              class="flex items-center space-x-2 p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-dark-surface transition-colors duration-200"
+              class="flex items-center space-x-1 sm:space-x-2 p-1 sm:p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-dark-surface transition-colors duration-200"
             >
               <img 
                 :src="user?.avatar || '/default-avatar.svg'"
                 :alt="user?.name || '用户头像'"
-                class="w-8 h-8 rounded-full object-cover"
+                class="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover"
               >
-              <span class="hidden sm:block text-sm font-medium text-neutral-500 dark:text-dark-text">{{ user?.name || '游客' }}</span>
-              <svg class="w-4 h-4 text-neutral-400 dark:text-dark-text-secondary transition-transform duration-200" :class="{ 'rotate-180': showUserMenu }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <span class="hidden md:block text-sm font-medium text-neutral-500 dark:text-dark-text">{{ user?.name || user?.username || '用户' }}</span>
+              <svg class="w-3 h-3 sm:w-4 sm:h-4 text-neutral-400 dark:text-dark-text-secondary transition-transform duration-200" :class="{ 'rotate-180': showUserMenu }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
@@ -121,6 +201,22 @@
                 </button>
               </div>
             </Transition>
+          </div>
+
+          <!-- 未认证状态下的登录按钮 -->
+          <div v-else class="flex items-center space-x-1 sm:space-x-2">
+            <NuxtLink 
+              to="/login"
+              class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200"
+            >
+              登录
+            </NuxtLink>
+            <NuxtLink 
+              to="/register"
+              class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors duration-200"
+            >
+              注册
+            </NuxtLink>
           </div>
 
           <!-- 移动端菜单按钮 -->
@@ -162,23 +258,21 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAuth } from '~/composables/useAuth'
 
 // 响应式数据
 const route = useRoute()
 const router = useRouter()
 const showMobileMenu = ref(false)
 const showUserMenu = ref(false)
+const showMoreMenu = ref(false)
 const showSearch = ref(false)
 const showNotifications = ref(false)
 const isDark = ref(false)
 const userMenuRef = ref(null)
 
-// 模拟用户数据
-const user = ref({
-  name: '张三',
-  avatar: '/default-avatar.svg',
-  email: 'zhangsan@example.com'
-})
+// 认证状态
+const { user, isAuthenticated, logout } = useAuth()
 
 // 未读通知数量
 const unreadCount = ref(3)
@@ -193,6 +287,36 @@ const navigationItems = [
   { name: '学习资源', href: '/resources' },
   { name: '举报中心', href: '/report' },
 ]
+
+// 大屏幕主要菜单项（显示在导航栏中）
+const primaryNavigationItems = computed(() => [
+  { name: '首页', href: '/' },
+  { name: '知识图谱', href: '/graph' },
+  { name: '反欺诈测验', href: '/quiz' },
+  { name: 'AI测试', href: '/ai-test' },
+  { name: '社区', href: '/community' }
+])
+
+// 大屏幕次要菜单项（显示在更多下拉菜单中）
+const secondaryNavigationItems = computed(() => [
+  { name: '学习资源', href: '/resources' },
+  { name: '举报中心', href: '/report' }
+])
+
+// 中等屏幕紧凑菜单项（显示在导航栏中）
+const compactNavigationItems = computed(() => [
+  { name: '首页', href: '/' },
+  { name: '知识图谱', href: '/graph' },
+  { name: '测验', href: '/quiz' }
+])
+
+// 中等屏幕次要菜单项（显示在更多下拉菜单中）
+const compactSecondaryNavigationItems = computed(() => [
+  { name: 'AI测试', href: '/ai-test' },
+  { name: '社区', href: '/community' },
+  { name: '学习资源', href: '/resources' },
+  { name: '举报中心', href: '/report' }
+])
 
 // 用户菜单项
 const userMenuItems = [
@@ -216,16 +340,30 @@ const toggleMobileMenu = () => {
 
 const toggleUserMenu = () => {
   showUserMenu.value = !showUserMenu.value
+  // 关闭其他菜单
+  showMoreMenu.value = false
+}
+
+const toggleMoreMenu = () => {
+  showMoreMenu.value = !showMoreMenu.value
+  // 关闭其他菜单
+  showUserMenu.value = false
 }
 
 const toggleSearch = () => {
   showSearch.value = !showSearch.value
-  // TODO: 实现搜索功能
+  if (showSearch.value) {
+    // 跳转到搜索页面或打开搜索模态框
+    router.push('/search')
+  }
 }
 
 const toggleNotifications = () => {
   showNotifications.value = !showNotifications.value
-  // TODO: 实现通知功能
+  if (showNotifications.value) {
+    // 跳转到通知页面
+    router.push('/notifications')
+  }
 }
 
 const toggleDarkMode = () => {
@@ -246,9 +384,11 @@ const toggleDarkMode = () => {
 const handleLogout = async () => {
   try {
     await logout()
-    await router.push('/login')
+    // logout函数内部已经处理了重定向，这里不需要再次重定向
   } catch (error) {
     console.error('登出失败:', error)
+    // 即使登出失败，也清除本地状态并重定向
+    await router.push('/login')
   }
   showUserMenu.value = false
 }
@@ -258,9 +398,20 @@ const handleClickOutside = (event) => {
   if (userMenuRef.value && !userMenuRef.value.contains(event.target)) {
     showUserMenu.value = false
   }
+  // 检查更多菜单
+  const moreMenuElements = document.querySelectorAll('.more-menu-container')
+  let clickedInsideMoreMenu = false
+  moreMenuElements.forEach(element => {
+    if (element.contains(event.target)) {
+      clickedInsideMoreMenu = true
+    }
+  })
+  if (!clickedInsideMoreMenu) {
+    showMoreMenu.value = false
+  }
 }
 
-// 生命周期
+// 生命周期钩子
 onMounted(() => {
   // 初始化主题
   if (typeof window !== 'undefined' && window.localStorage) {

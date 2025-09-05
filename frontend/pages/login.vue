@@ -260,9 +260,10 @@ const isValidPassword = computed(() => {
   return formData.password.length >= 6
 })
 
-// 页面布局
+// 页面布局和访客中间件
 definePageMeta({
-  layout: false
+  layout: 'default',
+  middleware: 'guest'
 })
 </script>
 

@@ -116,7 +116,22 @@ class ChangePasswordSerializer(serializers.Serializer):
 class UserSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('language', 'theme')
+        fields = (
+            'language', 'theme',
+            # 通知设置
+            'email_notifications', 'push_notifications', 'sms_notifications',
+            'marketing_emails', 'security_alerts',
+            # 隐私设置
+            'profile_visibility', 'show_email', 'show_phone',
+            'allow_friend_requests', 'show_online_status'
+        )
+    
+    def validate_profile_visibility(self, value):
+        """验证个人资料可见性设置"""
+        valid_choices = ['public', 'friends', 'private']
+        if value not in valid_choices:
+            raise serializers.ValidationError(f"Invalid choice. Must be one of: {valid_choices}")
+        return value
 
 
 class BindEmailSerializer(serializers.Serializer):

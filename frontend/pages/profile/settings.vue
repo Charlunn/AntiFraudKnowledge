@@ -665,14 +665,15 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useAuth } from '~/composables/useAuth'
-import { useProfileForm, usePasswordChangeForm } from '~/composables/useForm'
+import { useProfileForm, useChangePasswordForm } from '~/composables/useForm'
 import { useToast } from '~/composables/useNotification'
 import { formatDate } from '~/utils/formatters'
 import { USER_ROLES } from '~/constants'
 
-// 设置页面布局
+// 设置页面布局和认证中间件
 definePageMeta({
-  layout: 'default'
+  layout: 'default',
+  middleware: 'auth'
 })
 
 // 页面元数据
@@ -867,12 +868,13 @@ const handleAvatarUpload = (event) => {
 const updateProfile = async (profileData) => {
   try {
     const response = await $api.auth.updateProfile(profileData)
-    if (response.success) {
+    // API响应直接包含数据，不需要检查success字段
+    if (response && response.data) {
       // 更新本地用户信息
       await updateUser(response.data)
       return { success: true, data: response.data }
     } else {
-      throw new Error(response.message || '更新失败')
+      throw new Error('更新失败：响应数据格式错误')
     }
   } catch (error) {
     console.error('更新个人资料失败:', error)

@@ -265,7 +265,7 @@ onUnmounted(() => {
 useHead({
   titleTemplate: '%s - 管理后台',
   meta: [
-    { name: 'description', content: '反欺诈知识平台管理后台' },
+    { name: 'description', content: '澄源管理后台' },
     { name: 'robots', content: 'noindex, nofollow' }
   ]
 })

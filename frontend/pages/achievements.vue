@@ -154,9 +154,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 
-// 页面布局
+// 页面布局和认证中间件
 definePageMeta({
-  layout: 'default'
+  layout: 'default',
+  middleware: 'auth'
 })
 
 // 页面元数据

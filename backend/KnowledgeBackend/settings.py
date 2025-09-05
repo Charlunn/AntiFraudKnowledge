@@ -49,8 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',
+    'oauth2_provider',  # OAuth 2.0 provider
     'drf_yasg',  # Swagger文档生成器
     'graph_api',
     'users',
@@ -182,8 +181,8 @@ REST_FRAMEWORK = {
     # 'DEFAULT_PERMISSION_CLASSES':
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        # ... 其他认证类
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny', # 这通常是登录接口需要的权限
@@ -195,39 +194,16 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 50  # 每页默认返回 50 条记录，可根据需求调整
 }
-SIMPLE_JWT = {
-    'TOKEN_BLACKLIST_APP': 'rest_framework_simplejwt.token_blacklist',
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # Access Token 有效期
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=1), # Refresh Token 有效期
-    'ROTATE_REFRESH_TOKENS': False,
-    'BLACKLIST_ENABLED': True, # 是否启用黑名单
-    'ALGORITHM': 'HS256',
-    'SIGNING_KEY': SECRET_KEY, # 使用项目的 SECRET_KEY 进行签名
-    'VERIFYING_KEY': None,
-    'AUDIENCE': None,
-    'ISSUER': None,
-    'JWK_URL': None,
-    'LEEWAY': 0,
-
-    'AUTH_HEADER_TYPES': ('Bearer',), # 认证头类型
-    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
-    'USER_ID_FIELD': 'id',
-    'USER_ID_CLAIM': 'user_id',
-    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
-
-    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
-    'TOKEN_TYPE_CLAIM': 'token_type',
-    'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
-
-    'JTI_CLAIM': 'jti',
-
-    'SLIDING_TOKEN_LIFETIME': timedelta(minutes=5),
-    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
-
-    'TOKEN_OBTAIN_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenObtainPairSerializer',
-    'TOKEN_REFRESH_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenRefreshSerializer',
-    'TOKEN_VERIFY_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenVerifySerializer',
-    'TOKEN_BLACK_LIST_SERIALIZER': 'rest_framework_simplejwt.serializers.TokenBlacklistSerializer',
+# OAuth 2.0 Settings
+OAUTH2_PROVIDER = {
+    'SCOPES': {
+        'read': 'Read scope',
+        'write': 'Write scope',
+    },
+    'ACCESS_TOKEN_EXPIRE_SECONDS': 3600,  # 1 hour
+    'REFRESH_TOKEN_EXPIRE_SECONDS': 86400,  # 24 hours
+    'AUTHORIZATION_CODE_EXPIRE_SECONDS': 600,  # 10 minutes
+    'ROTATE_REFRESH_TOKEN': True,
 }
 # --- Logging Configuration ---
 LOGGING = {

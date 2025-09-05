@@ -332,9 +332,10 @@ import { useToast } from '~/composables/useNotification'
 import { formatDate, formatNumber } from '~/utils/formatters'
 import { QUIZ_DIFFICULTY } from '~/constants'
 
-// 设置页面布局
+// 设置页面布局和认证中间件
 definePageMeta({
-  layout: 'default'
+  layout: 'default',
+  middleware: 'auth'
 })
 
 // 获取路由参数
@@ -365,124 +366,7 @@ const questionFilters = [
   { label: '错误', value: 'incorrect' }
 ]
 
-// 模拟测验结果数据
-const mockResults = {
-  quiz: {
-    id: 1,
-    title: '反欺诈基础知识测验',
-    time_limit: 30
-  },
-  score: 82,
-  correct_count: 16,
-  total_questions: 20,
-  time_spent: 1680, // 秒
-  completed_at: '2024-01-15T16:30:00Z',
-  percentile: 25,
-  total_participants: 156,
-  average_time_per_question: 84,
-  fastest_question_time: 15,
-  slowest_question_time: 180,
-  topic_analysis: [
-    {
-      name: '欺诈基本概念',
-      score: 90,
-      correct: 9,
-      total: 10
-    },
-    {
-      name: '常见欺诈类型',
-      score: 75,
-      correct: 6,
-      total: 8
-    },
-    {
-      name: '检测方法',
-      score: 80,
-      correct: 4,
-      total: 5
-    },
-    {
-      name: '预防策略',
-      score: 85,
-      correct: 6,
-      total: 7
-    }
-  ],
-  answering_pattern: {
-    strategy: '顺序答题',
-    revisions: 3,
-    skips: 1,
-    order: '按题目顺序'
-  },
-  questions: [
-    {
-      id: 1,
-      type: 'single_choice',
-      question: '以下哪种行为属于信用卡欺诈？',
-      points: 5,
-      time_spent: 45,
-      is_correct: true,
-      user_answer: 1,
-      correct_answer: 1,
-      options: [
-        { text: '使用自己的信用卡进行正常消费' },
-        { text: '盗用他人信用卡信息进行消费' },
-        { text: '向银行申请提高信用额度' },
-        { text: '按时还款信用卡账单' }
-      ],
-      explanation: '盗用他人信用卡信息进行消费是典型的信用卡欺诈行为，违反了相关法律法规。'
-    },
-    {
-      id: 2,
-      type: 'multiple_choice',
-      question: '常见的网络欺诈手段包括哪些？',
-      points: 8,
-      time_spent: 120,
-      is_correct: false,
-      user_answer: [0, 1, 3],
-      correct_answer: [0, 1, 3],
-      options: [
-        { text: '钓鱼邮件' },
-        { text: '虚假网站' },
-        { text: '正常的银行官网' },
-        { text: '电话诈骗' },
-        { text: '合法的在线支付' }
-      ],
-      explanation: '钓鱼邮件、虚假网站和电话诈骗都是常见的网络欺诈手段，需要提高警惕。'
-    }
-  ],
-  recommended_resources: [
-    {
-      id: 1,
-      title: '反欺诈基础理论与实践',
-      type: '电子书',
-      url: '#'
-    },
-    {
-      id: 2,
-      title: '网络安全防护指南',
-      type: '视频课程',
-      url: '#'
-    }
-  ],
-  improvement_suggestions: [
-    '加强对常见欺诈类型的学习，提高识别能力',
-    '多练习实际案例分析，增强实战经验',
-    '关注最新的欺诈手段和防护技术'
-  ],
-  related_quizzes: [
-    {
-      id: 2,
-      title: '高级反欺诈技术',
-      description: '深入学习高级反欺诈检测技术和算法'
-    },
-    {
-      id: 3,
-      title: '金融风险管理',
-      description: '全面了解金融风险识别和管理策略'
-    }
-  ]
-}
+// 测验结果数据将从API获取
 
 // 计算属性
 const filteredQuestions = computed(() => {
@@ -627,8 +511,8 @@ const fetchResults = async () => {
         ]
       }
     } else {
-      // 如果没有历史记录，使用模拟数据
-      results.value = mockResults
+      // 如果没有历史记录，显示错误
+      throw new Error('未找到测验结果数据')
     }
     
     // 更新页面标题
@@ -642,11 +526,7 @@ const fetchResults = async () => {
     showToast('获取测验结果失败', 'error')
     console.error('Failed to fetch quiz results:', err)
     
-    // 出错时使用模拟数据
-    results.value = mockResults
-    useHead({
-      title: `${results.value.quiz.title} - 测验结果`
-    })
+    // 出错时不使用模拟数据，直接显示错误
   } finally {
     loading.value = false
   }

@@ -386,9 +386,10 @@ const passwordStrengthWidth = computed(() => {
   return `${(passwordStrength.value / 4) * 100}%`
 })
 
-// 页面布局
+// 页面布局和访客中间件
 definePageMeta({
-  layout: false
+  layout: false,
+  middleware: 'guest'
 })
 </script>
 

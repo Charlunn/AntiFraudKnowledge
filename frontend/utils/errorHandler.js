@@ -247,7 +247,7 @@ export class ErrorHandler {
       if (process.client) {
         const currentRoute = useRoute()
         navigateTo({
-          path: '/auth/login',
+          path: '/login',
           query: { redirect: currentRoute.fullPath }
         })
       }

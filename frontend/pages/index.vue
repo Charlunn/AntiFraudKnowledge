@@ -252,7 +252,7 @@ import { fetchPlatformStats } from '~/api/statistics'
 
 // 页面元数据
 useHead({
-  title: '反诈骗知识平台 - 守护您的财产安全',
+  title: '澄源 - 守护您的财产安全',
   meta: [
     { name: 'description', content: '通过互动学习、知识图谱和社区交流，提升您的反诈骗意识和防范能力' },
     { name: 'keywords', content: '反诈骗,防诈骗,网络安全,财产安全,诈骗防范' }
