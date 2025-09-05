@@ -46,7 +46,7 @@
                 <div class="flex items-center space-x-6">
                   <div class="relative">
                     <img 
-                      :src="profileForm.avatar || '/default-avatar.png'" 
+                      :src="profileForm.avatar || '/default-avatar.svg'" 
                       alt="头像" 
                       class="w-20 h-20 rounded-full object-cover"
                     >

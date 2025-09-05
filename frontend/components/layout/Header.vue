@@ -79,7 +79,7 @@
               class="flex items-center space-x-2 p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-dark-surface transition-colors duration-200"
             >
               <img 
-                :src="user?.avatar || '/default-avatar.png'"
+                :src="user?.avatar || '/default-avatar.svg'"
                 :alt="user?.name || '用户头像'"
                 class="w-8 h-8 rounded-full object-cover"
               >
@@ -176,7 +176,7 @@ const userMenuRef = ref(null)
 // 模拟用户数据
 const user = ref({
   name: '张三',
-  avatar: '/default-avatar.png',
+  avatar: '/default-avatar.svg',
   email: 'zhangsan@example.com'
 })
 

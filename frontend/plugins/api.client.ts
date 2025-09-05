@@ -21,13 +21,24 @@ export default defineNuxtPlugin((nuxtApp) => {
     apiClient.defaults.baseURL = config.public.apiBase;
   }
   
-  // 获取认证状态管理
-  const authStore = useAuthStore();
+  // 延迟获取认证状态管理，避免在Pinia初始化前调用
+  let authStore = null;
   
   // 设置请求拦截器，自动添加认证令牌
   apiClient.interceptors.request.use(
     (config) => {
-      const token = authStore.accessToken;
+      // 延迟初始化authStore
+      if (!authStore && process.client) {
+        try {
+          const { $pinia } = useNuxtApp();
+          if ($pinia) {
+            authStore = useAuthStore();
+          }
+        } catch (error) {
+          console.warn('AuthStore not available yet:', error);
+        }
+      }
+      const token = authStore?.accessToken;
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
@@ -49,8 +60,21 @@ export default defineNuxtPlugin((nuxtApp) => {
         originalRequest._retry = true;
         
         try {
+          // 确保authStore已初始化
+          if (!authStore && process.client) {
+            try {
+              const { $pinia } = useNuxtApp();
+              if ($pinia) {
+                authStore = useAuthStore();
+              }
+            } catch (error) {
+              console.warn('AuthStore not available for refresh:', error);
+              return Promise.reject(error);
+            }
+          }
+          
           // 尝试使用刷新令牌获取新的访问令牌
-          const refreshToken = authStore.refreshToken;
+          const refreshToken = authStore?.refreshToken;
           if (refreshToken) {
             const response = await $fetch('/users/refresh/', {
               method: 'POST',
@@ -67,7 +91,9 @@ export default defineNuxtPlugin((nuxtApp) => {
           }
         } catch (refreshError) {
           // 刷新令牌失效，清除认证状态并跳转到登录页
-          authStore.clear();
+          if (authStore) {
+            authStore.clear();
+          }
           await navigateTo('/login');
         }
       }

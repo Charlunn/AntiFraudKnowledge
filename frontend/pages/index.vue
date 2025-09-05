@@ -144,7 +144,7 @@
     </section>
 
     <!-- Recent Activity -->
-    <section class="py-16 bg-gray-50" v-if="auth.accessToken">
+    <section class="py-16 bg-gray-50" v-if="auth?.accessToken">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
           <h2 class="text-3xl font-bold text-gray-900">最近活动</h2>
@@ -228,7 +228,7 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="py-16 bg-indigo-600" v-if="!auth.accessToken">
+    <section class="py-16 bg-indigo-600" v-if="!auth?.accessToken">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <h2 class="text-3xl font-bold text-white mb-4">立即加入我们</h2>
         <p class="text-xl text-indigo-200 mb-8">开始您的反诈骗学习之旅，保护自己和家人的财产安全</p>
@@ -259,8 +259,8 @@ useHead({
   ]
 })
 
-// 状态管理
-const auth = useAuthStore()
+// 状态管理 - 延迟初始化
+let auth = null
 
 // 统计数据
 const stats = ref({
@@ -276,21 +276,43 @@ const loading = ref(true)
 // 获取统计数据
 const fetchStats = async () => {
   try {
-    loading.value = true
-    const response = await fetchPlatformStats()
-    if (response && typeof response === 'object') {
-      // 根据平台统计数据计算首页展示数据
-      const fraudCases = response.fraud_cases_yearly || []
-      const totalCases = fraudCases.reduce((sum, item) => sum + (item.reported_cases || 0), 0)
-      
-      stats.value = {
-        totalUsers: 15420, // 暂时使用固定值，后续可从用户统计API获取
-        totalQuestions: 2580, // 暂时使用固定值，后续可从测验API获取
-        totalKnowledge: response.fraud_type_distribution?.length || 1200,
-        preventedCases: Math.max(totalCases * 0.1, 8960) // 基于案例数据估算防范案例
+    // 只在客户端获取统计数据
+    if (process.client) {
+      loading.value = true
+      try {
+        const response = await fetchPlatformStats()
+        if (response && typeof response === 'object') {
+          // 根据平台统计数据计算首页展示数据
+          const fraudCases = response.fraud_cases_yearly || []
+          const totalCases = fraudCases.reduce((sum, item) => sum + (item.reported_cases || 0), 0)
+          
+          stats.value = {
+            totalUsers: 15420, // 暂时使用固定值，后续可从用户统计API获取
+            totalQuestions: 2580, // 暂时使用固定值，后续可从测验API获取
+            totalKnowledge: response.fraud_type_distribution?.length || 5,
+            preventedCases: Math.max(totalCases * 0.1, 1005000) // 基于案例数据估算防范案例
+          }
+        } else {
+          throw new Error('API响应格式错误')
+        }
+      } catch (apiError) {
+        console.warn('API调用失败，使用默认数据:', apiError)
+        // 使用默认数据
+        stats.value = {
+          totalUsers: 15420,
+          totalQuestions: 2580,
+          totalKnowledge: 5,
+          preventedCases: 1005000
+        }
       }
     } else {
-      throw new Error('API响应格式错误')
+      // 服务端渲染时使用默认数据
+      stats.value = {
+        totalUsers: 15420,
+        totalQuestions: 2580,
+        totalKnowledge: 5,
+        preventedCases: 1005000
+      }
     }
   } catch (error) {
     console.error('获取统计数据失败:', error)
@@ -298,18 +320,42 @@ const fetchStats = async () => {
     stats.value = {
       totalUsers: 15420,
       totalQuestions: 2580,
-      totalKnowledge: 1200,
-      preventedCases: 8960
+      totalKnowledge: 5,
+      preventedCases: 1005000
     }
   } finally {
-    loading.value = false
+    if (process.client) {
+      loading.value = false
+    }
   }
 }
 
 // 组件挂载时初始化
 onMounted(async () => {
-  auth.initialize()
-  await fetchStats()
+  // 先设置默认统计数据
+  stats.value = {
+    totalUsers: 15420,
+    totalQuestions: 2580,
+    totalKnowledge: 5,
+    preventedCases: 1005000
+  }
+  loading.value = false
+  
+  // 在客户端初始化auth store
+  if (process.client) {
+    await nextTick()
+    try {
+      const { $pinia } = useNuxtApp()
+      if ($pinia) {
+        auth = useAuthStore()
+        auth.initialize()
+      }
+    } catch (error) {
+      console.warn('Failed to initialize auth store:', error)
+    }
+    // 尝试获取实际统计数据
+    await fetchStats()
+  }
 })
 </script>
 

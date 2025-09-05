@@ -138,7 +138,7 @@
       <!-- 用户信息 -->
       <div class="flex items-center space-x-3 mb-4">
         <img 
-          :src="user?.avatar || '/default-avatar.png'"
+          :src="user?.avatar || '/default-avatar.svg'"
           :alt="user?.name || '用户头像'"
           class="w-10 h-10 rounded-full object-cover"
         >
@@ -214,7 +214,7 @@ const isDesktop = ref(false)
 // 模拟用户数据
 const user = ref({
   name: '管理员',
-  avatar: '/default-avatar.png',
+  avatar: '/default-avatar.svg',
   role: '系统管理员'
 })
 

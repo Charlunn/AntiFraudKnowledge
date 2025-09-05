@@ -16,8 +16,8 @@ RUN apt-get update && apt-get install -y python3 make g++ \
 # 先复制依赖文件（利用 Docker 缓存）
 COPY package.json pnpm-lock.yaml* ./
 
-# 使用 pnpm 安装依赖
-RUN pnpm install
+# 使用 pnpm 安装依赖（包括 devDependencies）
+RUN pnpm install --frozen-lockfile
 
 # 再复制项目代码
 # COPY . .

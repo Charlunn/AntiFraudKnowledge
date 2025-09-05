@@ -94,7 +94,7 @@
                 <span class="sr-only">打开用户菜单</span>
                 <img 
                   class="h-8 w-8 rounded-full bg-neutral-50 dark:bg-dark-surface object-cover"
-                  :src="currentUser?.avatar || '/default-avatar.png'"
+                  :src="currentUser?.avatar || '/default-avatar.svg'"
                   :alt="currentUser?.name || '用户头像'"
                 >
                 <span class="hidden lg:flex lg:items-center ml-2">
@@ -169,7 +169,7 @@ const userMenuRef = ref(null)
 // 当前用户信息
 const currentUser = ref({
   name: '系统管理员',
-  avatar: '/default-avatar.png',
+  avatar: '/default-avatar.svg',
   role: 'admin'
 })
 
