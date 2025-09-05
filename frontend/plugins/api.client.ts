@@ -3,7 +3,8 @@
  * 将API工具类注入到应用中，并与状态管理集成
  */
 
-import apiClient from '~/api/http';
+import { apiClient } from '~/api/base';
+import type { AxiosInstance } from 'axios';
 import * as auth from '~/api/auth';
 import * as quiz from '~/api/quiz';
 import * as achievements from '~/api/achievements';
@@ -15,17 +16,18 @@ import * as community from '~/api/community';
 export default defineNuxtPlugin((nuxtApp) => {
   // 获取运行时配置
   const config = useRuntimeConfig();
-  
-  // 设置API基础URL
+
+  // 获取axios实例并设置基础URL
+  const client: AxiosInstance = apiClient.getAxiosInstance();
   if (config.public.apiBase) {
-    apiClient.defaults.baseURL = config.public.apiBase;
+    client.defaults.baseURL = config.public.apiBase;
   }
   
   // 延迟获取认证状态管理，避免在Pinia初始化前调用
   let authStore = null;
   
   // 设置请求拦截器，自动添加认证令牌
-  apiClient.interceptors.request.use(
+  client.interceptors.request.use(
     async (config) => {
       // 延迟初始化authStore
       if (!authStore && process.client) {
@@ -51,7 +53,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   );
   
   // 设置响应拦截器，处理认证失效
-  apiClient.interceptors.response.use(
+  client.interceptors.response.use(
     (response) => response,
     async (error) => {
       const originalRequest = error.config;
@@ -89,7 +91,7 @@ export default defineNuxtPlugin((nuxtApp) => {
             
             // 重新发送原始请求
             originalRequest.headers.Authorization = `Bearer ${response.access_token}`;
-            return apiClient(originalRequest);
+            return client(originalRequest);
           }
         } catch (refreshError) {
           // 刷新令牌失效，清除认证状态并跳转到登录页
@@ -106,7 +108,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   
   // 创建API实例对象
   const api = {
-    client: apiClient,
+    client,
     auth,
     quiz,
     achievements,
@@ -129,7 +131,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 declare module '#app' {
   interface NuxtApp {
     $api: {
-      client: typeof apiClient;
+      client: AxiosInstance;
       auth: typeof auth;
       quiz: typeof quiz;
       achievements: typeof achievements;
@@ -144,7 +146,7 @@ declare module '#app' {
 declare module 'vue' {
   interface ComponentCustomProperties {
     $api: {
-      client: typeof apiClient;
+      client: AxiosInstance;
       auth: typeof auth;
       quiz: typeof quiz;
       achievements: typeof achievements;

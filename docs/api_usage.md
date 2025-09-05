@@ -16,10 +16,10 @@ async function example() {
 
 ### 可用模块
 
-- `api/auth.js`：注册、登录、个人资料、绑定邮箱/手机号、设置、密码修改等
-- `api/achievements.js`：获取和授予成就
-- `api/feedback.js`：提交反馈及附件
-- `api/chat.js`：AI 反诈聊天接口
-- `api/quiz.js`：题目获取与答案提交
+- `api/auth.ts`：注册、登录、个人资料、绑定邮箱/手机号、设置、密码修改等
+- `api/achievements.ts`：获取和授予成就
+- `api/feedback.ts`：提交反馈及附件
+- `api/chat.ts`：AI 反诈聊天接口
+- `api/quiz.ts`：题目获取与答案提交
 
 所有函数均返回 Axios Promise，可结合 `async/await` 使用。
