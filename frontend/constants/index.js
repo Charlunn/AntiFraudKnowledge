@@ -127,6 +127,16 @@ export const QUIZ_CONFIG = {
   MAX_ATTEMPTS: 3
 }
 
+// 测验难度映射
+export const QUIZ_DIFFICULTY = {
+  beginner: { label: '初级', value: 'beginner' },
+  intermediate: { label: '中级', value: 'intermediate' },
+  advanced: { label: '高级', value: 'advanced' },
+  easy: { label: '简单', value: 'easy' },
+  medium: { label: '中等', value: 'medium' },
+  hard: { label: '困难', value: 'hard' }
+}
+
 // 社区相关常量
 export const COMMUNITY_CONFIG = {
   // 帖子类型
