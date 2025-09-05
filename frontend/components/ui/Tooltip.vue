@@ -9,7 +9,7 @@
         <div
           v-if="visible"
           ref="tooltipRef"
-          class="tooltip-content fixed z-50 px-2 py-1 text-sm text-white bg-gray-900 rounded shadow-lg pointer-events-none"
+          class="tooltip-content fixed z-[65] px-2 py-1 text-sm text-white bg-gray-900 rounded shadow-lg pointer-events-none"
           :class="[sizeClass, themeClass]"
           :style="tooltipStyle"
         >

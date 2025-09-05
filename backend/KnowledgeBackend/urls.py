@@ -51,6 +51,7 @@ urlpatterns = [
     path('api/feedback/', include('feedback.urls', namespace='feedback')),
     path('api/quiz/', include('quiz.urls', namespace='quiz')),
     path('api/community/', include('community.urls', namespace='community')),
+    path('api/notifications/', include('notifications.urls', namespace='notifications')),  # 通知系统API
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

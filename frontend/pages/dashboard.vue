@@ -199,16 +199,23 @@
 </template>
 
 <script setup>
-import { useAuthStore } from '~/stores/auth'
-
 // 页面布局和认证中间件
 definePageMeta({
   layout: 'default',
   middleware: 'auth'
 })
 
-const authStore = useAuthStore()
-const user = computed(() => authStore.user)
+// 安全地获取用户信息，避免SSR问题
+const user = ref(null)
+
+onMounted(async () => {
+  if (process.client) {
+    // 动态导入store以避免SSR问题
+    const { useAuthStore } = await import('~/stores/auth')
+    const authStore = useAuthStore()
+    user.value = authStore.user
+  }
+})
 
 // 设置页面元数据
 useHead({
@@ -217,6 +224,4 @@ useHead({
     { name: 'description', content: '查看您的学习进度、成就和推荐内容' }
   ]
 })
-
-// 认证检查已通过中间件处理，无需在组件中重复检查
 </script>

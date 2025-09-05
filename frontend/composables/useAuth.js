@@ -28,15 +28,17 @@ export const useAuth = () => {
     sameSite: 'strict'
   })
 
-  // 初始化认证状态
+  // 初始化认证状态 - 只在客户端执行
   const initializeAuth = () => {
-    const storedToken = userStorage.getToken()
-    const storedUser = userStorage.getUserInfo()
-    
-    if (storedToken && storedUser) {
-      accessToken.value = storedToken
-      user.value = storedUser
-      isAuthenticated.value = true
+    if (process.client) {
+      const storedToken = userStorage.getToken()
+      const storedUser = userStorage.getUserInfo()
+      
+      if (storedToken && storedUser) {
+        accessToken.value = storedToken
+        user.value = storedUser
+        isAuthenticated.value = true
+      }
     }
   }
 

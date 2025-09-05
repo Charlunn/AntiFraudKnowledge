@@ -3,7 +3,7 @@
     <Transition name="modal">
       <div
         v-if="modelValue"
-        class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4"
+        class="modal-overlay fixed inset-0 z-[55] flex items-center justify-center p-4"
         @click="handleOverlayClick"
       >
         <div

@@ -157,10 +157,12 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { dashboardApi } from '~/services/api.js'
 
 // 设置页面元数据
 definePageMeta({
-  layout: 'default'
+  layout: 'default',
+  middleware: 'auth'
 })
 
 useHead({
@@ -174,6 +176,7 @@ useHead({
 const router = useRouter()
 const notifications = ref([])
 const activeFilter = ref('all')
+const loading = ref(false)
 
 // 通知过滤器
 const notificationFilters = computed(() => {
@@ -206,65 +209,33 @@ const unreadCount = computed(() => {
 // 方法
 const loadNotifications = async () => {
   try {
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 500))
+    loading.value = true
+    const response = await dashboardApi.getNotifications({
+      ordering: '-created_at'
+    })
     
-    // 模拟通知数据
-    notifications.value = [
-      {
-        id: 1,
-        type: 'system',
-        title: '系统维护通知',
-        message: '系统将于今晚23:00-01:00进行维护升级，期间可能影响部分功能使用。',
-        read: false,
-        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2小时前
-        actionUrl: null
-      },
-      {
-        id: 2,
-        type: 'achievement',
-        title: '恭喜获得新成就！',
-        message: '您已完成"反欺诈入门"系列测验，获得了"初级防骗专家"徽章！',
-        read: false,
-        createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4小时前
-        actionUrl: '/achievements'
-      },
-      {
-        id: 3,
-        type: 'reminder',
-        title: '学习提醒',
-        message: '您有一个未完成的测验"网络钓鱼识别"，建议尽快完成以巩固学习效果。',
-        read: true,
-        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1天前
-        actionUrl: '/quiz/2'
-      },
-      {
-        id: 4,
-        type: 'social',
-        title: '社区新回复',
-        message: '用户"李四"回复了您的帖子"如何识别虚假投资平台？"',
-        read: true,
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2天前
-        actionUrl: '/community/15'
-      },
-      {
-        id: 5,
-        type: 'system',
-        title: '新功能上线',
-        message: '知识图谱新增了"金融诈骗"专题，包含最新的诈骗手段和防范措施。',
-        read: true,
-        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3天前
-        actionUrl: '/graph?topic=financial-fraud'
-      }
-    ]
+    // 转换后端数据格式为前端期望的格式
+    notifications.value = response.data.results.map(notification => ({
+      id: notification.id,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      read: notification.is_read,
+      createdAt: new Date(notification.created_at),
+      actionUrl: notification.action_url
+    }))
   } catch (error) {
     console.error('加载通知失败:', error)
+    // 如果API调用失败，显示空列表
+    notifications.value = []
+  } finally {
+    loading.value = false
   }
 }
 
 const markAsRead = async (notificationId) => {
   try {
-    // 模拟API调用
+    await dashboardApi.markNotificationRead(notificationId)
     const notification = notifications.value.find(n => n.id === notificationId)
     if (notification) {
       notification.read = true
@@ -276,7 +247,7 @@ const markAsRead = async (notificationId) => {
 
 const markAllAsRead = async () => {
   try {
-    // 模拟API调用
+    await dashboardApi.markAllNotificationsRead()
     notifications.value.forEach(n => n.read = true)
   } catch (error) {
     console.error('全部标记已读失败:', error)
@@ -298,7 +269,7 @@ const deleteNotification = async (notificationId) => {
 const clearAllNotifications = async () => {
   if (confirm('确定要清空所有通知吗？此操作不可撤销。')) {
     try {
-      // 模拟API调用
+      await dashboardApi.clearAllNotifications()
       notifications.value = []
     } catch (error) {
       console.error('清空通知失败:', error)

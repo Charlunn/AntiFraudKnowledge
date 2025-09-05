@@ -26,12 +26,13 @@ export default defineNuxtPlugin((nuxtApp) => {
   
   // 设置请求拦截器，自动添加认证令牌
   apiClient.interceptors.request.use(
-    (config) => {
+    async (config) => {
       // 延迟初始化authStore
       if (!authStore && process.client) {
         try {
           const { $pinia } = useNuxtApp();
           if ($pinia) {
+            const { useAuthStore } = await import('~/stores/auth');
             authStore = useAuthStore();
           }
         } catch (error) {
@@ -65,6 +66,7 @@ export default defineNuxtPlugin((nuxtApp) => {
             try {
               const { $pinia } = useNuxtApp();
               if ($pinia) {
+                const { useAuthStore } = await import('~/stores/auth');
                 authStore = useAuthStore();
               }
             } catch (error) {

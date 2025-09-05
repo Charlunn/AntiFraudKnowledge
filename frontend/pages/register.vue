@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100 dark:from-dark-bg dark:to-dark-surface py-12 px-4 sm:px-6 lg:px-8 fadeInUp">
+  <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 fadeInUp">
     <div class="max-w-md w-full space-y-8 animate-fadeInUp">
       <!-- 头部 -->
       <div class="text-center animate-fadeInDown">
@@ -253,6 +253,7 @@
 </template>
 
 <script setup>
+
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
@@ -388,7 +389,7 @@ const passwordStrengthWidth = computed(() => {
 
 // 页面布局和访客中间件
 definePageMeta({
-  layout: false,
+  layout: 'auth',
   middleware: 'guest'
 })
 </script>

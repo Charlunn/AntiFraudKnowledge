@@ -1,6 +1,6 @@
 <template>
   <Teleport to="body">
-    <div class="notification-container fixed top-4 right-4 z-50 space-y-2">
+    <div class="notification-container fixed top-4 right-4 z-[60] space-y-2">
       <TransitionGroup name="notification" tag="div">
         <div
           v-for="notification in notifications"

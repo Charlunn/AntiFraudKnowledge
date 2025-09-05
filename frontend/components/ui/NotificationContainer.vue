@@ -2,7 +2,7 @@
   <Teleport to="body">
     <!-- 通知容器 -->
     <div 
-      class="fixed top-4 right-4 z-50 space-y-2 max-w-sm w-full pointer-events-none"
+      class="fixed top-4 right-4 z-[60] space-y-2 max-w-sm w-full pointer-events-none"
       aria-live="polite"
       aria-label="通知"
     >

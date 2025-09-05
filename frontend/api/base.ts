@@ -6,7 +6,6 @@
 import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { useRuntimeConfig } from '#imports';
-import { useAuthStore } from '~/stores/auth';
 import type {
   ApiResponse,
   ApiError,
@@ -113,15 +112,18 @@ export class ApiClient {
   private setupInterceptors(): void {
     // 请求拦截器
     this.axiosInstance.interceptors.request.use(
-      (config) => {
+      async (config) => {
         // 添加认证token
-        try {
-          const auth = useAuthStore();
-          if (auth.accessToken) {
-            config.headers.Authorization = `Bearer ${auth.accessToken}`;
+        if (process.client) {
+          try {
+            const { useAuthStore } = await import('~/stores/auth');
+            const auth = useAuthStore();
+            if (auth.accessToken) {
+              config.headers.Authorization = `Bearer ${auth.accessToken}`;
+            }
+          } catch (error) {
+            console.warn('无法获取认证状态:', error);
           }
-        } catch (error) {
-          console.warn('无法获取认证状态:', error);
         }
 
         // 执行自定义请求拦截器
@@ -148,15 +150,15 @@ export class ApiClient {
         }
         return response;
       },
-      (error) => {
-        // 执行自定义错误拦截器
+      async (error) => {
+        // 执行自定义响应拦截器
         for (const interceptor of this.responseInterceptors) {
           if (interceptor.onRejected) {
             error = interceptor.onRejected(error) || error;
           }
         }
 
-        return Promise.reject(this.handleResponseError(error));
+        return Promise.reject(await this.handleResponseError(error));
       }
     );
   }
@@ -164,18 +166,21 @@ export class ApiClient {
   /**
    * 处理响应错误
    */
-  private handleResponseError(error: any): ApiException {
+  private async handleResponseError(error: any): Promise<ApiException> {
     if (error.response) {
       const { status, data } = error.response;
       
       // 处理认证错误
       if (status === 401) {
-        try {
-          const auth = useAuthStore();
-          auth.clear();
-          console.error('认证失败，请重新登录');
-        } catch (e) {
-          console.warn('无法清除认证状态:', e);
+        if (process.client) {
+          try {
+            const { useAuthStore } = await import('~/stores/auth');
+            const auth = useAuthStore();
+            auth.clear();
+            console.error('认证失败，请重新登录');
+          } catch (e) {
+            console.warn('无法清除认证状态:', e);
+          }
         }
       }
 

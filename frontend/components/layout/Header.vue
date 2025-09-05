@@ -124,8 +124,9 @@
             </svg>
           </button>
 
-          <!-- 通知按钮 - 在小屏幕隐藏 -->
+          <!-- 通知按钮 - 在小屏幕隐藏，仅登录用户可见 -->
           <button 
+            v-if="isAuthenticated"
             @click="toggleNotifications"
             class="hidden sm:block relative p-2 text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 transition-colors duration-200"
             title="通知"
@@ -256,9 +257,8 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useAuth } from '~/composables/useAuth'
 
 // 响应式数据
 const route = useRoute()
@@ -271,8 +271,43 @@ const showNotifications = ref(false)
 const isDark = ref(false)
 const userMenuRef = ref(null)
 
-// 认证状态
-const { user, isAuthenticated, logout } = useAuth()
+// 认证状态 - 客户端安全初始化
+const user = ref(null)
+const isAuthenticated = ref(false)
+const authLogout = ref(null)
+
+// 在客户端初始化认证状态和主题
+onMounted(async () => {
+  if (process.client) {
+    // 动态导入useAuth以避免SSR问题
+    const { useAuth } = await import('~/composables/useAuth')
+    const auth = useAuth()
+    user.value = auth.user.value
+    isAuthenticated.value = auth.isAuthenticated.value
+    authLogout.value = auth.logout
+    
+    // 监听认证状态变化
+    watch(() => auth.user.value, (newUser) => {
+      user.value = newUser
+    })
+    
+    watch(() => auth.isAuthenticated.value, (newAuth) => {
+      isAuthenticated.value = newAuth
+    })
+  }
+  
+  // 初始化主题
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const savedTheme = window.localStorage.getItem('theme')
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      isDark.value = true
+      document.documentElement.classList.add('dark')
+    }
+  }
+  
+  // 添加点击外部事件监听
+  document.addEventListener('click', handleClickOutside)
+})
 
 // 未读通知数量
 const unreadCount = ref(3)
@@ -280,6 +315,7 @@ const unreadCount = ref(3)
 // 导航菜单项
 const navigationItems = [
   { name: '首页', href: '/' },
+  { name: '仪表盘', href: '/dashboard' },
   { name: '知识图谱', href: '/graph' },
   { name: '反欺诈测验', href: '/quiz' },
   { name: 'AI测试', href: '/ai-test' },
@@ -291,14 +327,15 @@ const navigationItems = [
 // 大屏幕主要菜单项（显示在导航栏中）
 const primaryNavigationItems = computed(() => [
   { name: '首页', href: '/' },
+  { name: '仪表盘', href: '/dashboard' },
   { name: '知识图谱', href: '/graph' },
   { name: '反欺诈测验', href: '/quiz' },
-  { name: 'AI测试', href: '/ai-test' },
-  { name: '社区', href: '/community' }
+  { name: 'AI测试', href: '/ai-test' }
 ])
 
 // 大屏幕次要菜单项（显示在更多下拉菜单中）
 const secondaryNavigationItems = computed(() => [
+  { name: '社区', href: '/community' },
   { name: '学习资源', href: '/resources' },
   { name: '举报中心', href: '/report' }
 ])
@@ -306,12 +343,13 @@ const secondaryNavigationItems = computed(() => [
 // 中等屏幕紧凑菜单项（显示在导航栏中）
 const compactNavigationItems = computed(() => [
   { name: '首页', href: '/' },
-  { name: '知识图谱', href: '/graph' },
-  { name: '测验', href: '/quiz' }
+  { name: '仪表盘', href: '/dashboard' },
+  { name: '知识图谱', href: '/graph' }
 ])
 
 // 中等屏幕次要菜单项（显示在更多下拉菜单中）
 const compactSecondaryNavigationItems = computed(() => [
+  { name: '测验', href: '/quiz' },
   { name: 'AI测试', href: '/ai-test' },
   { name: '社区', href: '/community' },
   { name: '学习资源', href: '/resources' },
@@ -383,7 +421,9 @@ const toggleDarkMode = () => {
 
 const handleLogout = async () => {
   try {
-    await logout()
+    if (authLogout.value) {
+      await authLogout.value()
+    }
     // logout函数内部已经处理了重定向，这里不需要再次重定向
   } catch (error) {
     console.error('登出失败:', error)
@@ -411,20 +451,7 @@ const handleClickOutside = (event) => {
   }
 }
 
-// 生命周期钩子
-onMounted(() => {
-  // 初始化主题
-  if (typeof window !== 'undefined' && window.localStorage) {
-    const savedTheme = window.localStorage.getItem('theme')
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      isDark.value = true
-      document.documentElement.classList.add('dark')
-    }
-  }
-  
-  // 添加点击外部事件监听
-  document.addEventListener('click', handleClickOutside)
-})
+
 
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)

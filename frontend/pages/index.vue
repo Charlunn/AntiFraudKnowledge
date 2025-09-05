@@ -247,7 +247,6 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useAuthStore } from '~/stores/auth'
 import { fetchPlatformStats } from '~/api/statistics'
 
 // 页面元数据
@@ -347,6 +346,7 @@ onMounted(async () => {
     try {
       const { $pinia } = useNuxtApp()
       if ($pinia) {
+        const { useAuthStore } = await import('~/stores/auth')
         auth = useAuthStore()
         auth.initialize()
       }

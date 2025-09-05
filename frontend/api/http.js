@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { useRuntimeConfig } from '#imports';
-import { useAuthStore } from '~/stores/auth';
 
 /**
  * 创建axios实例
@@ -43,7 +42,7 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use((response) => {
   // 直接返回响应数据
   return response;
-}, (error) => {
+}, async (error) => {
   // 处理常见错误情况
   if (error.response) {
     const { status, data } = error.response;
@@ -52,8 +51,11 @@ apiClient.interceptors.response.use((response) => {
     switch (status) {
       case 401:
         // 未授权，清除认证状态
-        const auth = useAuthStore();
-        auth.clear();
+        if (process.client) {
+          const { useAuthStore } = await import('~/stores/auth');
+          const auth = useAuthStore();
+          auth.clear();
+        }
         console.error('认证失败，请重新登录');
         break;
       case 403:

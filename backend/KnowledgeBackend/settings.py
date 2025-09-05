@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'feedback',
     'quiz',
     'community',
+    'notifications',  # 通知系统
 ]
 TEMPLATES = [
     {

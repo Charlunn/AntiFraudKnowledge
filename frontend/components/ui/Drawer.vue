@@ -3,7 +3,7 @@
     <Transition name="drawer-overlay">
       <div
         v-if="modelValue"
-        class="drawer-overlay fixed inset-0 z-50"
+        class="drawer-overlay fixed inset-0 z-[55]"
         @click="handleOverlayClick"
       >
         <Transition name="drawer" :appear="true">

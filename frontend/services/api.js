@@ -399,13 +399,22 @@ export const dashboardApi = {
   getRecommendations: (type) => apiClient.get('/dashboard/recommendations', { type }),
   
   // 获取系统通知
-  getNotifications: (params) => apiClient.get('/dashboard/notifications', params),
+  getNotifications: (params) => apiClient.get('/notifications/notifications/', { params }),
   
   // 标记通知为已读
-  markNotificationRead: (notificationId) => apiClient.patch(`/dashboard/notifications/${notificationId}`, { read: true }),
+  markNotificationRead: (notificationId) => apiClient.patch(`/notifications/notifications/${notificationId}/`, { is_read: true }),
   
   // 标记所有通知为已读
-  markAllNotificationsRead: () => apiClient.patch('/dashboard/notifications/mark-all-read')
+  markAllNotificationsRead: () => apiClient.post('/notifications/notifications/mark-all-read/'),
+  
+  // 获取未读通知数量
+  getNotificationCount: () => apiClient.get('/notifications/notifications/count/'),
+  
+  // 清空所有通知
+  clearAllNotifications: () => apiClient.delete('/notifications/notifications/clear-all/'),
+  
+  // 获取通知统计
+  getNotificationStats: () => apiClient.get('/notifications/notifications/stats/')
 }
 
 // 搜索相关API
