@@ -46,9 +46,9 @@
         </div>
       </div>
 
-      <!-- 聊天记录 -->
+      <!-- 对话报告 -->
       <div class="bg-white dark:bg-dark-surface rounded-xl shadow-lg p-6">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-dark-text mb-6">对话记录</h2>
+        <h2 class="text-2xl font-semibold text-gray-900 dark:text-dark-text mb-6">对话报告</h2>
         
         <!-- 加载状态 -->
         <div v-if="loading" class="text-center py-8">
@@ -80,50 +80,56 @@
           <p class="text-sm text-gray-400 dark:text-dark-text-secondary mt-2">开始一次新的AI对话吧！</p>
         </div>
 
-        <!-- 对话消息列表 -->
-        <div v-else class="space-y-4 max-h-96 overflow-y-auto">
-          <div 
-            v-for="(message, index) in chatHistory" 
-            :key="index"
-            class="flex" 
-            :class="message.role === 'user' ? 'justify-end' : 'justify-start'"
-          >
-            <div 
-              class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg"
-              :class="getMessageClass(message.role)"
-            >
-              <div class="flex items-center mb-1">
-                <div class="w-6 h-6 rounded-full flex items-center justify-center mr-2" :class="getAvatarClass(message.role)">
-                  <svg v-if="message.role === 'user'" class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
-                  </svg>
-                  <svg v-else class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                  </svg>
-                </div>
-                <span class="text-xs font-medium" :class="message.role === 'user' ? 'text-blue-600' : 'text-green-600'">
-                  {{ message.role === 'user' ? '用户' : 'AI助手' }}
-                </span>
-              </div>
-              <p class="text-sm whitespace-pre-wrap">{{ message.content }}</p>
+        <!-- 对话报告内容 -->
+        <div v-else class="space-y-6">
+          <!-- 最终得分 -->
+          <div class="flex justify-between items-center p-4 bg-gray-50 dark:bg-dark-bg rounded-lg">
+            <span class="font-semibold text-lg">最终得分:</span>
+            <span class="text-3xl font-bold" :class="getScoreClass(testRecord?.final_score || sessionInfo.score)">
+              {{ testRecord?.final_score || sessionInfo.score }}分
+            </span>
+          </div>
+          
+          <!-- 表现评价 -->
+          <div class="p-4 bg-gray-50 dark:bg-dark-bg rounded-lg">
+            <h3 class="font-semibold mb-3 text-lg">表现评价:</h3>
+            <p class="text-gray-700 dark:text-dark-text-secondary leading-relaxed">
+              {{ getPerformanceText(testRecord?.final_score || sessionInfo.score) }}
+            </p>
+          </div>
+          
+          <!-- AI建议 -->
+          <div class="p-4 bg-gray-50 dark:bg-dark-bg rounded-lg">
+            <h3 class="font-semibold mb-3 text-lg">防诈骗建议:</h3>
+            <div class="text-gray-700 dark:text-dark-text-secondary leading-relaxed whitespace-pre-line">
+              {{ testRecord?.report?.suggestions || getDefaultSuggestions() }}
+            </div>
+          </div>
+          
+          <!-- 测试统计 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <h4 class="font-semibold text-blue-800 dark:text-blue-300 mb-2">对话轮次</h4>
+              <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                {{ testRecord?.report?.conversation_rounds || Math.floor(chatHistory.length / 2) }}
+              </p>
+            </div>
+            <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+              <h4 class="font-semibold text-green-800 dark:text-green-300 mb-2">测试时长</h4>
+              <p class="text-2xl font-bold text-green-600 dark:text-green-400">
+                {{ formatDuration(testRecord?.report?.duration) }}
+              </p>
             </div>
           </div>
         </div>
 
         <!-- 操作按钮 -->
-        <div class="mt-6 flex justify-center space-x-4">
-          <button 
-            @click="clearHistory"
-            class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200"
-            :disabled="chatHistory.length === 0"
-          >
-            清空记录
-          </button>
+        <div class="flex justify-center mt-6">
           <button 
             @click="continueChat"
-            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+            class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
           >
-            继续对话
+            重新测试
           </button>
         </div>
       </div>
@@ -134,7 +140,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { fetchChatHistory } from '~/api/chat'
 
 // 页面布局
 definePageMeta({
@@ -156,6 +161,7 @@ const router = useRouter()
 const loading = ref(true)
 const error = ref(null)
 const chatHistory = ref([])
+const testRecord = ref(null)
 const sessionInfo = ref({
   session_id: '',
   score: 70
@@ -171,57 +177,49 @@ const aiMessageCount = computed(() => {
 })
 
 // 方法
-const loadChatHistory = async () => {
+const loadTestRecord = async () => {
   try {
     loading.value = true
     error.value = null
     
-    const response = await fetchChatHistory()
+    const recordId = route.params.id
     
-    if (response.data.success) {
-      chatHistory.value = response.data.data.messages || []
-      sessionInfo.value = {
-        session_id: response.data.data.session_id,
-        score: response.data.data.score
+    // 模拟加载测试记录数据
+    // 实际项目中应该调用API获取具体的测试记录
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // 模拟测试记录数据
+    testRecord.value = {
+      id: recordId,
+      final_score: 75,
+      report: {
+        suggestions: '1. 在面对投资机会时要保持理性\n2. 不要被高收益承诺迷惑\n3. 通过官方渠道验证平台资质\n4. 小额试投，观察平台表现',
+        conversation_rounds: 8,
+        duration: 420
       }
-    } else {
-      throw new Error(response.data.message || '获取聊天记录失败')
     }
+    
+    sessionInfo.value = {
+      session_id: `session_${recordId}`,
+      score: testRecord.value.final_score
+    }
+    
+    // 模拟聊天历史用于统计
+    chatHistory.value = Array(16).fill().map((_, i) => ({
+      role: i % 2 === 0 ? 'user' : 'assistant',
+      content: `消息内容 ${i + 1}`
+    }))
+    
   } catch (err) {
-    console.error('加载聊天记录失败:', err)
+    console.error('加载测试记录失败:', err)
     error.value = err.message || '网络错误，请稍后重试'
   } finally {
     loading.value = false
   }
 }
 
-const clearHistory = async () => {
-  if (!confirm('确定要清空所有对话记录吗？此操作不可撤销。')) {
-    return
-  }
-  
-  try {
-    // 调用清空API
-    const response = await $fetch('/api/chat/sessions/', {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${useCookie('access_token').value}`
-      }
-    })
-    
-    if (response.success) {
-      chatHistory.value = []
-      sessionInfo.value.score = 70
-      alert('对话记录已清空')
-    }
-  } catch (err) {
-    console.error('清空记录失败:', err)
-    alert('清空失败，请稍后重试')
-  }
-}
-
 const continueChat = () => {
-  navigateTo('/ai-test/chat')
+  navigateTo('/ai-test/scenario-selection')
 }
 
 const goBack = () => {
@@ -229,9 +227,38 @@ const goBack = () => {
 }
 
 const getScoreClass = (score) => {
-  if (score >= 90) return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-  if (score >= 70) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-  return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+  if (score >= 80) return 'text-green-600 dark:text-green-400'
+  if (score >= 60) return 'text-yellow-600 dark:text-yellow-400'
+  return 'text-red-600 dark:text-red-400'
+}
+
+const getPerformanceText = (score) => {
+  if (score >= 90) {
+    return '优秀！您展现了极强的防诈骗意识，能够准确识别各种诈骗手段，并采取正确的应对措施。'
+  } else if (score >= 80) {
+    return '良好！您具备较强的防诈骗能力，但在某些细节上还需要提高警惕性。'
+  } else if (score >= 60) {
+    return '一般。您对诈骗有一定的认识，但容易被某些话术迷惑，需要加强学习。'
+  } else if (score >= 40) {
+    return '需要改进。您的防诈骗意识较弱，容易成为诈骗分子的目标，请务必提高警惕。'
+  } else {
+    return '危险！您极易受到诈骗，建议立即学习相关知识，提高防范意识。'
+  }
+}
+
+const getDefaultSuggestions = () => {
+  return `1. 保持冷静思考，不要被紧急情况冲昏头脑
+2. 验证对方身份，通过官方渠道核实信息
+3. 不轻易透露个人信息和财务信息
+4. 遇到可疑情况及时咨询家人朋友或报警
+5. 定期学习最新的诈骗手段和防范知识`
+}
+
+const formatDuration = (seconds) => {
+  if (!seconds) return '未知'
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  return `${minutes}分${remainingSeconds}秒`
 }
 
 const getMessageClass = (role) => {
@@ -248,7 +275,7 @@ const getAvatarClass = (role) => {
 
 // 生命周期
 onMounted(() => {
-  loadChatHistory()
+  loadTestRecord()
 })
 </script>
 

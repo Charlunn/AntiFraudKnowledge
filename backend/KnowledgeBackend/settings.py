@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'corsheaders',
     'django.contrib.messages',
+    'rest_framework.authtoken',
     'django.contrib.staticfiles',
     'rest_framework',
     'oauth2_provider',  # OAuth 2.0 provider
@@ -61,6 +62,7 @@ INSTALLED_APPS = [
     'quiz',
     'community',
     'notifications',  # 通知系统
+    'test_records',  # 测试记录应用
 ]
 TEMPLATES = [
     {
@@ -183,6 +185,7 @@ REST_FRAMEWORK = {
     # 'DEFAULT_PERMISSION_CLASSES':
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
         'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
         'rest_framework.authentication.SessionAuthentication',
     ],

@@ -34,6 +34,43 @@
           </div>
         </div>
 
+        <!-- 学习模式选择 -->
+        <div class="bg-white dark:bg-dark-surface rounded-xl shadow-lg p-6">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-dark-text mb-4">选择学习模式</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button
+              @click="selectedMode = 'mixed'"
+              :class="[
+                'p-4 rounded-lg border-2 transition-all duration-200 text-left',
+                selectedMode === 'mixed'
+                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+              ]"
+            >
+              <div class="flex items-center mb-2">
+                <div class="w-4 h-4 rounded-full mr-3" :class="selectedMode === 'mixed' ? 'bg-green-500' : 'bg-gray-300'"></div>
+                <h3 class="font-semibold text-gray-900 dark:text-dark-text">真假混合模式</h3>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-dark-text-secondary">对话中可能包含真实场景和诈骗行为，需要仔细辨别</p>
+            </button>
+            <button
+              @click="selectedMode = 'pure'"
+              :class="[
+                'p-4 rounded-lg border-2 transition-all duration-200 text-left',
+                selectedMode === 'pure'
+                  ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-red-300'
+              ]"
+            >
+              <div class="flex items-center mb-2">
+                <div class="w-4 h-4 rounded-full mr-3" :class="selectedMode === 'pure' ? 'bg-red-500' : 'bg-gray-300'"></div>
+                <h3 class="font-semibold text-gray-900 dark:text-dark-text">纯假学习模式</h3>
+              </div>
+              <p class="text-sm text-gray-600 dark:text-dark-text-secondary">AI完全扮演诈骗者角色，全程都是诈骗行为</p>
+            </button>
+          </div>
+        </div>
+
         <!-- 场景类型选择 -->
         <div class="bg-white dark:bg-dark-surface rounded-xl shadow-lg p-6">
           <h2 class="text-xl font-semibold text-gray-900 dark:text-dark-text mb-4">选择模拟场景</h2>
@@ -119,7 +156,7 @@
 
               <button
                 @click="startSimulation"
-                :disabled="loading"
+                :disabled="!selectedScenario || !selectedDifficulty || !selectedMode || loading"
                 class="w-full md:w-auto px-8 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
               >
                 <svg v-if="loading" class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,6 +164,9 @@
                 </svg>
                 <span>{{ loading ? '正在准备场景...' : '开始模拟' }}</span>
               </button>
+              <p v-if="!selectedScenario || !selectedDifficulty || !selectedMode" class="text-sm text-gray-500 dark:text-dark-text-secondary mt-2 text-center">
+                请选择场景类型、难度等级和学习模式
+              </p>
             </div>
           </div>
         </div>
@@ -146,6 +186,7 @@ useHead({
 // 响应式数据
 const selectedScenario = ref(null)
 const selectedDifficulty = ref('medium')
+const selectedMode = ref('mixed')
 const loading = ref(false)
 
 // 难度等级
@@ -288,14 +329,16 @@ const startSimulation = async () => {
     // 暂时模拟加载过程
     await new Promise(resolve => setTimeout(resolve, 2000))
     
-    // 跳转到聊天界面开始模拟
+    // 跳转到场景模拟页面，传递参数
+    const query = {
+      scenario: selectedScenario.value.id,
+      difficulty: selectedDifficulty.value,
+      mode: selectedMode.value
+    }
+    
     await navigateTo({
-      path: '/ai-test/chat',
-      query: {
-        type: 'simulation',
-        scenario: selectedScenario.value.id,
-        difficulty: selectedDifficulty.value
-      }
+      path: '/ai-test/scenario-chat',
+      query: query
     })
   } catch (error) {
     console.error('启动模拟失败:', error)

@@ -42,6 +42,9 @@ export const useAuth = () => {
     }
   }
 
+  // 立即调用初始化
+  initializeAuth()
+
   // 计算属性
   const userRole = computed(() => user.value?.role || 'guest')
   const userName = computed(() => user.value?.name || '')
@@ -363,6 +366,8 @@ export const useAuth = () => {
     isAuthenticated: readonly(isAuthenticated),
     isLoading: readonly(isLoading),
     authError: readonly(authError),
+    accessToken: readonly(accessToken),
+    refreshToken: readonly(refreshToken),
     
     // 计算属性
     userRole,

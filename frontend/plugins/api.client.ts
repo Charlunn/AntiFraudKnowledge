@@ -41,7 +41,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       }
       const token = authStore?.accessToken;
       if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+        config.headers.Authorization = `Token ${token}`;
       }
       return config;
     },

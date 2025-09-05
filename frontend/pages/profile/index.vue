@@ -323,6 +323,85 @@
           </div>
         </div>
         
+        <!-- 测试记录 -->
+        <div v-if="activeTab === 'test-records'" class="tab-content">
+          <div class="test-records-section">
+            <div class="section-header">
+              <h2 class="section-title">测试记录</h2>
+              <div v-if="testRecordStats" class="stats-summary">
+                <div class="stat-item">
+                  <span class="stat-label">总测试次数:</span>
+                  <span class="stat-value">{{ testRecordStats.total_tests }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">平均分数:</span>
+                  <span class="stat-value">{{ Math.round(testRecordStats.average_score) }}分</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">最高分数:</span>
+                  <span class="stat-value">{{ testRecordStats.highest_score }}分</span>
+                </div>
+              </div>
+            </div>
+            
+            <div v-if="testRecordsLoading" class="loading-state">
+              <div class="loading-spinner"></div>
+              <p>加载测试记录中...</p>
+            </div>
+            
+            <div v-else-if="testRecords.length === 0" class="empty-state">
+              <div class="empty-icon">📝</div>
+              <h3>暂无测试记录</h3>
+              <p>开始你的第一次反诈骗测试吧！</p>
+              <NuxtLink to="/ai-test" class="cta-button">
+                开始测试
+              </NuxtLink>
+            </div>
+            
+            <div v-else class="test-records-list">
+              <div v-for="record in testRecords" :key="record.id" class="test-record-card">
+                <div class="record-header">
+                  <div class="record-info">
+                    <h3 class="record-title">{{ record.scenario_type === 'mixed' ? '真假混合模式' : record.scenario_type === 'fake' ? '纯假学习模式' : '智能对话模式' }}</h3>
+                    <div class="record-meta">
+                      <span class="difficulty">难度: {{ record.difficulty === 'easy' ? '简单' : record.difficulty === 'medium' ? '中等' : '困难' }}</span>
+                      <span class="date">{{ formatDate(record.created_at) }}</span>
+                    </div>
+                  </div>
+                  <div class="record-score" :class="{
+                    'score-excellent': record.final_score >= 80,
+                    'score-good': record.final_score >= 60 && record.final_score < 80,
+                    'score-poor': record.final_score < 60
+                  }">
+                    {{ record.final_score }}分
+                  </div>
+                </div>
+                
+                <div class="record-details">
+                  <div class="detail-item">
+                    <span class="detail-label">对话轮次:</span>
+                    <span class="detail-value">{{ record.conversation_rounds }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="detail-label">测试时长:</span>
+                    <span class="detail-value">{{ Math.round(record.duration / 60) }}分钟</span>
+                  </div>
+                  <div v-if="record.ai_feedback" class="detail-item full-width">
+                    <span class="detail-label">AI反馈:</span>
+                    <p class="feedback-text">{{ record.ai_feedback }}</p>
+                  </div>
+                </div>
+                
+                <div class="record-actions">
+                  <button class="action-btn secondary" @click="viewRecordDetails(record)">
+                    查看详情
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <!-- 设置 -->
         <div v-if="activeTab === 'settings' && isOwnProfile" class="tab-content">
           <div class="settings-section">
@@ -526,6 +605,7 @@ import { useAuth } from '~/composables/useAuth'
 import { fetchUserProfile, fetchUserStats } from '~/composables/useApi'
 import { useToast } from '~/composables/useNotification'
 import { formatDate, formatNumber } from '~/utils/formatters'
+import { fetchTestRecords, fetchTestRecordStats } from '~/api/test-records'
 
 // 格式化函数
 const formatDateString = (date) => {
@@ -570,6 +650,11 @@ const updating = ref(false)
 const learningTimeRange = ref('month')
 const postsFilter = ref('all')
 
+// 测试记录相关数据
+const testRecords = ref([])
+const testRecordStats = ref(null)
+const testRecordsLoading = ref(false)
+
 // 当前用户ID（模拟）
 const currentUserId = ref(1)
 
@@ -593,6 +678,7 @@ const settings = ref({
 const tabs = [
   { key: 'achievements', label: '成就', icon: 'heroicons:trophy' },
   { key: 'learning', label: '学习记录', icon: 'heroicons:academic-cap' },
+  { key: 'test-records', label: 'AI测试记录', icon: 'heroicons:chat-bubble-left-ellipsis' },
   { key: 'posts', label: '发布的帖子', icon: 'heroicons:document-text' },
   { key: 'settings', label: '设置', icon: 'heroicons:cog-6-tooth' }
 ]
@@ -853,6 +939,9 @@ const fetchProfile = async () => {
       title: `${profile.value.name} - 个人资料`
     })
     
+    // 获取测试记录数据
+    await fetchTestRecordsData()
+    
   } catch (err) {
     error.value = '获取用户资料失败: ' + err.message
     showToast('获取用户资料失败', 'error')
@@ -862,7 +951,31 @@ const fetchProfile = async () => {
   }
 }
 
+// 获取测试记录数据
+const fetchTestRecordsData = async () => {
+  testRecordsLoading.value = true
+  try {
+    const [records, stats] = await Promise.all([
+      fetchTestRecords().catch(() => []),
+      fetchTestRecordStats().catch(() => null)
+    ])
+    
+    testRecords.value = records
+    testRecordStats.value = stats
+  } catch (err) {
+    console.error('Failed to fetch test records:', err)
+  } finally {
+    testRecordsLoading.value = false
+  }
+}
 
+// 查看测试记录详情
+const viewRecordDetails = (record) => {
+  // 这里可以跳转到详情页面或打开模态框
+  console.log('查看测试记录详情:', record)
+  // 可以实现跳转到详情页面
+  // navigateTo(`/test-records/${record.id}`)
+}
 
 const formatRelativeTime = (timestamp) => {
   const now = new Date()
@@ -1454,5 +1567,122 @@ onMounted(() => {
 
 .btn-secondary {
   @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+}
+
+/* 测试记录样式 */
+.test-records-section {
+  @apply space-y-6;
+}
+
+.stats-summary {
+  @apply flex gap-6 mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg;
+}
+
+.stat-item {
+  @apply flex flex-col;
+}
+
+.stat-label {
+  @apply text-sm text-gray-600 dark:text-gray-400;
+}
+
+.stat-value {
+  @apply text-lg font-semibold text-gray-900 dark:text-white;
+}
+
+.test-records-list {
+  @apply space-y-4;
+}
+
+.test-record-card {
+  @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow;
+}
+
+.record-header {
+  @apply flex items-start justify-between mb-4;
+}
+
+.record-info {
+  @apply flex-1;
+}
+
+.record-title {
+  @apply text-lg font-semibold text-gray-900 dark:text-white mb-2;
+}
+
+.record-meta {
+  @apply flex gap-4 text-sm text-gray-600 dark:text-gray-400;
+}
+
+.difficulty {
+  @apply px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded;
+}
+
+.record-score {
+  @apply text-2xl font-bold px-3 py-2 rounded-lg;
+}
+
+.score-excellent {
+  @apply text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30;
+}
+
+.score-good {
+  @apply text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30;
+}
+
+.score-poor {
+  @apply text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/30;
+}
+
+.record-details {
+  @apply grid grid-cols-2 gap-4 mb-4;
+}
+
+.detail-item {
+  @apply flex flex-col;
+}
+
+.detail-item.full-width {
+  @apply col-span-2;
+}
+
+.detail-label {
+  @apply text-sm font-medium text-gray-600 dark:text-gray-400 mb-1;
+}
+
+.detail-value {
+  @apply text-gray-900 dark:text-white;
+}
+
+.feedback-text {
+  @apply text-gray-700 dark:text-gray-300 text-sm leading-relaxed;
+}
+
+.record-actions {
+  @apply flex gap-2;
+}
+
+.action-btn {
+  @apply px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.action-btn.secondary {
+  @apply bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600;
+}
+
+.loading-state, .empty-state {
+  @apply text-center py-12;
+}
+
+.loading-spinner {
+  @apply w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-4;
+}
+
+.empty-icon {
+  @apply text-4xl mb-4;
+}
+
+.cta-button {
+  @apply inline-flex items-center px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors;
 }
 </style>

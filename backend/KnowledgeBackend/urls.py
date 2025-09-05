@@ -52,6 +52,7 @@ urlpatterns = [
     path('api/quiz/', include('quiz.urls', namespace='quiz')),
     path('api/community/', include('community.urls', namespace='community')),
     path('api/notifications/', include('notifications.urls', namespace='notifications')),  # 通知系统API
+    path('api/test-records/', include('test_records.urls', namespace='test_records')),  # 测试记录API
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

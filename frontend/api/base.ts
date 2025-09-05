@@ -116,10 +116,10 @@ export class ApiClient {
         // 添加认证token
         if (process.client) {
           try {
-            const { useAuthStore } = await import('~/stores/auth');
-            const auth = useAuthStore();
-            if (auth.accessToken) {
-              config.headers.Authorization = `Bearer ${auth.accessToken}`;
+            const { useAuth } = await import('~/composables/useAuth');
+            const { accessToken } = useAuth();
+            if (accessToken.value) {
+              config.headers.Authorization = `Bearer ${accessToken.value}`;
             }
           } catch (error) {
             console.warn('无法获取认证状态:', error);
@@ -151,6 +151,27 @@ export class ApiClient {
         return response;
       },
       async (error) => {
+        const originalRequest: any = error.config;
+
+        // 若401且尚未重试，尝试刷新令牌并重试
+        if (error.response && error.response.status === 401 && !originalRequest?._retry) {
+          originalRequest._retry = true;
+          try {
+            const { useAuth } = await import('~/composables/useAuth');
+            const { refreshAccessToken, accessToken } = useAuth();
+            const newToken = await refreshAccessToken();
+            if (newToken) {
+              originalRequest.headers = {
+                ...(originalRequest.headers || {}),
+                Authorization: `Bearer ${newToken}`
+              };
+              return this.axiosInstance(originalRequest);
+            }
+          } catch (refreshErr) {
+            console.warn('刷新令牌失败:', refreshErr);
+          }
+        }
+
         // 执行自定义响应拦截器
         for (const interceptor of this.responseInterceptors) {
           if (interceptor.onRejected) {

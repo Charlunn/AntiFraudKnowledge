@@ -26,7 +26,7 @@ apiClient.interceptors.request.use((config) => {
   // 从cookie获取认证token
   const authToken = useCookie('auth-token');
   if (authToken.value) {
-    config.headers.Authorization = `Bearer ${authToken.value}`;
+    config.headers.Authorization = `Token ${authToken.value}`;
   }
   
   return config;
