@@ -405,16 +405,16 @@ export const dashboardApi = {
   markNotificationRead: (notificationId) => apiClient.patch(`/notifications/notifications/${notificationId}/`, { is_read: true }),
   
   // 标记所有通知为已读
-  markAllNotificationsRead: () => apiClient.post('/notifications/notifications/mark-all-read/'),
+  markAllNotificationsRead: () => apiClient.post('/notifications/mark-all-read/'),
   
   // 获取未读通知数量
-  getNotificationCount: () => apiClient.get('/notifications/notifications/count/'),
+  getNotificationCount: () => apiClient.get('/notifications/count/'),
   
   // 清空所有通知
-  clearAllNotifications: () => apiClient.delete('/notifications/notifications/clear-all/'),
+  clearAllNotifications: () => apiClient.delete('/notifications/clear-all/'),
   
   // 获取通知统计
-  getNotificationStats: () => apiClient.get('/notifications/notifications/stats/')
+  getNotificationStats: () => apiClient.get('/notifications/stats/')
 }
 
 // 搜索相关API

@@ -1,161 +1,133 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-purple-50 to-violet-100 dark:from-dark-bg dark:to-dark-surface">
-    <div class="container mx-auto px-4 py-8">
+  <div class="min-h-screen bg-gray-50 dark:bg-dark-bg py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- 页面标题 -->
-      <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-dark-text mb-4">
-          AI 场景模拟
-        </h1>
-        <p class="text-lg text-gray-600 dark:text-dark-text-secondary">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-dark-text mb-4">AI 场景模拟</h1>
+        <p class="text-gray-600 dark:text-dark-text-secondary text-lg">
           通过AI生成的真实场景，练习识别和应对各种欺诈手段
         </p>
       </div>
 
       <!-- 场景选择 -->
-      <div v-if="simulationState === 'select'" class="max-w-4xl mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div
-            v-for="scenario in scenarios"
-            :key="scenario.id"
-            @click="selectScenario(scenario)"
-            class="bg-white dark:bg-dark-surface rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-          >
-            <div class="w-12 h-12 rounded-lg flex items-center justify-center mb-4" :class="scenario.colorClass">
-              <component :is="scenario.icon" class="w-6 h-6 text-white" />
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 dark:text-dark-text mb-2">{{ scenario.title }}</h3>
-            <p class="text-gray-600 dark:text-dark-text-secondary mb-4">{{ scenario.description }}</p>
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-gray-500 dark:text-dark-text-secondary">难度: {{ scenario.difficulty }}</span>
-              <span class="text-sm font-medium text-purple-600 dark:text-purple-400">开始模拟 →</span>
-            </div>
+      <div v-if="!selectedScenario" class="space-y-8">
+        <!-- 难度选择 -->
+        <div class="bg-white dark:bg-dark-surface rounded-xl shadow-lg p-6">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-dark-text mb-4">选择难度等级</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button
+              v-for="level in difficultyLevels"
+              :key="level.id"
+              @click="selectedDifficulty = level.id"
+              :class="[
+                'p-4 rounded-lg border-2 transition-all duration-200',
+                selectedDifficulty === level.id
+                  ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
+              ]"
+            >
+              <div class="text-left">
+                <h3 class="font-semibold text-gray-900 dark:text-dark-text">{{ level.name }}</h3>
+                <p class="text-sm text-gray-600 dark:text-dark-text-secondary mt-1">{{ level.description }}</p>
+              </div>
+            </button>
           </div>
         </div>
-      </div>
 
-      <!-- 场景模拟进行中 -->
-      <div v-else-if="simulationState === 'running'" class="max-w-4xl mx-auto">
-        <div class="bg-white dark:bg-dark-surface rounded-xl shadow-lg overflow-hidden">
-          <!-- 场景信息 -->
-          <div class="bg-purple-500 text-white p-6">
-            <h2 class="text-2xl font-semibold mb-2">{{ currentScenario.title }}</h2>
-            <p class="opacity-90">{{ currentScenario.description }}</p>
-          </div>
-
-          <!-- 模拟对话 -->
-          <div class="p-6">
-            <div class="space-y-4 mb-6" style="max-height: 400px; overflow-y: auto;">
-              <div v-for="message in simulationMessages" :key="message.id" class="flex" :class="message.sender === 'user' ? 'justify-end' : 'justify-start'">
-                <div class="max-w-xs lg:max-w-md">
-                  <div class="px-4 py-2 rounded-lg" :class="message.sender === 'user' ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-dark-bg text-gray-900 dark:text-dark-text'">
-                    {{ message.content }}
-                  </div>
-                  <div class="text-xs text-gray-500 dark:text-dark-text-secondary mt-1" :class="message.sender === 'user' ? 'text-right' : 'text-left'">
-                    {{ message.sender === 'user' ? '您' : '诈骗者' }}
-                  </div>
+        <!-- 场景类型选择 -->
+        <div class="bg-white dark:bg-dark-surface rounded-xl shadow-lg p-6">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-dark-text mb-4">选择模拟场景</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div
+              v-for="scenario in scenarios"
+              :key="scenario.id"
+              class="bg-white dark:bg-dark-surface rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 cursor-pointer border-2 border-transparent hover:border-purple-200 dark:hover:border-purple-800"
+              @click="selectScenario(scenario)"
+            >
+              <div :class="`w-12 h-12 ${scenario.color} rounded-lg flex items-center justify-center mb-4`">
+                <span class="text-white text-xl">{{ scenario.icon }}</span>
+              </div>
+              <h3 class="text-xl font-semibold text-gray-900 dark:text-dark-text mb-2">{{ scenario.name }}</h3>
+              <p class="text-gray-600 dark:text-dark-text-secondary mb-4">{{ scenario.description }}</p>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-purple-600 dark:text-purple-400 font-medium">
+                  {{ scenario.estimatedTime }}
+                </span>
+                <div class="flex items-center space-x-1">
+                  <span v-for="i in 5" :key="i" class="w-2 h-2 rounded-full"
+                    :class="i <= scenario.difficulty ? 'bg-yellow-400' : 'bg-gray-300'"></span>
                 </div>
               </div>
             </div>
-
-            <!-- 选择回应 -->
-            <div v-if="currentStep < currentScenario.steps.length" class="space-y-3">
-              <h4 class="font-semibold text-gray-900 dark:text-dark-text mb-3">请选择您的回应：</h4>
-              <button
-                v-for="(option, index) in currentScenario.steps[currentStep].options"
-                :key="index"
-                @click="selectResponse(option, index)"
-                class="w-full text-left p-4 border border-gray-200 dark:border-dark-border rounded-lg hover:bg-gray-50 dark:hover:bg-dark-bg transition-colors duration-200"
-              >
-                {{ option.text }}
-              </button>
-            </div>
-
-            <!-- 场景结束 -->
-            <div v-else class="text-center">
-              <div class="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 class="text-xl font-semibold text-gray-900 dark:text-dark-text mb-2">场景模拟完成</h3>
-              <p class="text-gray-600 dark:text-dark-text-secondary mb-4">点击查看详细分析和建议</p>
-              <button
-                @click="showResults"
-                class="bg-purple-500 hover:bg-purple-600 text-white font-medium px-6 py-2 rounded-lg transition-colors duration-200"
-              >
-                查看结果
-              </button>
-            </div>
           </div>
         </div>
       </div>
 
-      <!-- 结果分析 -->
-      <div v-else-if="simulationState === 'result'" class="max-w-4xl mx-auto">
+      <!-- 场景详情和开始模拟 -->
+      <div v-else class="space-y-6">
+        <!-- 返回按钮 -->
+        <button
+          @click="selectedScenario = null"
+          class="flex items-center text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+          返回场景选择
+        </button>
+
+        <!-- 选中场景的详细信息 -->
         <div class="bg-white dark:bg-dark-surface rounded-xl shadow-lg p-8">
-          <div class="text-center mb-8">
-            <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4" :class="getResultColorClass()">
-              <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
+          <div class="flex items-start space-x-6">
+            <div :class="`w-16 h-16 ${selectedScenario.color} rounded-xl flex items-center justify-center flex-shrink-0`">
+              <span class="text-white text-2xl">{{ selectedScenario.icon }}</span>
             </div>
-            <h2 class="text-2xl font-semibold text-gray-900 dark:text-dark-text mb-2">模拟结果分析</h2>
-            <p class="text-gray-600 dark:text-dark-text-secondary">{{ currentScenario.title }}</p>
-          </div>
-
-          <!-- 得分 -->
-          <div class="text-center mb-8">
-            <div class="text-4xl font-bold mb-2" :class="getScoreColor(simulationScore)">{{ simulationScore }}</div>
-            <div class="text-lg text-gray-600 dark:text-dark-text-secondary">防范得分</div>
-            <div class="text-sm text-gray-500 dark:text-dark-text-secondary mt-1">{{ getScoreLevel(simulationScore) }}</div>
-          </div>
-
-          <!-- 选择分析 -->
-          <div class="space-y-4 mb-8">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-dark-text">您的选择分析</h3>
-            <div v-for="(choice, index) in userChoices" :key="index" class="bg-gray-50 dark:bg-dark-bg rounded-lg p-4">
-              <div class="flex items-start space-x-3">
-                <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5" :class="choice.isCorrect ? 'bg-green-500' : 'bg-red-500'">
-                  <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path v-if="choice.isCorrect" fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                    <path v-else fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                  </svg>
+            <div class="flex-1">
+              <h2 class="text-2xl font-bold text-gray-900 dark:text-dark-text mb-2">{{ selectedScenario.name }}</h2>
+              <p class="text-gray-600 dark:text-dark-text-secondary mb-4">{{ selectedScenario.fullDescription }}</p>
+              
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div class="text-lg font-semibold text-gray-900 dark:text-dark-text">{{ selectedScenario.estimatedTime }}</div>
+                  <div class="text-sm text-gray-600 dark:text-dark-text-secondary">预计时长</div>
                 </div>
-                <div class="flex-1">
-                  <div class="font-medium text-gray-900 dark:text-dark-text">{{ choice.text }}</div>
-                  <div class="text-sm text-gray-600 dark:text-dark-text-secondary mt-1">{{ choice.feedback }}</div>
+                <div class="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div class="flex justify-center space-x-1 mb-1">
+                    <span v-for="i in 5" :key="i" class="w-2 h-2 rounded-full"
+                      :class="i <= selectedScenario.difficulty ? 'bg-yellow-400' : 'bg-gray-300'"></span>
+                  </div>
+                  <div class="text-sm text-gray-600 dark:text-dark-text-secondary">难度等级</div>
+                </div>
+                <div class="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div class="text-lg font-semibold text-gray-900 dark:text-dark-text">{{ selectedScenario.category }}</div>
+                  <div class="text-sm text-gray-600 dark:text-dark-text-secondary">场景类型</div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- AI建议 -->
-          <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 mb-6">
-            <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-300 mb-3">AI专家建议</h3>
-            <ul class="space-y-2 text-blue-800 dark:text-blue-200">
-              <li v-for="suggestion in aiSuggestions" :key="suggestion" class="flex items-start">
-                <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              <div class="mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-dark-text mb-3">学习目标</h3>
+                <ul class="space-y-2">
+                  <li v-for="objective in selectedScenario.objectives" :key="objective" 
+                      class="flex items-start space-x-2">
+                    <svg class="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="text-gray-700 dark:text-dark-text-secondary">{{ objective }}</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                @click="startSimulation"
+                :disabled="loading"
+                class="w-full md:w-auto px-8 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center justify-center space-x-2"
+              >
+                <svg v-if="loading" class="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                 </svg>
-                {{ suggestion }}
-              </li>
-            </ul>
-          </div>
-
-          <!-- 操作按钮 -->
-          <div class="flex justify-center space-x-4">
-            <button
-              @click="backToSelection"
-              class="px-6 py-2 border border-gray-300 dark:border-dark-border text-gray-700 dark:text-dark-text rounded-lg hover:bg-gray-50 dark:hover:bg-dark-bg transition-colors duration-200"
-            >
-              选择其他场景
-            </button>
-            <button
-              @click="restartScenario"
-              class="px-6 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors duration-200"
-            >
-              重新模拟
-            </button>
+                <span>{{ loading ? '正在准备场景...' : '开始模拟' }}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -164,7 +136,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref } from 'vue'
 
 // 页面元数据
 useHead({
@@ -172,208 +144,164 @@ useHead({
 })
 
 // 响应式数据
-const simulationState = ref('select') // select, running, result
-const currentScenario = ref(null)
-const currentStep = ref(0)
-const simulationMessages = ref([])
-const userChoices = ref([])
-const simulationScore = ref(0)
-const aiSuggestions = ref([])
+const selectedScenario = ref(null)
+const selectedDifficulty = ref('medium')
+const loading = ref(false)
+
+// 难度等级
+const difficultyLevels = [
+  {
+    id: 'easy',
+    name: '初级',
+    description: '适合新手，提供更多提示和指导'
+  },
+  {
+    id: 'medium',
+    name: '中级',
+    description: '标准难度，平衡挑战性和可操作性'
+  },
+  {
+    id: 'hard',
+    name: '高级',
+    description: '高难度挑战，需要丰富的反诈经验'
+  }
+]
 
 // 场景数据
-const scenarios = ref([
+const scenarios = [
   {
-    id: 1,
-    title: '电信诈骗',
+    id: 'telecom_fraud',
+    name: '电信诈骗',
     description: '模拟接到冒充公检法的诈骗电话',
-    difficulty: '初级',
-    colorClass: 'bg-red-500',
-    icon: 'PhoneIcon',
-    steps: [
-      {
-        message: '您好，我是XX市公安局的警官，您的身份证涉嫌一起洗钱案件，需要配合调查。',
-        options: [
-          { text: '好的，我配合调查', isCorrect: false, score: 0, feedback: '错误！真正的警察不会通过电话要求配合调查案件' },
-          { text: '我没有犯罪，你们搞错了', isCorrect: false, score: 20, feedback: '虽然否认了，但仍在与诈骗者对话，容易被进一步诱导' },
-          { text: '直接挂断电话', isCorrect: true, score: 100, feedback: '正确！遇到此类电话应立即挂断，公安机关不会通过电话办案' }
-        ]
-      },
-      {
-        message: '请不要挂断！这是严重的刑事案件，如果不配合调查，我们将对您进行网上通缉！',
-        options: [
-          { text: '我真的没有犯罪，请相信我', isCorrect: false, score: 0, feedback: '继续对话只会让诈骗者有机会进一步实施诈骗' },
-          { text: '那我应该怎么配合调查？', isCorrect: false, score: 0, feedback: '这正是诈骗者想要的回应，接下来会要求转账' },
-          { text: '挂断电话并拨打110核实', isCorrect: true, score: 100, feedback: '完全正确！应该挂断电话并通过官方渠道核实' }
-        ]
-      }
+    fullDescription: '在这个场景中，您将接到一个自称是公安局、检察院或法院工作人员的电话。对方会声称您涉嫌某种犯罪活动，需要配合调查或转账自证清白。您需要识别诈骗手段并做出正确应对。',
+    icon: '📞',
+    color: 'bg-red-500',
+    difficulty: 3,
+    estimatedTime: '10-15分钟',
+    category: '电信诈骗',
+    objectives: [
+      '识别冒充公检法的诈骗话术',
+      '学会正确的应对方式',
+      '了解真实的执法程序',
+      '掌握自我保护技巧'
     ]
   },
   {
-    id: 2,
-    title: '网络投资诈骗',
-    description: '模拟遇到高收益投资平台的诱惑',
-    difficulty: '中级',
-    colorClass: 'bg-yellow-500',
-    icon: 'CurrencyDollarIcon',
-    steps: [
-      {
-        message: '恭喜您！您被选中参与我们的VIP投资项目，日收益可达10%，现在注册还送1000元体验金！',
-        options: [
-          { text: '听起来不错，我想了解更多', isCorrect: false, score: 0, feedback: '危险！日收益10%是不可能的，这明显是诈骗' },
-          { text: '先投少量资金试试', isCorrect: false, score: 20, feedback: '仍然有风险，诈骗者通常会让你先尝到甜头' },
-          { text: '拒绝参与，这明显是诈骗', isCorrect: true, score: 100, feedback: '正确！任何承诺高收益低风险的投资都要警惕' }
-        ]
-      }
+    id: 'investment_fraud',
+    name: '网络投资诈骗',
+    description: '模拟虚假投资平台诈骗场景',
+    fullDescription: '您将遇到一个看似专业的投资顾问，他们会向您推荐高收益、低风险的投资项目。通过精美的APP界面和虚假的盈利数据，诱导您投入资金。您需要识破这些投资陷阱。',
+    icon: '💰',
+    color: 'bg-yellow-500',
+    difficulty: 4,
+    estimatedTime: '15-20分钟',
+    category: '投资诈骗',
+    objectives: [
+      '识别虚假投资平台的特征',
+      '了解常见的投资诈骗套路',
+      '学会验证投资平台的合法性',
+      '掌握理性投资的原则'
     ]
   },
   {
-    id: 3,
-    title: '杀猪盘诈骗',
-    description: '模拟网络交友中的情感诈骗',
-    difficulty: '高级',
-    colorClass: 'bg-pink-500',
-    icon: 'HeartIcon',
-    steps: [
-      {
-        message: '亲爱的，我们认识这么久了，我想和你分享一个赚钱的机会，我最近在一个投资平台赚了不少钱。',
-        options: [
-          { text: '真的吗？能带我一起赚钱吗？', isCorrect: false, score: 0, feedback: '危险！这是典型的杀猪盘套路，利用感情诱导投资' },
-          { text: '我对投资不太懂，你能教我吗？', isCorrect: false, score: 10, feedback: '仍然中了圈套，诈骗者会进一步诱导你投资' },
-          { text: '我们还是不要谈钱的事情', isCorrect: true, score: 80, feedback: '较好的回应，但还需要更加警惕' },
-          { text: '怀疑对方动机，保持距离', isCorrect: true, score: 100, feedback: '正确！网络交友中谈投资要高度警惕' }
-        ]
-      }
+    id: 'romance_scam',
+    name: '杀猪盘诈骗',
+    description: '模拟网络交友投资诈骗场景',
+    fullDescription: '您将在社交平台上遇到一个看似完美的异性朋友。经过一段时间的感情培养后，对方会以各种理由诱导您参与投资或直接要求转账。这是典型的"杀猪盘"诈骗手法。',
+    icon: '❤️',
+    color: 'bg-pink-500',
+    difficulty: 5,
+    estimatedTime: '20-25分钟',
+    category: '情感诈骗',
+    objectives: [
+      '识别网络交友中的诈骗信号',
+      '了解"杀猪盘"的完整流程',
+      '学会保护个人隐私和财产',
+      '掌握理性交友的方法'
+    ]
+  },
+  {
+    id: 'phishing_scam',
+    name: '网络钓鱼',
+    description: '模拟虚假网站和邮件诈骗',
+    fullDescription: '您将收到看似来自银行、支付平台或其他官方机构的邮件或短信，要求您点击链接更新信息或处理紧急事务。您需要识别这些钓鱼攻击并避免泄露个人信息。',
+    icon: '🎣',
+    color: 'bg-blue-500',
+    difficulty: 2,
+    estimatedTime: '8-12分钟',
+    category: '网络诈骗',
+    objectives: [
+      '识别钓鱼邮件和短信的特征',
+      '学会验证网站的真实性',
+      '了解个人信息保护的重要性',
+      '掌握安全上网的习惯'
+    ]
+  },
+  {
+    id: 'fake_customer_service',
+    name: '虚假客服诈骗',
+    description: '模拟冒充客服的退款诈骗',
+    fullDescription: '您将接到自称是某电商平台或服务商客服的电话，对方声称您的订单有问题需要退款，或者您的账户存在安全风险需要处理。通过这个场景学习如何识别虚假客服。',
+    icon: '🎧',
+    color: 'bg-green-500',
+    difficulty: 3,
+    estimatedTime: '12-18分钟',
+    category: '客服诈骗',
+    objectives: [
+      '识别虚假客服的话术特点',
+      '学会验证客服身份的方法',
+      '了解正规客服的服务流程',
+      '掌握保护账户安全的技巧'
+    ]
+  },
+  {
+    id: 'loan_scam',
+    name: '网络贷款诈骗',
+    description: '模拟虚假贷款平台诈骗',
+    fullDescription: '您将遇到一个声称可以提供无抵押、低利率贷款的平台。对方会要求您先支付各种费用作为"保证金"或"手续费"，承诺放款后返还。学习识别这类贷款诈骗。',
+    icon: '🏦',
+    color: 'bg-indigo-500',
+    difficulty: 3,
+    estimatedTime: '10-15分钟',
+    category: '贷款诈骗',
+    objectives: [
+      '识别虚假贷款平台的特征',
+      '了解正规贷款的申请流程',
+      '学会评估贷款风险',
+      '掌握防范贷款诈骗的方法'
     ]
   }
-])
+]
 
-// 选择场景
+// 方法
 const selectScenario = (scenario) => {
-  currentScenario.value = scenario
-  simulationState.value = 'running'
-  currentStep.value = 0
-  simulationMessages.value = []
-  userChoices.value = []
-  
-  // 添加第一条消息
-  addMessage(scenario.steps[0].message, 'scammer')
+  selectedScenario.value = scenario
 }
 
-// 添加消息
-const addMessage = (content, sender) => {
-  simulationMessages.value.push({
-    id: Date.now() + Math.random(),
-    content,
-    sender,
-    timestamp: new Date()
-  })
-}
-
-// 选择回应
-const selectResponse = (option, index) => {
-  // 添加用户回应
-  addMessage(option.text, 'user')
+const startSimulation = async () => {
+  if (!selectedScenario.value) return
   
-  // 记录用户选择
-  userChoices.value.push({
-    text: option.text,
-    isCorrect: option.isCorrect,
-    score: option.score,
-    feedback: option.feedback
-  })
+  loading.value = true
   
-  // 移到下一步
-  currentStep.value++
-  
-  // 如果还有下一步，添加下一条消息
-  if (currentStep.value < currentScenario.value.steps.length) {
-    setTimeout(() => {
-      addMessage(currentScenario.value.steps[currentStep.value].message, 'scammer')
-    }, 1000)
+  try {
+    // 这里应该调用后端API开始模拟
+    // 暂时模拟加载过程
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    
+    // 跳转到聊天界面开始模拟
+    await navigateTo({
+      path: '/ai-test/chat',
+      query: {
+        type: 'simulation',
+        scenario: selectedScenario.value.id,
+        difficulty: selectedDifficulty.value
+      }
+    })
+  } catch (error) {
+    console.error('启动模拟失败:', error)
+    // 这里可以添加错误提示
+  } finally {
+    loading.value = false
   }
-}
-
-// 显示结果
-const showResults = () => {
-  // 计算得分
-  const totalScore = userChoices.value.reduce((sum, choice) => sum + choice.score, 0)
-  const maxScore = userChoices.value.length * 100
-  simulationScore.value = Math.round((totalScore / maxScore) * 100)
-  
-  // 生成AI建议
-  generateAISuggestions()
-  
-  simulationState.value = 'result'
-}
-
-// 生成AI建议
-const generateAISuggestions = () => {
-  const suggestions = []
-  
-  if (simulationScore.value < 60) {
-    suggestions.push('需要加强对此类诈骗手段的认识和防范')
-    suggestions.push('建议学习更多相关案例，提高识别能力')
-  } else if (simulationScore.value < 80) {
-    suggestions.push('基本能识别诈骗，但还需要提高警惕性')
-    suggestions.push('在类似情况下要更加果断地拒绝')
-  } else {
-    suggestions.push('您的防范意识很强，能够正确识别和应对诈骗')
-    suggestions.push('继续保持警惕，并帮助身边的人提高防范意识')
-  }
-  
-  // 根据场景类型添加特定建议
-  switch (currentScenario.value.id) {
-    case 1:
-      suggestions.push('记住：公安机关不会通过电话办案或要求转账')
-      break
-    case 2:
-      suggestions.push('任何承诺高收益低风险的投资都要谨慎对待')
-      break
-    case 3:
-      suggestions.push('网络交友中涉及金钱要格外小心，谨防杀猪盘')
-      break
-  }
-  
-  aiSuggestions.value = suggestions
-}
-
-// 返回场景选择
-const backToSelection = () => {
-  simulationState.value = 'select'
-  currentScenario.value = null
-}
-
-// 重新开始场景
-const restartScenario = () => {
-  if (currentScenario.value) {
-    selectScenario(currentScenario.value)
-  }
-}
-
-// 获取结果颜色类
-const getResultColorClass = () => {
-  if (simulationScore.value >= 80) return 'bg-green-500'
-  if (simulationScore.value >= 60) return 'bg-yellow-500'
-  return 'bg-red-500'
-}
-
-// 获取得分颜色
-const getScoreColor = (score) => {
-  if (score >= 80) return 'text-green-600 dark:text-green-400'
-  if (score >= 60) return 'text-yellow-600 dark:text-yellow-400'
-  return 'text-red-600 dark:text-red-400'
-}
-
-// 获取得分等级
-const getScoreLevel = (score) => {
-  if (score >= 90) return '优秀'
-  if (score >= 80) return '良好'
-  if (score >= 70) return '中等'
-  if (score >= 60) return '及格'
-  return '需要提高'
 }
 </script>
-
-<style scoped>
-/* 组件特定样式 */
-</style>

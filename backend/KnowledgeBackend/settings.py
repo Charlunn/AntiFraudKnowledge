@@ -34,7 +34,8 @@ ALLOWED_HOSTS = [
     '47.109.18.154',
     '127.0.0.1',
     'localhost',
-    'backend'
+    'backend',
+    'testserver'  # 用于Django测试客户端
 ]
 
 

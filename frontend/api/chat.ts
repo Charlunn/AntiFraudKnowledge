@@ -74,32 +74,29 @@ export async function fetchChatSessions(
     params.page_size = pageSize;
   }
   
-  // 注意：后端暂不支持会话列表功能
-  throw new Error('后端暂不支持会话列表功能');
+  return await apiClient.get('/chat/sessions/', { params });
 }
 
 /**
- * 获取指定会话的聊天记录
- * @param sessionId - 会话ID
+ * 获取当前用户的聊天历史记录
  * @param page - 页码（可选）
  * @param pageSize - 每页数量（可选）
  * @returns 聊天记录列表
  * 
  * @example
  * ```typescript
- * const messages = await fetchChatHistory('session-123');
+ * const messages = await fetchChatHistory();
  * console.log('聊天记录:', messages.data);
  * ```
  */
 export async function fetchChatHistory(
-  sessionId: string,
   page?: number,
   pageSize?: number
-): Promise<ApiResponse<PaginatedResponse<ChatMessage>>> {
-  if (!sessionId) {
-    throw new Error('会话ID不能为空');
-  }
-  
+): Promise<ApiResponse<{
+  messages: ChatMessage[];
+  score: number;
+  session_id: string;
+}>> {
   const params: Record<string, any> = {};
   
   if (page) {
@@ -110,8 +107,7 @@ export async function fetchChatHistory(
     params.page_size = pageSize;
   }
   
-  // 注意：后端暂不支持获取会话消息功能
-  throw new Error('后端暂不支持获取会话消息功能');
+  return await apiClient.get('/chat/history/', { params });
 }
 
 /**

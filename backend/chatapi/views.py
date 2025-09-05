@@ -22,6 +22,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 
 import openai
+from .knowledge_service import knowledge_service
 
 logger = logging.getLogger(__name__)
 
@@ -144,12 +145,39 @@ class ChatAPIView(APIView):
                 request.session.modified = True # 标记 session 已修改
 
 
-            # 4. 添加用户消息到会话状态
-            conversation_state['messages'].append({'role': 'user', 'content': user_message})
+            # 4. 分析用户消息的诈骗风险（知识图谱集成）
+            risk_analysis = knowledge_service.analyze_fraud_risk(user_message)
+            logger.info(f"用户 {user_id} 消息风险分析: 风险评分={risk_analysis['risk_score']}, 关键词数={len(risk_analysis['keywords'])}")
+            
+            # 如果检测到高风险内容，为AI提供额外的上下文信息
+            knowledge_context = ""
+            if risk_analysis['risk_score'] > 5:  # 风险评分大于5时提供知识图谱信息
+                context_parts = []
+                
+                if risk_analysis['fraud_types']:
+                    fraud_types_info = ", ".join([f"{ft['name']}({ft['risk_level']}风险)" for ft in risk_analysis['fraud_types']])
+                    context_parts.append(f"检测到可能的诈骗类型: {fraud_types_info}")
+                
+                if risk_analysis['keywords']:
+                    keywords_info = ", ".join([f"{kw['word']}(风险值{kw['risk_score']})" for kw in risk_analysis['keywords']])
+                    context_parts.append(f"风险关键词: {keywords_info}")
+                
+                if risk_analysis['suggestions']:
+                    suggestions_info = "; ".join([f"{s['name']}: {s['description']}" for s in risk_analysis['suggestions'][:3]])  # 最多3个建议
+                    context_parts.append(f"防范建议: {suggestions_info}")
+                
+                if context_parts:
+                    knowledge_context = f"\n\n[知识图谱分析] {' | '.join(context_parts)}"
+            
+            # 添加用户消息到会话状态（如果有知识图谱上下文，则附加到消息中）
+            user_message_with_context = user_message + knowledge_context
+            conversation_state['messages'].append({'role': 'user', 'content': user_message_with_context})
             logger.info(f"为用户 {user_id} 添加用户消息: {user_message[:50]}...")
+            if knowledge_context:
+                logger.info(f"为用户 {user_id} 添加知识图谱上下文: {knowledge_context[:100]}...")
+            
             request.session[SESSION_STATE_KEY] = conversation_state
             request.session.modified = True # 标记 session 已修改
-
 
             # 5. 调用 AI API
             try:
@@ -182,28 +210,45 @@ class ChatAPIView(APIView):
                 request.session[SESSION_STATE_KEY] = conversation_state
                 request.session.modified = True # 标记 session 已修改
 
-                # TODO: 7. 实现分数更新逻辑 (这是你原代码截断的部分，需要你补充!)
-                # 将你的 Nuxt/H3 代码中根据 AI 响应更新 score 的逻辑移植到这里。
-                # 例如:
-                # if "积极" in ai_reply_content:
-                #     conversation_state['score'] += 5
-                # elif "消极" in ai_reply_content:
-                #     conversation_state['score'] -= 5
-                # conversation_state['score'] = max(0, min(100, conversation_state['score'])) # 确保分数在 0-100 范围内
-                # print(f"[INFO] Updated score in session state for user_id_from_body {user_id_from_body}: {conversation_state['score']}")
-                # request.session.modified = True # 标记 session 已修改
-
-
-                # 暂时不做分数更新，保留 session 中原有的值或初始化值
+                # 7. 实现分数更新逻辑 - 解析AI响应中的分数
+                import re
+                
+                # 解析AI响应中的分数和正文
+                score_pattern = r'分数：(\d+)\s*正文：(.*)'
+                match = re.match(score_pattern, ai_reply_content.strip(), re.DOTALL)
+                
+                if match:
+                    # 提取分数和正文
+                    new_score = int(match.group(1))
+                    reply_text = match.group(2).strip()
+                    
+                    # 更新会话状态中的分数
+                    conversation_state['score'] = max(0, min(100, new_score))  # 确保分数在 0-100 范围内
+                    
+                    # 更新AI消息内容为纯正文（去掉分数前缀）
+                    conversation_state['messages'][-1]['content'] = reply_text
+                    
+                    logger.info(f"用户 {user_id} 分数更新为: {conversation_state['score']}")
+                    
+                    # 用于返回的AI回复内容
+                    ai_reply_for_response = reply_text
+                else:
+                    # 如果无法解析分数格式，保持原有分数不变
+                    logger.warning(f"用户 {user_id} 的AI响应格式不符合预期，无法解析分数: {ai_reply_content[:100]}...")
+                    ai_reply_for_response = ai_reply_content
+                
+                # 保存更新后的状态到session
+                request.session[SESSION_STATE_KEY] = conversation_state
+                request.session.modified = True
+                
                 current_score = conversation_state['score']
-                logger.info(f"用户 {user_id} 当前分数: {current_score} (分数更新逻辑需要实现)")
 
 
                 # 8. 返回响应
                 return Response(
                     {
                         'success': True,
-                        'reply': ai_reply_content,
+                        'reply': ai_reply_for_response,
                         'score': current_score,
                         'messages': conversation_state['messages'] # 返回 session 中的完整消息历史
                      },
@@ -251,3 +296,131 @@ class ChatAPIView(APIView):
 
 # 保留原有的函数式视图作为备用
 chat_api_view = ChatAPIView.as_view()
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ChatHistoryView(APIView):
+    """聊天历史记录视图"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """获取当前用户的聊天历史记录"""
+        SESSION_STATE_KEY = 'chat_conversation_state'
+        
+        try:
+            user_id = str(request.user.id)
+            logger.info(f"获取用户 {user_id} 的聊天历史")
+            
+            # 从session中获取对话状态
+            conversation_state = request.session.get(SESSION_STATE_KEY)
+            
+            if not conversation_state:
+                return Response({
+                    'success': True,
+                    'data': {
+                        'messages': [],
+                        'score': 70,  # 默认分数
+                        'session_id': request.session.session_key or 'new'
+                    }
+                }, status=status.HTTP_200_OK)
+            
+            return Response({
+                'success': True,
+                'data': {
+                    'messages': conversation_state.get('messages', []),
+                    'score': conversation_state.get('score', 70),
+                    'session_id': request.session.session_key
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"获取用户 {user_id} 聊天历史失败: {e}")
+            return Response({
+                'success': False,
+                'message': '获取聊天历史失败'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ChatSessionsView(APIView):
+    """聊天会话管理视图"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """获取用户的会话列表（基于当前session）"""
+        try:
+            user_id = str(request.user.id)
+            session_key = request.session.session_key
+            
+            # 由于使用Django Session，每个用户只有一个活跃会话
+            # 这里返回当前会话的基本信息
+            SESSION_STATE_KEY = 'chat_conversation_state'
+            conversation_state = request.session.get(SESSION_STATE_KEY)
+            
+            if conversation_state and conversation_state.get('messages'):
+                # 获取第一条用户消息作为会话标题
+                first_user_message = None
+                for msg in conversation_state['messages']:
+                    if msg.get('role') == 'user':
+                        first_user_message = msg.get('content', '')[:50] + '...'
+                        break
+                
+                session_info = {
+                    'id': session_key or 'current',
+                    'title': first_user_message or '新对话',
+                    'message_count': len(conversation_state['messages']),
+                    'score': conversation_state.get('score', 70),
+                    'created_at': None,  # Session没有创建时间信息
+                    'updated_at': None
+                }
+            else:
+                session_info = {
+                    'id': session_key or 'new',
+                    'title': '新对话',
+                    'message_count': 0,
+                    'score': 70,
+                    'created_at': None,
+                    'updated_at': None
+                }
+            
+            return Response({
+                'success': True,
+                'data': {
+                    'sessions': [session_info],
+                    'total': 1,
+                    'current_page': 1,
+                    'total_pages': 1
+                }
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"获取用户 {user_id} 会话列表失败: {e}")
+            return Response({
+                'success': False,
+                'message': '获取会话列表失败'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    def delete(self, request):
+        """清空当前会话"""
+        SESSION_STATE_KEY = 'chat_conversation_state'
+        
+        try:
+            user_id = str(request.user.id)
+            logger.info(f"清空用户 {user_id} 的会话")
+            
+            # 从session中删除对话状态
+            if SESSION_STATE_KEY in request.session:
+                del request.session[SESSION_STATE_KEY]
+                request.session.modified = True
+            
+            return Response({
+                'success': True,
+                'message': '会话已清空'
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"清空用户 {user_id} 会话失败: {e}")
+            return Response({
+                'success': False,
+                'message': '清空会话失败'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -14,9 +14,9 @@ urlpatterns = [
     path('', include(router.urls)),
     
     # 额外的自定义端点
-    path('notifications/count/', views.NotificationCountView.as_view(), name='notification-count'),
-    path('notifications/bulk-send/', views.BulkNotificationView.as_view(), name='bulk-notification'),
-    path('notifications/mark-all-read/', views.NotificationViewSet.as_view({'post': 'mark_all_read'}), name='mark-all-read'),
-    path('notifications/clear-all/', views.NotificationViewSet.as_view({'delete': 'clear_all'}), name='clear-all'),
-    path('notifications/stats/', views.NotificationViewSet.as_view({'get': 'stats'}), name='notification-stats'),
+    path('count/', views.NotificationCountView.as_view(), name='notification-count'),
+    path('bulk-send/', views.BulkNotificationView.as_view(), name='bulk-notification'),
+    path('mark-all-read/', views.NotificationViewSet.as_view({'post': 'mark_all_read'}), name='mark-all-read'),
+    path('clear-all/', views.NotificationViewSet.as_view({'delete': 'clear_all'}), name='clear-all'),
+    path('stats/', views.NotificationViewSet.as_view({'get': 'stats'}), name='notification-stats'),
 ]
