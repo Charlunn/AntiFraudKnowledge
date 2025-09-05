@@ -988,11 +988,14 @@ onMounted(() => {
 }
 
 .header-background {
-  @apply h-48 bg-gradient-to-r from-primary-500 to-primary-700 rounded-b-2xl;
+  @apply h-48 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-600 rounded-b-2xl;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
 }
 
 .header-content {
-  @apply absolute inset-x-0 top-24 px-6;
+  @apply relative px-6 -mt-24;
   z-index: 10;
 }
 
@@ -1008,16 +1011,26 @@ onMounted(() => {
 }
 
 .user-avatar {
-  @apply w-32 h-32 rounded-full border-4 border-white shadow-lg;
+  @apply w-32 h-32 rounded-full shadow-2xl;
   object-fit: cover;
   display: block;
   width: 128px;
   height: 128px;
+  border: 4px solid white;
+  box-shadow: 
+    0 0 0 1px rgba(0, 0, 0, 0.05),
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .avatar-edit-btn {
   @apply absolute bottom-2 right-2 w-8 h-8 bg-primary-600 text-white rounded-full
-         flex items-center justify-center hover:bg-primary-700 transition-colors;
+         flex items-center justify-center hover:bg-primary-700 transition-all duration-200
+         shadow-lg;
+  &:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
 }
 
 .user-info {
@@ -1049,7 +1062,7 @@ onMounted(() => {
 }
 
 .stats-section {
-  @apply mb-8 px-6;
+  @apply mb-8 px-6 mt-8;
 }
 
 .stats-grid {

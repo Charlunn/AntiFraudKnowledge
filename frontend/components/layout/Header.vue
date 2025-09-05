@@ -259,6 +259,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { dashboardApi } from '~/services/api.js'
 
 // 响应式数据
 const route = useRoute()
@@ -289,11 +290,28 @@ onMounted(async () => {
     // 监听认证状态变化
     watch(() => auth.user.value, (newUser) => {
       user.value = newUser
+      // 当用户状态变化时，重新获取通知数量
+      if (newUser) {
+        fetchUnreadCount()
+      } else {
+        unreadCount.value = 0
+      }
     })
     
     watch(() => auth.isAuthenticated.value, (newAuth) => {
       isAuthenticated.value = newAuth
+      // 当认证状态变化时，获取通知数量
+      if (newAuth) {
+        fetchUnreadCount()
+      } else {
+        unreadCount.value = 0
+      }
     })
+    
+    // 初始化时获取通知数量
+    if (auth.isAuthenticated.value) {
+      fetchUnreadCount()
+    }
   }
   
   // 初始化主题
@@ -310,7 +328,7 @@ onMounted(async () => {
 })
 
 // 未读通知数量
-const unreadCount = ref(3)
+const unreadCount = ref(0)
 
 // 导航菜单项
 const navigationItems = [
@@ -401,6 +419,17 @@ const toggleNotifications = () => {
   if (showNotifications.value) {
     // 跳转到通知页面
     router.push('/notifications')
+  }
+}
+
+// 获取未读通知数量
+const fetchUnreadCount = async () => {
+  try {
+    const response = await dashboardApi.getNotificationCount()
+    unreadCount.value = response.unread_count || 0
+  } catch (error) {
+    console.error('获取通知数量失败:', error)
+    unreadCount.value = 0
   }
 }
 
