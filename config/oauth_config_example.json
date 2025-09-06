@@ -1,0 +1,44 @@
+{
+  "_comment": "OAuth平台配置示例文件",
+  "_instructions": [
+    "1. 复制此文件为 oauth_config.json",
+    "2. 填入从各平台申请到的真实APP_ID和密钥",
+    "3. 运行 python scripts/setup_oauth.py -f config/oauth_config.json",
+    "4. 重启前后端服务"
+  ],
+  
+  "qq_app_id": "your_qq_app_id_here",
+  "qq_app_key": "your_qq_app_key_here",
+  
+  "wechat_app_id": "your_wechat_app_id_here",
+  "wechat_app_secret": "your_wechat_app_secret_here",
+  
+  "douyin_app_id": "your_douyin_client_key_here",
+  "douyin_app_secret": "your_douyin_client_secret_here",
+  
+  "alipay_app_id": "your_alipay_app_id_here",
+  "alipay_private_key": "your_alipay_private_key_here",
+  "alipay_public_key": "your_alipay_public_key_here",
+  
+  "_platform_urls": {
+    "qq": "https://connect.qq.com/",
+    "wechat": "https://open.weixin.qq.com/",
+    "douyin": "https://developer.open-douyin.com/",
+    "alipay": "https://open.alipay.com/"
+  },
+  
+  "_callback_urls": {
+    "development": {
+      "qq": "http://localhost:3001/auth/qq/callback",
+      "wechat": "http://localhost:3001/auth/wechat/callback",
+      "douyin": "http://localhost:3001/auth/douyin/callback",
+      "alipay": "http://localhost:3001/auth/alipay/callback"
+    },
+    "production": {
+      "qq": "https://yourdomain.com/auth/qq/callback",
+      "wechat": "https://yourdomain.com/auth/wechat/callback",
+      "douyin": "https://yourdomain.com/auth/douyin/callback",
+      "alipay": "https://yourdomain.com/auth/alipay/callback"
+    }
+  }
+}

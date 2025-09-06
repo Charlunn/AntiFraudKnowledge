@@ -219,11 +219,13 @@ const loading = ref(false)
 const error = ref(null)
 const selectedNodes = ref([])
 const expandedNodes = ref(new Set())
-const nodeCount = computed(() => graphData.value.nodes.length)
-const linkCount = computed(() => graphData.value.links.length)
+const nodeCount = computed(() => graphData.value.nodes?.length || 0)
+const linkCount = computed(() => graphData.value.links?.length || 0)
 const nodeTypes = computed(() => {
   const types = new Set()
-  graphData.value.nodes.forEach(node => types.add(node.type))
+  if (graphData.value.nodes && Array.isArray(graphData.value.nodes)) {
+    graphData.value.nodes.forEach(node => types.add(node.type))
+  }
   return Array.from(types)
 })
 

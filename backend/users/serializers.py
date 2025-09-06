@@ -3,6 +3,7 @@ from .models import CustomUser
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from utils.avatar_cache import avatar_cache_manager
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
@@ -53,11 +54,36 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     avatar = serializers.ImageField(required=False)
+    cached_avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'nickname', 'email', 'phone_number', 'fraud_level', 'user_type', 'avatar')
-        read_only_fields = ('username', 'fraud_level', 'user_type')
+        fields = ('username', 'nickname', 'email', 'phone_number', 'fraud_level', 'user_type', 'avatar', 'avatar_url', 'cached_avatar_url')
+        read_only_fields = ('username', 'fraud_level', 'user_type', 'cached_avatar_url')
+    
+    def get_cached_avatar_url(self, obj):
+        """
+        获取缓存的头像URL
+        优先返回本地头像，其次返回缓存的第三方头像，最后返回原始第三方头像
+        """
+        # 如果有本地上传的头像，优先使用
+        if obj.avatar:
+            return self.context['request'].build_absolute_uri(obj.avatar.url) if 'request' in self.context else obj.avatar.url
+        
+        # 如果有第三方头像URL，尝试获取缓存版本
+        if obj.avatar_url:
+            try:
+                cached_url = avatar_cache_manager.get_cached_avatar_url(obj.avatar_url)
+                if cached_url and 'request' in self.context:
+                    # 如果是相对路径，转换为绝对路径
+                    if not cached_url.startswith(('http://', 'https://')):
+                        return self.context['request'].build_absolute_uri(cached_url)
+                return cached_url
+            except Exception:
+                # 如果缓存失败，返回原始URL
+                return obj.avatar_url
+        
+        return None
 
     def validate_email(self, value):
         # 校验邮箱唯一性

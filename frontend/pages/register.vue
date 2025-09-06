@@ -205,13 +205,21 @@
             <div class="ml-3 text-sm">
               <label for="agree-terms" class="text-neutral-700 dark:text-dark-text">
                 我已阅读并同意
-                <NuxtLink to="/terms" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors duration-200">
+                <button
+                  type="button"
+                  @click="showPolicyModal('terms')"
+                  class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors duration-200 underline"
+                >
                   服务条款
-                </NuxtLink>
+                </button>
                 和
-                <NuxtLink to="/privacy" class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors duration-200">
+                <button
+                  type="button"
+                  @click="showPolicyModal('privacy')"
+                  class="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors duration-200 underline"
+                >
                   隐私政策
-                </NuxtLink>
+                </button>
               </label>
             </div>
           </div>
@@ -235,6 +243,40 @@
           </div>
         </form>
 
+        <!-- 分隔线 (仅在启用OAuth时显示) -->
+        <div :style="{ display: shouldShowOAuthUI ? 'block' : 'none' }" class="mt-6">
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-neutral-300 dark:border-dark-border"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-2 bg-white dark:bg-dark-surface text-neutral-500 dark:text-dark-text-secondary">
+                或使用第三方账户注册
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 第三方注册按钮 (根据环境变量控制显示) -->
+        <div :style="{ display: shouldShowOAuthUI ? 'block' : 'none' }" class="mt-6 grid grid-cols-2 gap-3">
+          <button
+            v-for="platform in availableOAuthPlatforms"
+            :key="platform.name"
+            @click="handleOAuthLogin(platform.name)"
+            type="button"
+            class="w-full inline-flex justify-center items-center px-4 py-2 border border-neutral-300 dark:border-dark-border rounded-lg shadow-sm bg-white dark:bg-dark-bg text-sm font-medium text-neutral-700 dark:text-dark-text hover:bg-neutral-50 dark:hover:bg-dark-surface transition-colors duration-200"
+          >
+            <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24" :fill="platform.color">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/>
+              <path v-if="platform.name === 'qq'" d="M8 10h2v2H8zm4-2h2v2h-2zm2 4h2v2h-2zm-4 0h2v2h-2z"/>
+              <path v-else-if="platform.name === 'wechat'" d="M8.5 9.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm7 0c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5z"/>
+              <path v-else-if="platform.name === 'douyin'" d="M8 8h8v8H8z"/>
+              <path v-else-if="platform.name === 'alipay'" d="M7 10h10v4H7z"/>
+            </svg>
+            {{ platform.displayName.replace('登录', '注册') }}
+          </button>
+        </div>
+
         <!-- 登录链接 -->
         <div class="mt-6 text-center">
           <p class="text-sm text-neutral-600 dark:text-dark-text-secondary">
@@ -249,6 +291,13 @@
         </div>
       </div>
     </div>
+
+    <!-- 政策模态框 -->
+    <PolicyModal
+      v-if="policyModalVisible"
+      :type="policyModalType"
+      @close="closePolicyModal"
+    />
   </div>
 </template>
 
@@ -257,8 +306,10 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
-import { useRegisterForm } from '~/composables/useForm'
 import { useToast } from '~/composables/useNotification'
+import { useRegisterForm } from '~/composables/useForm'
+import { useOAuth } from '~/composables/useOAuth'
+import PolicyModal from '~/components/ui/PolicyModal.vue'
 
 // 页面元数据
 useHead({
@@ -273,9 +324,44 @@ const router = useRouter()
 const { register } = useAuth()
 const { showSuccess, showError } = useToast()
 
+// OAuth功能管理
+const { 
+  isOAuthEnabled, 
+  shouldShowOAuthUI, 
+  shouldShowOAuthDivider, 
+  handleOAuthLogin 
+} = useOAuth()
+
+// 可用的OAuth平台列表
+const availableOAuthPlatforms = computed(() => {
+  if (!isOAuthEnabled.value) return []
+  
+  return [
+    { key: 'qq', name: 'QQ', icon: 'fab fa-qq', color: 'text-blue-500' },
+    { key: 'wechat', name: '微信', icon: 'fab fa-weixin', color: 'text-green-500' },
+    { key: 'douyin', name: '抖音', icon: 'fab fa-tiktok', color: 'text-black' },
+    { key: 'alipay', name: '支付宝', icon: 'fab fa-alipay', color: 'text-blue-600' }
+  ]
+})
+
 // 状态管理
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
+
+// 政策模态框状态
+const policyModalVisible = ref(false)
+const policyModalType = ref('terms')
+
+// 显示政策模态框
+const showPolicyModal = (type) => {
+  policyModalType.value = type
+  policyModalVisible.value = true
+}
+
+// 关闭政策模态框
+const closePolicyModal = () => {
+  policyModalVisible.value = false
+}
 
 // 使用注册表单
 const {
@@ -314,6 +400,8 @@ const {
 const handleRegister = async () => {
   await submitForm()
 }
+
+// 第三方登录逻辑已移至 useOAuth composable 中
 
 // 计算属性
 const isValidUsername = computed(() => {

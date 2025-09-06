@@ -11,7 +11,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       // 始终使用 /api 路径，通过代理转发到后端
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api'
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
+      // OAuth功能开关
+      enableOAuthLogin: process.env.ENABLE_OAUTH_LOGIN === 'true'
     }
   },
   // 开发服务器配置
@@ -36,6 +38,24 @@ export default defineNuxtConfig({
   },
   // 添加兼容性日期配置以消除警告
   compatibilityDate: '2025-09-02',
+  // TypeScript配置
+  typescript: {
+    strict: true,
+    typeCheck: false
+  },
+  // Vite配置
+  vite: {
+    resolve: {
+      alias: {
+        '~/api': '/api'
+      }
+    },
+    server: {
+      hmr: {
+        overlay: false
+      }
+    }
+  },
   // 配置Vue Router以忽略/@vite/client路径警告
   hooks: {
     'vite:extendConfig': (config, { isClient, isServer }) => {

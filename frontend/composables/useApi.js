@@ -169,7 +169,7 @@ export const useGraphApi = () => {
           // 处理图谱数据格式
           return {
             nodes: data.nodes || [],
-            edges: data.edges || [],
+            links: data.links || data.edges || [],
             categories: data.categories || []
           }
         }

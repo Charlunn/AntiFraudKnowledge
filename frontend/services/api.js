@@ -326,7 +326,13 @@ export const userApi = {
 // 知识图谱相关API
 export const graphApi = {
   // 获取图谱数据
-  getGraph: (params) => apiClient.get('/graph/', params),
+-  getGraph: (params) => apiClient.get('/graph/', params),
++  // 获取图谱数据：无过滤条件时使用 initial，有过滤条件时使用 filtered
++  getGraph: (params = {}) => {
++    const hasFilters = params && Object.keys(params).length > 0;
++    const endpoint = hasFilters ? '/graph/filtered/' : '/graph/initial/';
++    return apiClient.get(endpoint, params);
++  },
   
   // 搜索节点
   searchNodes: (query, params) => apiClient.get('/graph/search/', { query, ...params }),
@@ -344,7 +350,7 @@ export const graphApi = {
   executeComplexQuery: (query) => apiClient.post('/graph/query/', query),
   
   // 获取图统计
-  getGraphStats: () => apiClient.get('/graph/stats/'),
+  getGraphStats: () => apiClient.get('/graph/statistics/'),
   
   // 导出图数据
   exportGraph: (format, params) => apiClient.get('/graph/export', { format, ...params })

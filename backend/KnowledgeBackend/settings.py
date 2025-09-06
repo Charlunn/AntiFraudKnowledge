@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',  # JWT authentication
     'rest_framework_simplejwt.token_blacklist',  # JWT token blacklist
+    'oauth2_provider',  # OAuth2 provider for third-party login
     'drf_yasg',  # Swagger文档生成器
     'graph_api',
     'users',

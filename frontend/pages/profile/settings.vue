@@ -736,6 +736,7 @@ const avatarInput = ref(null)
 const settingSections = [
   { key: 'profile', label: '个人信息', icon: 'heroicons:user' },
   { key: 'security', label: '账户安全', icon: 'heroicons:shield-check' },
+  { key: 'oauth', label: '第三方账户', icon: 'heroicons:link' },
   { key: 'privacy', label: '隐私设置', icon: 'heroicons:eye-slash' },
   { key: 'notifications', label: '通知设置', icon: 'heroicons:bell' },
   { key: 'data', label: '数据管理', icon: 'heroicons:server' }
@@ -782,6 +783,32 @@ const notificationSettings = ref({
   },
   email_frequency: 'daily'
 })
+
+// 第三方账户绑定状态
+const oauthBindings = ref({
+  qq: {
+    bound: false,
+    nickname: '',
+    avatar: ''
+  },
+  wechat: {
+    bound: false,
+    nickname: '',
+    avatar: ''
+  },
+  douyin: {
+    bound: false,
+    nickname: '',
+    avatar: ''
+  },
+  alipay: {
+    bound: false,
+    nickname: '',
+    avatar: ''
+  }
+})
+
+const oauthBinding = ref(false)
 
 // 模拟登录记录
 const loginHistory = ref([
@@ -1174,9 +1201,78 @@ const initializeData = async () => {
   }
 }
 
+// 第三方账户管理方法
+const bindOAuthAccount = async (provider) => {
+  try {
+    oauthBinding.value = true
+    
+    // 构建OAuth授权URL
+    const { buildAuthUrl } = await import('@/config/oauth')
+    const authUrl = buildAuthUrl(provider)
+    
+    // 跳转到OAuth授权页面
+    window.location.href = authUrl
+    
+  } catch (err) {
+    console.error('Failed to bind OAuth account:', err)
+    showToast({
+      type: 'error',
+      title: '绑定失败',
+      message: '启动OAuth绑定时发生错误'
+    })
+  } finally {
+    oauthBinding.value = false
+  }
+}
+
+const unbindOAuthAccount = async (provider) => {
+  try {
+    oauthBinding.value = true
+    
+    const response = await $api.user.unbindOAuth({ provider })
+    
+    if (response.success) {
+      // 更新绑定状态
+      oauthBindings.value[provider] = {
+        bound: false,
+        nickname: '',
+        avatar: ''
+      }
+      
+      showToast({
+        type: 'success',
+        title: '解绑成功',
+        message: `已成功解绑${provider.toUpperCase()}账户`
+      })
+    }
+    
+  } catch (err) {
+    console.error('Failed to unbind OAuth account:', err)
+    showToast({
+      type: 'error',
+      title: '解绑失败',
+      message: '解绑第三方账户时发生错误'
+    })
+  } finally {
+    oauthBinding.value = false
+  }
+}
+
+const loadOAuthBindings = async () => {
+  try {
+    const response = await $api.user.getOAuthBindings()
+    if (response.success) {
+      Object.assign(oauthBindings.value, response.data)
+    }
+  } catch (err) {
+    console.error('Failed to load OAuth bindings:', err)
+  }
+}
+
 // 生命周期
 onMounted(() => {
   initializeData()
+  loadOAuthBindings()
 })
 </script>
 
@@ -1556,5 +1652,74 @@ onMounted(() => {
 
 .btn:disabled {
   @apply opacity-50 cursor-not-allowed;
+}
+
+/* 第三方账户样式 */
+.oauth-groups {
+  @apply space-y-8;
+}
+
+.oauth-group {
+  @apply bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700;
+}
+
+.oauth-accounts {
+  @apply space-y-4;
+}
+
+.oauth-account {
+  @apply flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600;
+}
+
+.account-info {
+  @apply flex items-center gap-4;
+}
+
+.account-icon {
+  @apply w-12 h-12 rounded-full flex items-center justify-center text-white;
+}
+
+.account-icon.qq {
+  @apply bg-blue-500;
+}
+
+.account-icon.wechat {
+  @apply bg-green-500;
+}
+
+.account-icon.douyin {
+  @apply bg-black;
+}
+
+.account-icon.alipay {
+  @apply bg-blue-600;
+}
+
+.account-details {
+  @apply flex flex-col;
+}
+
+.account-name {
+  @apply font-semibold text-gray-900 dark:text-white;
+}
+
+.account-status {
+  @apply text-sm text-gray-500 dark:text-gray-400;
+}
+
+.account-status.bound {
+  @apply text-green-600 dark:text-green-400;
+}
+
+.account-actions {
+  @apply flex gap-2;
+}
+
+.oauth-info {
+  @apply space-y-3;
+}
+
+.info-item {
+  @apply flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400;
 }
 </style>
