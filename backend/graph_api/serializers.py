@@ -248,6 +248,10 @@ class EchartsGraphSerializer(serializers.Serializer):
         return {'nodes': final_nodes_list, 'links': links_data}
 
 
+class GraphDataSerializer(EchartsGraphSerializer):
+    """保持向后兼容的别名序列化器，直接继承 EchartsGraphSerializer。"""
+    pass
+
 # ==============================================================
 # NodeDetailSerializer - Also needs adaptation for Dict input
 # ==============================================================
