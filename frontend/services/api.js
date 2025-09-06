@@ -30,7 +30,46 @@ class ApiClient {
 
   // 获取认证头
   getAuthHeaders() {
-    const token = useCookie('access-token').value
+    let token = null
+    
+    if (process.client && typeof window !== 'undefined') {
+      try {
+        // 从cookie中解析access-token
+        const cookies = document.cookie.split(';')
+        for (let cookie of cookies) {
+          const [name, value] = cookie.trim().split('=')
+          if (name === 'access-token') {
+            token = value
+            break
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to get token from cookie:', error)
+      }
+      
+      // 如果cookie中没有token，从localStorage获取
+      if (!token && window.localStorage) {
+        const storageKey = 'antifraud_user_token'
+        const storedData = window.localStorage.getItem(storageKey)
+        if (storedData) {
+          try {
+            const parsed = JSON.parse(storedData)
+            // 检查token是否过期
+            if (parsed.timestamp && parsed.expires) {
+              const now = Date.now()
+              if (now - parsed.timestamp < parsed.expires) {
+                token = parsed.value
+              }
+            } else {
+              token = parsed.value
+            }
+          } catch (e) {
+            console.warn('Failed to parse stored token:', e)
+          }
+        }
+      }
+    }
+    
     return token ? { 'Authorization': `Bearer ${token}` } : {}
   }
 
@@ -197,8 +236,12 @@ const apiClient = new ApiClient()
 
 // 认证相关API
 export const authApi = {
-  // OAuth 2.0 用户登录
-  login: (credentials) => apiClient.post('/users/login/', credentials),
+  // JWT 用户登录
+  login: (credentials) => {
+    // 移除OAuth2特定的client_id字段
+    const { client_id, ...loginData } = credentials
+    return apiClient.post('/users/login/', loginData)
+  },
   
   // 用户注册
   register: (userData) => {
@@ -214,14 +257,18 @@ export const authApi = {
     return apiClient.post('/users/register/', backendData)
   },
   
-  // OAuth 2.0 刷新令牌
-  refreshToken: (refreshData) => apiClient.post('/users/token/refresh/', refreshData),
+  // JWT 刷新令牌
+  refreshToken: (refreshData) => {
+    // 移除OAuth2特定的client_id字段
+    const { client_id, ...tokenData } = refreshData
+    return apiClient.post('/users/token/refresh/', tokenData)
+  },
   
-  // OAuth 2.0 用户登出
-  logout: () => apiClient.post('/users/logout/'),
+  // JWT 用户登出
+  logout: (refreshToken) => apiClient.post('/users/logout/', { refresh_token: refreshToken }),
 
-  // OAuth 2.0 验证令牌
-  verifyToken: (token) => apiClient.post('/users/token/verify/', { token }),
+  // JWT 验证令牌
+  verifyToken: () => apiClient.post('/users/token/verify/'),
 
   // 忘记密码
   forgotPassword: (email) => apiClient.post('/users/password/reset/', { email }),
@@ -233,7 +280,7 @@ export const authApi = {
   verifyEmail: (data) => apiClient.post('/users/verify-email/', data),
 
   // 获取当前用户信息
-  getCurrentUser: () => apiClient.get('/users/profile/')
+  getCurrentUser: () => apiClient.get('/users/me/')
 }
 
 // 用户相关API

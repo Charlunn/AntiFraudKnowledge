@@ -210,10 +210,19 @@ const user = ref(null)
 
 onMounted(async () => {
   if (process.client) {
-    // 动态导入store以避免SSR问题
-    const { useAuthStore } = await import('~/stores/auth')
-    const authStore = useAuthStore()
-    user.value = authStore.user
+    try {
+      // 确保Pinia已初始化
+      const { $pinia } = useNuxtApp()
+      if ($pinia) {
+        // 动态导入store以避免SSR问题
+        const { useAuthStore } = await import('~/stores/auth')
+        const authStore = useAuthStore()
+        authStore.initialize()
+        user.value = authStore.user
+      }
+    } catch (error) {
+      console.warn('Failed to initialize auth store in dashboard:', error)
+    }
   }
 })
 

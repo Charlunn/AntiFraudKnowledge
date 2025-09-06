@@ -48,10 +48,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'corsheaders',
     'django.contrib.messages',
-    'rest_framework.authtoken',
     'django.contrib.staticfiles',
     'rest_framework',
-    'oauth2_provider',  # OAuth 2.0 provider
+    'rest_framework_simplejwt',  # JWT authentication
+    'rest_framework_simplejwt.token_blacklist',  # JWT token blacklist
     'drf_yasg',  # Swagger文档生成器
     'graph_api',
     'users',
@@ -171,44 +171,48 @@ NEO4J_PASSWORD = 'password'
 # --- Django REST Framework Settings ---
 # [23, 24, 25]
 REST_FRAMEWORK = {
-    # 身份验证类 - 生产环境必须配置！
-    # 默认允许任何请求，这在生产中是不安全的。
-    # 示例（需要安装 djangorestframework-simplejwt）：
-    # 'DEFAULT_AUTHENTICATION_CLASSES': (
-    #     'rest_framework_simplejwt.authentication.JWTAuthentication',
-    # )
-    # 'DEFAULT_AUTHENTICATION_CLASSES': 或 JWT
-    # ],
-    # 权限类 - 生产环境必须配置！
-    # 默认允许任何请求访问任何资源。
-    # 示例：
-    # 'DEFAULT_PERMISSION_CLASSES':
-
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny', # 这通常是登录接口需要的权限
-        # ... 其他权限类，但不要包含 JWTAuthentication
     ],
-    # ... 其他配置
-
-    # 分页设置 [24, 27]
+    # 分页设置
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 50  # 每页默认返回 50 条记录，可根据需求调整
 }
-# OAuth 2.0 Settings
-OAUTH2_PROVIDER = {
-    'SCOPES': {
-        'read': 'Read scope',
-        'write': 'Write scope',
-    },
-    'ACCESS_TOKEN_EXPIRE_SECONDS': 3600,  # 1 hour
-    'REFRESH_TOKEN_EXPIRE_SECONDS': 86400,  # 24 hours
-    'AUTHORIZATION_CODE_EXPIRE_SECONDS': 600,  # 10 minutes
-    'ROTATE_REFRESH_TOKEN': True,
+# JWT Settings
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    'JWK_URL': None,
+    'LEEWAY': 0,
+    
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'USER_AUTHENTICATION_RULE': 'rest_framework_simplejwt.authentication.default_user_authentication_rule',
+    
+    'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+    'TOKEN_TYPE_CLAIM': 'token_type',
+    'TOKEN_USER_CLASS': 'rest_framework_simplejwt.models.TokenUser',
+    
+    'JTI_CLAIM': 'jti',
+    
+    'SLIDING_TOKEN_REFRESH_EXP_CLAIM': 'refresh_exp',
+    'SLIDING_TOKEN_LIFETIME': timedelta(hours=1),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 # --- Logging Configuration ---
 LOGGING = {

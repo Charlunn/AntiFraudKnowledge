@@ -14,14 +14,20 @@ export default defineNuxtConfig({
       apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api'
     }
   },
-  // 开发服务器默认配置
-  // Nuxt会自动选择可用端口（优先3000）
+  // 开发服务器配置
   devServer: {
-    port: 3000
+    port: 3000,
+    // 配置代理，将API请求转发到后端
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   },
-  // 配置代理，将API请求转发到后端
+  // 生产环境代理配置
   nitro: {
-    // 生产环境和开发环境都使用的代理配置
     routeRules: {
       '/api/**': {
         proxy: process.env.DOCKER_ENV ? 'http://backend:8000/api/**' : 'http://127.0.0.1:8000/api/**'

@@ -70,22 +70,21 @@ export const useAuth = () => {
   // 检查是否为版主
   const isModerator = computed(() => hasRole(USER_ROLES.MODERATOR) || isAdmin.value)
   
-  // OAuth 2.0 用户登录
+  // JWT 用户登录
   const login = async (credentials) => {
     isLoading.value = true
     authError.value = null
     
     try {
-      // OAuth 2.0 登录数据
+      // JWT 登录数据
       const loginData = {
         username: credentials.username,
-        password: credentials.password,
-        client_id: 'frontend-client' // OAuth 2.0 客户端ID
+        password: credentials.password
       }
       
       const response = await authApi.login(loginData)
       
-      // OAuth 2.0标准响应格式：access_token, refresh_token, user
+      // JWT标准响应格式：access_token, refresh_token, user
       if (response && response.access_token) {
         // 保存令牌
         accessToken.value = response.access_token
@@ -95,9 +94,16 @@ export const useAuth = () => {
         user.value = response.user
         isAuthenticated.value = true
         
-        // 保存到本地存储
+        // 保存到本地存储和cookie
         userStorage.setToken(response.access_token)
         userStorage.setUserInfo(response.user)
+        
+        // 同时保存到cookie以确保API调用能获取到token
+        const accessTokenCookie = useCookie('access-token', {
+          default: () => null,
+          maxAge: 7 * 24 * 60 * 60 // 7天
+        })
+        accessTokenCookie.value = response.access_token
         
         return { success: true, data: response }
       } else {
@@ -132,17 +138,17 @@ export const useAuth = () => {
     }
   }
   
-  // OAuth 2.0 用户登出
+  // JWT 用户登出
   const logout = async () => {
     isLoading.value = true
     
     try {
-      // 调用后端OAuth 2.0登出API
-      if (accessToken.value) {
-        await authApi.logout()
+      // 调用后端JWT登出API，传递refresh token
+      if (refreshToken.value) {
+        await authApi.logout(refreshToken.value)
       }
     } catch (error) {
-      console.warn('OAuth 2.0 logout API call failed:', error)
+      console.warn('JWT logout API call failed:', error)
     } finally {
       // 清除本地状态和存储
       clearAuthState()
@@ -176,7 +182,7 @@ export const useAuth = () => {
     }
   }
   
-  // OAuth 2.0 刷新访问令牌
+  // JWT 刷新访问令牌
   const refreshAccessToken = async () => {
     if (!refreshToken.value) {
       throw new Error('No refresh token available')
@@ -184,13 +190,31 @@ export const useAuth = () => {
     
     try {
       const response = await authApi.refreshToken({ 
-        refresh_token: refreshToken.value,
-        client_id: 'frontend-client'
+        refresh: refreshToken.value
       })
       
       accessToken.value = response.access_token
       if (response.refresh_token) {
         refreshToken.value = response.refresh_token
+      }
+      
+      // 更新本地存储
+      userStorage.setToken(response.access_token)
+      
+      // 更新cookie中的token
+      const accessTokenCookie = useCookie('access-token', {
+        default: () => null,
+        maxAge: 7 * 24 * 60 * 60 // 7天
+      })
+      accessTokenCookie.value = response.access_token
+      
+      // 更新refresh token cookie
+      if (response.refresh_token) {
+        const refreshTokenCookie = useCookie('refresh-token', {
+          default: () => null,
+          maxAge: 60 * 60 * 24 // 24小时
+        })
+        refreshTokenCookie.value = response.refresh_token
       }
       
       return response.access_token

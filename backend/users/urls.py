@@ -13,19 +13,21 @@ from .views import (
     AdminUserDetailView,
     UserStatsView,
 )
-from .oauth_views import (
-    OAuth2LoginView,
-    OAuth2LogoutView,
-    OAuth2RefreshTokenView,
-    OAuth2VerifyTokenView,
+from .jwt_views import (
+    JWTLoginView,
+    JWTLogoutView,
+    JWTRefreshTokenView,
+    JWTVerifyTokenView,
+    JWTUserProfileView,
 )
 
 urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='user-register'),
-    path('login/', OAuth2LoginView.as_view(), name='oauth2-login'),
-    path('logout/', OAuth2LogoutView.as_view(), name='oauth2-logout'),
-    path('token/refresh/', OAuth2RefreshTokenView.as_view(), name='oauth2-refresh'),
-    path('token/verify/', OAuth2VerifyTokenView.as_view(), name='oauth2-verify'),
+    path('login/', JWTLoginView.as_view(), name='jwt-login'),
+    path('logout/', JWTLogoutView.as_view(), name='jwt-logout'),
+    path('token/refresh/', JWTRefreshTokenView.as_view(), name='jwt-refresh'),
+    path('token/verify/', JWTVerifyTokenView.as_view(), name='jwt-verify'),
+    path('me/', JWTUserProfileView.as_view(), name='jwt-user-profile'),
     path('profile/', UserProfileView.as_view(), name='user-profile'),
     path('change-password/', ChangePasswordView.as_view(), name='change-password'), # Change password URL
     path('delete-account/', DeleteUserView.as_view(), name='delete-account'), # Add this line

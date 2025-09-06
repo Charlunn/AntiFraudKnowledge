@@ -2,6 +2,7 @@
 
 from .settings import *
 import os
+from datetime import timedelta
 
 # 生产环境安全设置
 DEBUG = False
@@ -107,13 +108,13 @@ CSRF_TRUSTED_ORIGINS = [
     # 添加实际域名
 ]
 
-# OAuth 2.0 生产环境设置
-OAUTH2_PROVIDER.update({
-    'ACCESS_TOKEN_EXPIRE_SECONDS': 3600,  # 1小时
-    'REFRESH_TOKEN_EXPIRE_SECONDS': 86400 * 7,  # 7天
-    'AUTHORIZATION_CODE_EXPIRE_SECONDS': 300,  # 5分钟
-    'ROTATE_REFRESH_TOKEN': True,
-    'PKCE_REQUIRED': True,  # 启用PKCE以增强安全性
+# JWT 生产环境设置
+SIMPLE_JWT.update({
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),  # 1小时
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # 7天
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
 })
 
 # REST Framework生产环境设置
@@ -192,7 +193,7 @@ LOGGING = {
             'level': 'INFO',
             'propagate': False,
         },
-        'oauth2_provider': {
+        'rest_framework_simplejwt': {
             'handlers': ['console', 'file'],
             'level': 'INFO',
             'propagate': False,

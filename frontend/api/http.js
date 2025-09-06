@@ -23,10 +23,10 @@ apiClient.interceptors.request.use((config) => {
   // 设置基础URL
   config.baseURL = runtime.public.apiBase || '/api';
   
-  // 从cookie获取认证token
-  const authToken = useCookie('auth-token');
-  if (authToken.value) {
-    config.headers.Authorization = `Token ${authToken.value}`;
+  // 从cookie获取JWT认证token
+  const accessToken = useCookie('access-token');
+  if (accessToken.value) {
+    config.headers.Authorization = `Bearer ${accessToken.value}`;
   }
   
   return config;
