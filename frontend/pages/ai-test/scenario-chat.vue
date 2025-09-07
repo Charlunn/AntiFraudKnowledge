@@ -103,7 +103,14 @@
       <div class="bg-white dark:bg-dark-surface rounded-xl p-8 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
         <h2 class="text-2xl font-bold text-gray-900 dark:text-dark-text mb-6">对话报告</h2>
         
-        <div class="space-y-4">
+        <!-- 报告生成中的加载提示 -->
+        <div v-if="isGeneratingReport" class="text-center py-8">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
+          <p class="text-gray-600 dark:text-dark-text-secondary">正在生成此次报告，请稍候...</p>
+        </div>
+        
+        <!-- 报告内容 -->
+        <div v-else class="space-y-4">
           <div class="flex justify-between items-center p-4 bg-gray-50 dark:bg-dark-bg rounded-lg">
             <span class="font-semibold">最终得分:</span>
             <span class="text-2xl font-bold" :class="finalScore >= 80 ? 'text-green-600' : finalScore >= 60 ? 'text-yellow-600' : 'text-red-600'">
@@ -135,13 +142,15 @@
         <div class="flex justify-end space-x-4 mt-6">
           <button
             @click="saveReport"
-            class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+            :disabled="isGeneratingReport"
+            class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             保存报告
           </button>
           <button
             @click="goBack"
-            class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200"
+            :disabled="isGeneratingReport"
+            class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             返回
           </button>
@@ -182,6 +191,7 @@ const isTyping = ref(false)
 const chatContainer = ref(null)
 const gameEnded = ref(false)
 const showReport = ref(false)
+const isGeneratingReport = ref(false)
 
 // 游戏状态
 const currentScore = ref(50) // 初始分数50
@@ -479,11 +489,13 @@ const evaluateUserResponse = (response) => {
 const endConversation = async (reason = 'manual_end') => {
   gameEnded.value = true
   finalScore.value = currentScore.value
+  isGeneratingReport.value = true
+  showReport.value = true
   
   // 生成AI分析报告
   await generateAIReport(reason)
   
-  showReport.value = true
+  isGeneratingReport.value = false
 }
 
 // 生成AI分析报告
@@ -498,7 +510,7 @@ const generateAIReport = async (endReason) => {
     }
     
     // 调用后端API生成报告
-    const response = await $fetch('/api/chatapi/generate-report/', {
+    const response = await $fetch('/api/chat/generate-report/', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -558,10 +570,11 @@ const saveReport = async () => {
     const response = await saveTestRecord({
       scenario_type: reportData.scenario_type,
       difficulty: reportData.difficulty,
+      mode: reportData.mode,
       score: reportData.score,
       conversation_rounds: reportData.conversation_rounds,
-      ai_feedback: reportData.report_data.performance_analysis,
-      suggestions: JSON.stringify(reportData.report_data.suggestions),
+      end_reason: reportData.end_reason,
+      report_data: reportData.report_data,
       replace_latest: reportData.replace_latest
     })
     
@@ -576,7 +589,7 @@ const saveReport = async () => {
 
 // 返回
 const goBack = () => {
-  router.push('/ai-test/simulation')
+  router.push('/ai-test')
 }
 
 // 滚动到底部

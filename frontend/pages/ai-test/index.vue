@@ -121,7 +121,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { fetchTestRecords } from '~/api/test-records'
 
@@ -240,8 +240,13 @@ const formatDate = (date) => {
   })
 }
 
-// 生命周期
+// 页面初始化
 onMounted(() => {
+  loadRecentTests()
+})
+
+// 页面激活时刷新数据（从其他页面返回时）
+onActivated(() => {
   loadRecentTests()
 })
 </script>
