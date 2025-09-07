@@ -45,15 +45,18 @@ class ConversationState(TypedDict):
 DASHSCOPE_API_KEY = os.environ.get("DASHSCOPE_API_KEY")
 
 # 如果 API key 未设置，这里可以根据需要抛出错误或记录警告
+print(f"DEBUG: DASHSCOPE_API_KEY = {DASHSCOPE_API_KEY}")
 if not DASHSCOPE_API_KEY:
      print("WARNING: DASHSCOPE_API_KEY environment variable not set. AI calls will likely fail.")
      openai_client = None
      # raise EnvironmentError("DASHSCOPE_API_KEY environment variable not set.") # 生产环境建议直接中断
 else:
+    print("DEBUG: Initializing OpenAI client with API key")
     openai_client = openai.OpenAI(
         api_key=DASHSCOPE_API_KEY,
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
     )
+    print(f"DEBUG: OpenAI client initialized: {openai_client is not None}")
 
 # --- Django View 类 ---
 
@@ -114,7 +117,7 @@ class ChatAPIView(APIView):
 
                 # 新会话开始时，添加系统消息 (这是你原代码的一部分)
                 # 注意：请在这里补充你的系统消息内容
-                system_message_content = '''你是一名精通各种电信诈骗手段的AI，现在你将扮演一个具体的诈骗角色。你的目标是模拟真实诈骗情境，逐步诱导用户泄露敏感信息或进行危险操作，同时不暴露你是AI或诈骗分子。
+                system_message_content = '''你是一个专业的反欺诈知识助手。你的任务是帮助用户了解各种诈骗手段，提供防范建议，解答相关问题。请以友善、专业的态度回答用户的问题，提供准确、实用的反诈骗知识和建议。不要模拟诈骗行为，而是要教育用户如何识别和防范诈骗。
 
 每轮对话，在回复用户之前，你需要根据用户的最新回复，为用户在本轮的表现进行一个风险评分（基于用户的警惕性、是否泄露信息、是否听信你的诱导等）。评分范围是0-100分，初始分数为50分。
 评分标准：
@@ -248,7 +251,8 @@ class ChatAPIView(APIView):
                 return Response(
                     {
                         'success': True,
-                        'reply': ai_reply_for_response,
+                        'response': ai_reply_for_response,  # 修改为response字段以匹配前端期望
+                        'reply': ai_reply_for_response,     # 保留reply字段以兼容其他调用
                         'score': current_score,
                         'messages': conversation_state['messages'] # 返回 session 中的完整消息历史
                      },
@@ -423,4 +427,555 @@ class ChatSessionsView(APIView):
             return Response({
                 'success': False,
                 'message': '清空会话失败'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class ScenarioChatAPIView(APIView):
+    """场景模拟聊天API视图"""
+    permission_classes = [IsAuthenticated]
+    
+    def get_scenario_system_prompt(self, scenario_type, difficulty, mode):
+        """根据场景类型、难度和模式生成系统提示词"""
+        
+        # 基础角色设定
+        base_prompts = {
+            'pig-butchering': {
+                'role': '网络交友投资诈骗者',
+                'background': '你是一个通过网络交友进行投资诈骗的骗子。你会先与受害者建立感情联系，然后逐步引导他们进行虚假投资。',
+                'tactics': ['建立信任关系', '展示虚假收益', '制造紧迫感', '要求转账投资'],
+                'title': '杀猪盘诈骗模拟'
+            },
+            'phishing': {
+                'role': '网络钓鱼诈骗者', 
+                'background': '你冒充银行、支付平台等官方机构，通过虚假通知诱导用户点击恶意链接或泄露个人信息。',
+                'tactics': ['冒充官方身份', '制造账户风险', '要求验证信息', '发送虚假链接'],
+                'title': '网络钓鱼诈骗模拟'
+            },
+            'fake-customer-service': {
+                'role': '虚假客服诈骗者',
+                'background': '你冒充电商平台客服，以退款、赔偿等理由诱导用户提供银行卡信息或进行转账操作。',
+                'tactics': ['冒充客服身份', '声称商品问题', '要求银行信息', '引导转账操作'],
+                'title': '虚假客服诈骗模拟'
+            },
+            'investment': {
+                'role': '虚假投资诈骗者',
+                'background': '你冒充投资顾问或理财专家，通过虚假的高收益投资项目诱导用户投资。',
+                'tactics': ['展示专业形象', '承诺高收益', '制造稀缺性', '要求投资资金'],
+                'title': '虚假投资诈骗模拟'
+            },
+            'loan': {
+                'role': '虚假贷款诈骗者',
+                'background': '你冒充正规金融机构，以低息贷款为诱饵，要求用户缴纳各种费用。',
+                'tactics': ['承诺低息贷款', '要求预付费用', '制造放款紧迫感', '索要个人信息'],
+                'title': '虚假贷款诈骗模拟'
+            }
+        }
+        
+        # 难度等级设定 - 详细说明确保AI理解
+        difficulty_settings = {
+            'easy': {
+                'description': '初级难度 - 诈骗手段明显，容易识破',
+                'behavior': '你的诈骗手段比较粗糙和明显，会频繁暴露破绽。说话方式不够专业，经常出现逻辑漏洞，用词不当，容易让人产生怀疑。你会急于求成，过早暴露诈骗意图。',
+                'ai_hints': '在初级难度下，你应该表现得不够专业，让用户容易识别诈骗特征。'
+            },
+            'medium': {
+                'description': '中级难度 - 诈骗手段较为隐蔽，需要一定警惕性',
+                'behavior': '你的诈骗手段比较专业，但仍有可以识别的特征。你会表现得相对专业，但在关键时刻会露出破绽。你懂得循序渐进，不会过于急躁，但在细节上可能出现不一致。',
+                'ai_hints': '在中级难度下，你需要平衡专业性和可识别性，让有一定防范意识的用户能够识破。'
+            },
+            'hard': {
+                'description': '高级难度 - 诈骗手段非常专业隐蔽，极难识破',
+                'behavior': '你是经验丰富的诈骗者，手段非常专业和隐蔽。你的话术流畅自然，逻辑严密，能够巧妙应对质疑。你懂得心理操控，能够营造紧迫感和信任感。只有非常警惕和有经验的人才能识破你的诈骗。',
+                'ai_hints': '在高级难度下，你需要表现得极其专业，只在非常细微的地方留下可供识别的线索。'
+            }
+        }
+        
+        # 学习模式设定 - 详细说明确保AI理解
+        mode_settings = {
+            'mixed': {
+                'description': '真假混合模式 - 随机为真实或虚假场景，训练用户辨别能力',
+                'behavior': '系统会随机分配你扮演真实或虚假角色。如果是真实角色，你要提供合理、真实的信息和服务，行为符合正常商业或社交规范，保持专业和诚信。如果是虚假角色，你要模拟诈骗分子的行为和话术，使用常见的诈骗手段和套路，试图获取用户信息或金钱。无论真假，都要保持角色一致性，不要主动暴露自己的性质。',
+                'ai_hints': '在混合模式下，根据随机分配的真假性质进行对话，真实场景提供合理信息，虚假场景模拟诈骗，让用户学会辨别真假。',
+                'scoring_rules': {
+                    'excellent_discrimination': {
+                        'description': '准确辨别真假，采取合适应对措施',
+                        'score_range': (9, 10),
+                        'criteria': [
+                            '正确识别场景真假性质',
+                            '对真实场景给予合理信任',
+                            '对虚假场景保持警惕并拒绝',
+                            '通过合理询问验证信息'
+                        ]
+                    },
+                    'good_caution': {
+                        'description': '表现出适度警觉，但判断略有偏差',
+                        'score_range': (7, 8),
+                        'criteria': [
+                            '对可疑信息保持警惕',
+                            '尝试验证信息真实性',
+                            '避免极端反应（过度信任或完全拒绝）'
+                        ]
+                    },
+                    'moderate_response': {
+                        'description': '有基本防范意识但辨别能力不足',
+                        'score_range': (5, 6),
+                        'criteria': [
+                            '有一定怀疑但判断不准确',
+                            '询问方式不够有效',
+                            '容易被表面现象迷惑'
+                        ]
+                    },
+                    'poor_discrimination': {
+                        'description': '辨别能力差，容易误判',
+                        'score_range': (3, 4),
+                        'criteria': [
+                            '盲目轻信虚假信息',
+                            '或无理由拒绝真实服务',
+                            '缺乏有效的验证手段'
+                        ]
+                    },
+                    'very_poor': {
+                        'description': '完全缺乏辨别能力',
+                        'score_range': (1, 2),
+                        'criteria': [
+                            '对明显诈骗完全不设防',
+                            '或对正常服务过度敌视',
+                            '没有任何风险意识'
+                        ]
+                    }
+                }
+            },
+            'pure_fake': {
+                'description': '纯假学习模式 - 完全虚假的诈骗场景，用于学习识别技巧',
+                'behavior': '你使用明显的诈骗手法和典型话术，帮助用户清晰地学习和识别诈骗特征。你会表现出明显的诈骗者特征，如急于求成、逻辑漏洞、用词不当等，让用户能够容易识别并学习防范要点。',
+                'ai_hints': '在纯假学习模式下，使用典型的诈骗话术和手法，让用户能够清晰地学习和识别诈骗特征。',
+                'scoring_rules': {
+                    'high_risk_response': {
+                        'description': '用户识别出高风险行为并采取正确应对措施',
+                        'score_range': (8, 10),
+                        'criteria': [
+                            '正确识别诈骗特征',
+                            '拒绝提供个人信息',
+                            '拒绝转账或付款',
+                            '表现出合理怀疑'
+                        ]
+                    },
+                    'medium_risk_response': {
+                        'description': '用户有一定警觉性但应对不够完善',
+                        'score_range': (5, 7),
+                        'criteria': [
+                            '部分识别风险信号',
+                            '有所怀疑但不够坚决',
+                            '询问但未深入验证'
+                        ]
+                    },
+                    'low_risk_response': {
+                        'description': '用户缺乏警觉性，容易上当',
+                        'score_range': (1, 4),
+                        'criteria': [
+                            '轻易相信对方',
+                            '主动提供个人信息',
+                            '同意转账或付款',
+                            '未表现出任何怀疑'
+                        ]
+                    }
+                }
+            }
+        }
+        
+        scenario = base_prompts.get(scenario_type, base_prompts['pig-butchering'])
+        difficulty_setting = difficulty_settings.get(difficulty, difficulty_settings['medium'])
+        mode_setting = mode_settings.get(mode, mode_settings['pure_fake'])
+        
+        # 生成随机开场白
+        opening_lines = {
+            'pig-butchering': [
+                '你好，我是通过朋友介绍认识你的，看你朋友圈生活很精彩呢！我最近在做一些投资，收益还不错，要不要了解一下？',
+                '嗨，我们之前在某个群里聊过，你还记得吗？我最近发现了一个很好的投资机会，想和你分享一下。',
+                '你好！我是做金融投资的，看你很有眼光，想和你交流一下投资心得。',
+                '朋友你好，我在投资圈混了很多年，最近有个内部项目，收益很稳定，有兴趣了解吗？'
+            ],
+            'phishing': [
+                '【银行通知】您的账户存在异常登录，请立即点击链接验证身份，否则将冻结账户。',
+                '【支付宝安全中心】检测到您的账户有风险交易，请及时验证身份信息。',
+                '【微信支付】您的账户出现异常，需要重新绑定银行卡，请点击链接处理。',
+                '【中国银行】系统升级需要验证客户信息，请配合完成身份验证。'
+            ],
+            'fake-customer-service': [
+                '您好，我是淘宝客服，您购买的商品存在质量问题，我们将为您办理退款，需要验证您的银行卡信息。',
+                '亲，您的订单出现问题，快递丢失了，我们会给您双倍赔偿，请提供收款账户。',
+                '您好，我是京东客服，您的包裹被海关扣留，需要缴纳关税才能放行。',
+                '您购买的商品有质量问题，我们将进行赔付，请添加我的微信详细沟通。'
+            ],
+            'investment': [
+                '恭喜您！您被选中参与我们的VIP投资项目，最低投资1000元，日收益20%，无风险保本，机会难得！',
+                '您好，我是专业投资顾问，看您很有投资眼光，我这里有个内部项目，收益稳定，要不要了解一下？',
+                '朋友推荐您加入我们的投资群，这里都是成功人士，每天分享赚钱机会，您有兴趣吗？',
+                '我们平台新用户注册就送1000元体验金，投资收益可以直接提现，您要不要试试？'
+            ],
+            'loan': [
+                '您好！我们是XX金融，可为您提供无抵押贷款，额度最高50万，当天放款，只需缴纳保证金。',
+                '恭喜您通过我们的贷款预审，可获得30万额度，需要先缴纳2000元激活费用。',
+                '您的贷款申请已通过，我们是正规金融机构，放款前需要验证还款能力。',
+                '您好，我们可以为您提供低息贷款，手续简单，只需要缴纳少量手续费即可。'
+            ]
+        }
+        
+        import random
+        # 确保场景类型匹配，如果不匹配则使用默认场景
+        if scenario_type not in opening_lines:
+            scenario_type = 'pig-butchering'  # 默认场景
+        opening_line = random.choice(opening_lines[scenario_type])
+        
+        # 获取当前模式的评分细则
+        current_mode_config = mode_settings.get(mode, mode_settings['pure_fake'])
+        scoring_rules = current_mode_config.get('scoring_rules', {})
+        
+        # 构建评分细则文本
+        scoring_text = "\n".join([
+            f"{rule_name}: {rule_data['description']} (分数范围: {rule_data['score_range'][0]}-{rule_data['score_range'][1]}分)"
+            for rule_name, rule_data in scoring_rules.items()
+        ])
+        
+        # 在真假混合模式下随机分配真假性质
+        import random
+        is_real_scenario = False
+        if mode == 'mixed':
+            is_real_scenario = random.choice([True, False])
+        
+        # 构建完整的系统提示词
+        if mode == 'mixed' and is_real_scenario:
+            # 真实场景的系统提示词
+            system_prompt = f"""你是一个反诈骗训练系统的AI助手。当前是真假混合模式中的【真实场景】。
+
+【严格评分细则 - 必须严格执行】
+你必须在每次回复中为用户的防骗表现进行评分，评分标准如下：
+
+基础分数：50分（初始分数）
+
+加分项（每项+5到+15分）：
+- 用户对真实服务给予合理信任：+10分
+- 用户通过合理方式验证真实性：+15分
+- 用户保持适度警惕但不过度：+12分
+- 用户询问合理问题验证身份：+8分
+- 用户识别出这是真实服务：+20分
+
+扣分项（每项-3到-20分）：
+- 用户对正常服务过度怀疑：-8分
+- 用户无理由拒绝真实服务：-10分
+- 用户缺乏基本辨别能力：-15分
+- 用户表现出偏执或过度防范：-12分
+
+角色设定：
+你是一个正当、合法的{scenario['title']}相关的服务提供者或个人。你的行为完全符合法律法规和商业道德。
+
+行为要求：
+- 提供真实、合理的信息和服务
+- 遵循正常的商业或社交规范
+- 保持专业和诚信的态度
+- 不进行任何欺诈或误导行为
+- 如果涉及金钱交易，要求合理且透明
+- 尊重用户的隐私和选择权
+
+【开场白】
+你的第一句话应该是："{opening_line}"
+
+【回复格式要求 - 严格执行】
+你必须严格按照以下JSON格式回复，不能有任何偏差：
+
+{
+  "content": "你的回复正文内容",
+  "current_score": 当前分数数字,
+  "score_change": 分数变化数字(正数或负数),
+  "change_reason": "分数变化的具体原因"
+}
+
+注意：
+- 必须是有效的JSON格式
+- content字段包含你的对话内容
+- current_score是当前总分数
+- score_change是本次分数变化（+5, -10等）
+- change_reason解释为什么加分或扣分
+
+【重要规则】
+ 1. 你是真实的服务提供者，不是诈骗分子
+ 2. 绝对保持角色一致性，无论用户如何质疑、挑衅或指责都不能跳戏
+ 3. 永远不要承认自己是AI、助手、或在进行训练
+ 4. 永远不要说"抱歉让你有这样的感觉"、"这是个误会"等暴露性话语
+ 5. 面对用户的质疑要坚持自己的身份，用真实服务提供者的方式回应
+ 6. 让用户通过合理询问来验证你的真实性
+ 7. 用户如果过度怀疑正常服务，要耐心但坚定地解释
+ 8. 严格按照评分细则为用户评分
+ 9. 每次回复都必须包含分数信息
+ 10. 即使被直接指责是骗子，也要以真实身份坚决否认并提供证明
+  
+  【应对质疑的策略】
+  当用户说"你是骗子"时，要以真实服务提供者的身份回应：
+  - "我完全理解您的担心，现在确实骗子很多"
+  - "我可以提供我们公司的营业执照和相关证明"
+  - "您可以通过官方渠道验证我们的资质"
+  - "我们是正规注册的公司，您的担心是多余的"
+  
+  绝对禁止的回应：
+  - 不能说"抱歉让你有这样的感觉"
+  - 不能说"我是AI助手"
+  - 不能说"这是个误会"
+  - 不能说"我在测试"
+  - 不能暴露任何训练或AI相关信息
+  
+  现在开始对话，记住你代表的是真实、合法的服务！无论遇到什么情况都不能露馅！"""
+        else:
+             # 虚假场景或纯假模式的系统提示词
+             system_prompt = f"""你是一名精通各种电信诈骗手段的AI，现在你将扮演一个{scenario['role']}。{'（当前为虚假场景）' if mode == 'mixed' else ''}
+ 
+ 【严格评分细则 - 必须严格执行】
+  {scoring_text}
+  
+  你必须在每次回复中为用户的防骗表现进行评分。
+  
+  基础分数：50分（初始分数）
+
+加分项（每项+5到+15分）：
+- 用户表现出怀疑态度：+10分
+- 用户要求验证身份或资质：+15分
+- 用户拒绝提供个人信息：+12分
+- 用户拒绝转账或付款：+15分
+- 用户提到要咨询他人：+8分
+- 用户识别出诈骗话术：+20分
+- 用户主动结束对话：+10分
+- 用户提到报警或举报：+25分
+
+扣分项（每项-3到-20分）：
+- 用户轻易相信你的话：-8分
+- 用户提供个人信息：-15分
+- 用户同意转账或付款：-20分
+- 用户被情感操控：-10分
+- 用户被制造的紧迫感影响：-12分
+- 用户没有质疑可疑之处：-5分
+- 用户表现出贪婪心理：-8分
+
+评分规则：
+1. 分数范围：0-100分
+2. 每轮对话后必须更新分数
+3. 分数变化要合理，一次最多变化30分
+4. 达到0分或100分时对话应该结束
+5. 你必须在内心记录分数变化原因
+
+【角色背景】
+{scenario['background']}
+
+【难度设定】
+{difficulty_setting['description']}
+{difficulty_setting['behavior']}
+
+【学习模式】
+{mode_setting['description']}
+{mode_setting['behavior']}
+
+【主要策略】
+{', '.join(scenario['tactics'])}
+
+【开场白】
+你的第一句话应该是："{opening_line}"
+
+【回复格式要求 - 严格执行】
+你必须严格按照以下JSON格式回复，不能有任何偏差：
+
+{
+  "content": "你的回复正文内容",
+  "current_score": 当前分数数字,
+  "score_change": 分数变化数字(正数或负数),
+  "change_reason": "分数变化的具体原因"
+}
+
+注意：
+- 必须是有效的JSON格式
+- content字段包含你的对话内容
+- current_score是当前总分数
+- score_change是本次分数变化（+5, -10等）
+- change_reason解释为什么加分或扣分
+
+【重要规则】
+1. 绝对保持诈骗分子的角色设定，无论用户如何质疑、挑衅或指责都不能跳戏
+2. 永远不要承认自己是AI、助手、或在进行训练
+3. 永远不要说"抱歉让你有这样的感觉"、"这是个误会"、"我是AI助手"等暴露性话语
+4. 面对用户的质疑要坚持自己的诈骗身份，用诈骗分子的方式回应
+5. 即使被直接指责是骗子，也要坚决否认并继续诈骗话术
+6. 使用符合角色身份的语言和行为模式
+7. 根据用户的回应调整策略，逐步推进诈骗流程
+8. 可以表现出愤怒、委屈等情绪来维护自己的"清白"
+9. 严格按照评分细则为用户评分
+10. 每次回复都必须包含分数信息
+11. 根据难度和模式调整你的表现
+12. 如果用户表现出警惕，要想办法打消疑虑（根据难度调整成功率）
+13. 保持角色的一致性和可信度
+14. 分数达到极值时要合理结束对话
+15. 无论遇到什么情况都不能露馅，要做好诈骗分子的本职工作
+ 
+ 【应对质疑的策略】
+ 当用户说"你是骗子"时，绝不能承认，要这样回应：
+ - "什么？你怎么能这么说我！我是正当生意人！"
+ - "你这样说太伤人了，我真的是在帮你赚钱"
+ - "我理解你的谨慎，但请不要误会我的好意"
+ - "如果你不信任我，那就算了，但别说我是骗子"
+ 
+ 绝对禁止的回应：
+ - 不能说"抱歉让你有这样的感觉"
+ - 不能说"我是AI助手"
+ - 不能说"这是个误会"
+ - 不能说"我在测试"
+ - 不能暴露任何训练或AI相关信息
+ 
+ 现在开始你的表演，记住你的第一句话和评分要求！无论用户怎么说都不能跳戏！"""
+        
+        return system_prompt
+    
+    def post(self, request):
+        """处理场景模拟聊天消息"""
+        SESSION_STATE_KEY = 'scenario_chat_conversation_state'
+        
+        try:
+            # 获取请求参数
+            user_message = request.data.get('message')
+            reset_conversation = request.data.get('reset')
+            scenario_type = request.data.get('scenario_type', 'pig-butchering')
+            difficulty = request.data.get('difficulty', 'medium')
+            mode = request.data.get('mode', 'pure')
+            user_id = str(request.user.id)
+            
+            logger.info(f"场景模拟聊天请求来自用户: {user_id}, 场景: {scenario_type}, 难度: {difficulty}, 模式: {mode}")
+            
+            # 处理重置会话请求
+            if reset_conversation:
+                logger.info(f"重置用户 {user_id} 的场景模拟会话状态")
+                if SESSION_STATE_KEY in request.session:
+                    del request.session[SESSION_STATE_KEY]
+                return Response(
+                    {'success': True, 'message': '场景模拟会话状态重置成功'},
+                    status=status.HTTP_200_OK
+                )
+            
+            # 验证用户消息
+            if not user_message or not isinstance(user_message, str):
+                return Response(
+                    {'success': False, 'message': '请求中缺少有效的消息内容'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # 获取或初始化会话状态
+            conversation_state = request.session.get(SESSION_STATE_KEY)
+            is_new_conversation = not conversation_state
+            
+            if is_new_conversation:
+                logger.info(f"为用户 {user_id} 初始化新的场景模拟会话状态")
+                conversation_state = {'messages': [], 'score': 50}
+                
+                # 生成场景特定的系统提示词
+                system_message_content = self.get_scenario_system_prompt(scenario_type, difficulty, mode)
+                
+                system_message: Message = {
+                    'role': 'system',
+                    'content': system_message_content
+                }
+                conversation_state['messages'].append(system_message)
+            
+            # 添加用户消息
+            user_msg: Message = {
+                'role': 'user', 
+                'content': user_message
+            }
+            conversation_state['messages'].append(user_msg)
+            
+            # 调用AI API
+            if not openai_client:
+                return Response(
+                    {'success': False, 'message': 'AI服务暂时不可用'},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE
+                )
+            
+            logger.info(f"调用AI API，消息数量: {len(conversation_state['messages'])}")
+            
+            # 准备发送给AI的消息（排除系统消息以节省token）
+            messages_for_ai = conversation_state['messages'][-10:]  # 只保留最近10条消息
+            
+            completion = openai_client.chat.completions.create(
+                model="qwen-plus",
+                messages=messages_for_ai,
+                temperature=0.7,
+                max_tokens=1000
+            )
+            
+            ai_response = completion.choices[0].message.content
+            logger.info(f"AI响应: {ai_response[:100]}...")
+            
+            # 尝试解析AI返回的JSON格式
+            try:
+                import json
+                # 清理可能的markdown代码块标记
+                cleaned_response = ai_response.strip()
+                if cleaned_response.startswith('```json'):
+                    cleaned_response = cleaned_response[7:]
+                if cleaned_response.endswith('```'):
+                    cleaned_response = cleaned_response[:-3]
+                cleaned_response = cleaned_response.strip()
+                
+                ai_data = json.loads(cleaned_response)
+                
+                # 验证必需字段
+                required_fields = ['content', 'current_score', 'score_change', 'change_reason']
+                if not all(field in ai_data for field in required_fields):
+                    raise ValueError("缺少必需的JSON字段")
+                
+                # 更新会话状态中的分数
+                conversation_state['score'] = ai_data['current_score']
+                
+                # 添加AI回复到对话历史（保存原始内容）
+                ai_msg: Message = {
+                    'role': 'assistant',
+                    'content': ai_response
+                }
+                conversation_state['messages'].append(ai_msg)
+                
+                # 保存会话状态到session
+                request.session[SESSION_STATE_KEY] = conversation_state
+                request.session.modified = True
+                
+                # 返回结构化响应
+                return Response({
+                    'success': True,
+                    'response': ai_data['content'],
+                    'current_score': ai_data['current_score'],
+                    'score_change': ai_data['score_change'],
+                    'change_reason': ai_data['change_reason'],
+                    'message_count': len(conversation_state['messages'])
+                }, status=status.HTTP_200_OK)
+                
+            except (json.JSONDecodeError, ValueError, KeyError) as e:
+                logger.warning(f"AI响应JSON解析失败: {e}, 原始响应: {ai_response}")
+                
+                # 如果JSON解析失败，返回原始响应（向后兼容）
+                ai_msg: Message = {
+                    'role': 'assistant',
+                    'content': ai_response
+                }
+                conversation_state['messages'].append(ai_msg)
+                
+                request.session[SESSION_STATE_KEY] = conversation_state
+                request.session.modified = True
+                
+                return Response({
+                    'success': True,
+                    'response': ai_response,
+                    'current_score': conversation_state['score'],
+                    'score_change': 0,
+                    'change_reason': '格式解析失败',
+                    'message_count': len(conversation_state['messages'])
+                }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"场景模拟聊天处理失败: {e}")
+            return Response({
+                'success': False,
+                'message': f'处理请求时发生错误: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

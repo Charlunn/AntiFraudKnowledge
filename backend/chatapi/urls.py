@@ -7,6 +7,7 @@ from . import knowledge_views
 
 urlpatterns = [
     path('', views.chat_api_view, name='chat_api'),
+    path('scenario/', views.ScenarioChatAPIView.as_view(), name='scenario_chat_api'),
     path('history/', views.ChatHistoryView.as_view(), name='chat_history'),
     path('sessions/', views.ChatSessionsView.as_view(), name='chat_sessions'),
     

@@ -54,19 +54,19 @@
               <p class="text-sm text-gray-600 dark:text-dark-text-secondary">对话中可能包含真实场景和诈骗行为，需要仔细辨别</p>
             </button>
             <button
-              @click="selectedMode = 'pure'"
+              @click="selectedMode = 'pure_fake'"
               :class="[
                 'p-4 rounded-lg border-2 transition-all duration-200 text-left',
-                selectedMode === 'pure'
+                selectedMode === 'pure_fake'
                   ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
                   : 'border-gray-200 dark:border-gray-700 hover:border-red-300'
               ]"
             >
               <div class="flex items-center mb-2">
-                <div class="w-4 h-4 rounded-full mr-3" :class="selectedMode === 'pure' ? 'bg-red-500' : 'bg-gray-300'"></div>
+                <div class="w-4 h-4 rounded-full mr-3" :class="selectedMode === 'pure_fake' ? 'bg-red-500' : 'bg-gray-300'"></div>
                 <h3 class="font-semibold text-gray-900 dark:text-dark-text">纯假学习模式</h3>
               </div>
-              <p class="text-sm text-gray-600 dark:text-dark-text-secondary">AI完全扮演诈骗者角色，全程都是诈骗行为</p>
+              <p class="text-sm text-gray-600 dark:text-dark-text-secondary">使用典型诈骗手法，帮助学习识别技巧</p>
             </button>
           </div>
         </div>
@@ -211,7 +211,7 @@ const difficultyLevels = [
 // 场景数据
 const scenarios = [
   {
-    id: 'telecom_fraud',
+    id: 'telecom-fraud',
     name: '电信诈骗',
     description: '模拟接到冒充公检法的诈骗电话',
     fullDescription: '在这个场景中，您将接到一个自称是公安局、检察院或法院工作人员的电话。对方会声称您涉嫌某种犯罪活动，需要配合调查或转账自证清白。您需要识别诈骗手段并做出正确应对。',
@@ -228,24 +228,24 @@ const scenarios = [
     ]
   },
   {
-    id: 'investment_fraud',
-    name: '网络投资诈骗',
+    id: 'investment',
+    name: '虚假投资诈骗',
     description: '模拟虚假投资平台诈骗场景',
     fullDescription: '您将遇到一个看似专业的投资顾问，他们会向您推荐高收益、低风险的投资项目。通过精美的APP界面和虚假的盈利数据，诱导您投入资金。您需要识破这些投资陷阱。',
     icon: '💰',
     color: 'bg-yellow-500',
-    difficulty: 4,
+    difficulty: 3,
     estimatedTime: '15-20分钟',
     category: '投资诈骗',
     objectives: [
-      '识别虚假投资平台的特征',
-      '了解常见的投资诈骗套路',
-      '学会验证投资平台的合法性',
-      '掌握理性投资的原则'
+      '识别虚假投资项目的特征',
+      '学会分析投资风险',
+      '了解正规投资渠道',
+      '掌握资金安全保护方法'
     ]
   },
   {
-    id: 'romance_scam',
+    id: 'pig-butchering',
     name: '杀猪盘诈骗',
     description: '模拟网络交友投资诈骗场景',
     fullDescription: '您将在社交平台上遇到一个看似完美的异性朋友。经过一段时间的感情培养后，对方会以各种理由诱导您参与投资或直接要求转账。这是典型的"杀猪盘"诈骗手法。',
@@ -262,7 +262,7 @@ const scenarios = [
     ]
   },
   {
-    id: 'phishing_scam',
+    id: 'phishing',
     name: '网络钓鱼',
     description: '模拟虚假网站和邮件诈骗',
     fullDescription: '您将收到看似来自银行、支付平台或其他官方机构的邮件或短信，要求您点击链接更新信息或处理紧急事务。您需要识别这些钓鱼攻击并避免泄露个人信息。',
@@ -279,7 +279,7 @@ const scenarios = [
     ]
   },
   {
-    id: 'fake_customer_service',
+    id: 'fake-customer-service',
     name: '虚假客服诈骗',
     description: '模拟冒充客服的退款诈骗',
     fullDescription: '您将接到自称是某电商平台或服务商客服的电话，对方声称您的订单有问题需要退款，或者您的账户存在安全风险需要处理。通过这个场景学习如何识别虚假客服。',
@@ -296,7 +296,7 @@ const scenarios = [
     ]
   },
   {
-    id: 'loan_scam',
+    id: 'loan',
     name: '网络贷款诈骗',
     description: '模拟虚假贷款平台诈骗',
     fullDescription: '您将遇到一个声称可以提供无抵押、低利率贷款的平台。对方会要求您先支付各种费用作为"保证金"或"手续费"，承诺放款后返还。学习识别这类贷款诈骗。',

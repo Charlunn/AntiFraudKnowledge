@@ -41,7 +41,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       }
       const token = authStore?.accessToken;
       if (token) {
-        config.headers.Authorization = `Token ${token}`;
+        config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
     },
@@ -78,10 +78,10 @@ export default defineNuxtPlugin((nuxtApp) => {
           // 尝试使用刷新令牌获取新的访问令牌
           const refreshToken = authStore?.refreshToken;
           if (refreshToken) {
-            const response = await $fetch('/users/refresh/', {
+            const response = await $fetch('/users/token/refresh/', {
               method: 'POST',
               baseURL: config.public.apiBase,
-              body: { refresh_token: refreshToken }
+              body: { refresh: refreshToken }
             });
             
             // 更新令牌

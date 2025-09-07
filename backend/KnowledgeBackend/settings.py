@@ -91,7 +91,47 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# 确保HTTP响应使用UTF-8编码
+DEFAULT_CHARSET = 'utf-8'
+FILE_CHARSET = 'utf-8'
+
+# JSON响应编码设置
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+
+# 确保JSON响应不转义非ASCII字符
+class CustomJSONEncoder(DjangoJSONEncoder):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault('ensure_ascii', False)
+        super().__init__(*args, **kwargs)
+
+# 设置REST framework的JSON渲染器
+REST_FRAMEWORK_JSON_ENCODER = CustomJSONEncoder
 CORS_ALLOW_ALL_ORIGINS = True
+
+# CORS允许的头部
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# CORS允许的方法
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
 ROOT_URLCONF = 'KnowledgeBackend.urls'
 
 WSGI_APPLICATION = 'KnowledgeBackend.wsgi.application'
@@ -181,7 +221,12 @@ REST_FRAMEWORK = {
     ],
     # 分页设置
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 50  # 每页默认返回 50 条记录，可根据需求调整
+    'PAGE_SIZE': 50,  # 每页默认返回 50 条记录，可根据需求调整
+    # JSON渲染器设置，确保中文字符正确显示
+    'DEFAULT_RENDERER_CLASSES': [
+        'KnowledgeBackend.renderers.UnicodeJSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ]
 }
 # JWT Settings
 SIMPLE_JWT = {

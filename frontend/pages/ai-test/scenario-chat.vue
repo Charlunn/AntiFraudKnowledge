@@ -25,6 +25,21 @@
         </p>
       </div>
 
+      <!-- 分数变化原因显示区域 -->
+      <div v-if="recentScoreChanges.length > 0" class="max-w-4xl mx-auto mb-4">
+        <div class="bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4">
+          <h3 class="text-sm font-semibold text-yellow-800 dark:text-yellow-200 mb-2">📊 最近分数变化</h3>
+          <div class="max-h-20 overflow-y-auto space-y-1">
+            <div v-for="change in recentScoreChanges.slice(-3)" :key="change.id" class="text-xs text-yellow-700 dark:text-yellow-300">
+              <span :class="change.scoreChange > 0 ? 'text-green-600' : 'text-red-600'" class="font-medium">
+                {{ change.scoreChange > 0 ? '+' : '' }}{{ change.scoreChange }}分
+              </span>
+              - {{ change.changeReason }}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- 聊天界面 -->
       <div class="max-w-4xl mx-auto">
         <div class="bg-white dark:bg-dark-surface rounded-xl shadow-lg overflow-hidden">
@@ -172,11 +187,12 @@ const currentScore = ref(50) // 初始分数50
 const conversationRounds = ref(0)
 const maxRounds = 20
 const finalScore = ref(0)
+const recentScoreChanges = ref([]) // 最近的分数变化记录
 
 // 从URL获取参数
 const scenarioId = route.query.scenario
 const difficulty = route.query.difficulty || 'medium'
-const mode = route.query.mode || 'mixed' // mixed: 真假混合, pure: 纯假
+const mode = route.query.mode || 'mixed' // mixed: 真假混合, pure_fake: 纯假学习
 
 // 计算属性
 const difficultyText = computed(() => {
@@ -189,7 +205,11 @@ const difficultyText = computed(() => {
 })
 
 const modeText = computed(() => {
-  return mode === 'mixed' ? '真假混合' : '纯假学习'
+  const modeMap = {
+    'mixed': '真假混合模式',
+    'pure_fake': '纯假学习模式'
+  }
+  return modeMap[mode] || '真假混合模式'
 })
 
 const performanceText = computed(() => {
@@ -212,32 +232,37 @@ const aiAdvice = computed(() => {
 // 场景数据
 const scenarioData = ref(null)
 
-// 场景配置
+// 场景配置 - 与后端保持一致
 const scenarios = {
+  'telecom-fraud': {
+    title: '电信诈骗模拟',
+    description: '模拟冒充公检法的电信诈骗',
+    initialMessage: '您好，我是XX市公安局的，您涉嫌一起洗钱案件，需要配合我们调查，请保持电话畅通。'
+  },
   'pig-butchering': {
     title: '杀猪盘诈骗模拟',
     description: '模拟网络交友投资诈骗场景',
     initialMessage: '你好，我是通过朋友介绍认识你的，看你朋友圈生活很精彩呢！我最近在做一些投资，收益还不错，要不要了解一下？'
   },
   'phishing': {
-    title: '网络钓鱼模拟', 
-    description: '模拟虚假网站和链接诈骗',
-    initialMessage: '【银行通知】您的账户存在异常登录，请立即点击链接验证身份：http://bank-security.fake.com 否则将冻结账户。'
+    title: '网络钓鱼诈骗模拟',
+    description: '模拟钓鱼网站和虚假链接诈骗',
+    initialMessage: '【银行通知】您的账户存在异常登录，请立即点击链接验证身份，否则将冻结账户。'
   },
   'fake-customer-service': {
-    title: '虚假客服模拟',
-    description: '模拟冒充客服退款诈骗',
-    initialMessage: '您好，我是淘宝客服，您昨天购买的商品由于质量问题需要退款，请提供您的银行卡号和验证码，我们将为您办理退款。'
+    title: '虚假客服诈骗模拟',
+    description: '模拟冒充客服进行诈骗的场景',
+    initialMessage: '您好，我是淘宝客服，您购买的商品存在质量问题，我们将为您办理退款，需要验证您的银行卡信息。'
   },
   'investment': {
-    title: '虚假投资模拟',
-    description: '模拟高收益投资诈骗',
+    title: '虚假投资诈骗模拟',
+    description: '模拟虚假投资平台诈骗',
     initialMessage: '恭喜您！您被选中参与我们的VIP投资项目，最低投资1000元，日收益20%，无风险保本，机会难得！'
   },
   'loan': {
-    title: '虚假贷款模拟',
-    description: '模拟无抵押贷款诈骗', 
-    initialMessage: '您好！我们是XX金融，可为您提供无抵押贷款，额度最高50万，当天放款，只需要缴纳2000元保证金即可。'
+    title: '虚假贷款诈骗模拟',
+    description: '模拟虚假贷款平台诈骗', 
+    initialMessage: '恭喜您通过我们的贷款预审，可获得30万额度，需要先缴纳2000元激活费用。'
   }
 }
 
@@ -295,8 +320,8 @@ const sendMessage = async () => {
       return
     }
     
-    // 调用后端API获取AI回复
-    const response = await $fetch('/api/chat/', {
+    // 调用后端场景模拟API获取AI回复
+    const response = await $fetch('/api/chat/scenario/', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -304,17 +329,54 @@ const sendMessage = async () => {
       },
       body: {
         message: question,
-        scenario_type: mode || 'mixed',
-        difficulty: difficulty || 'medium'
+        scenario_type: scenarioId,
+        difficulty: difficulty,
+        mode: mode
       }
     })
+    
+    // 处理API响应
+    let aiResponseContent, scoreChange = 0, changeReason = ''
+    if (response && response.success && response.response) {
+      aiResponseContent = response.response
+      
+      // 处理新的JSON格式响应
+      if (response.current_score !== undefined) {
+        const oldScore = currentScore.value
+        currentScore.value = response.current_score
+        scoreChange = response.score_change || 0
+        changeReason = response.change_reason || ''
+        
+        // 记录分数变化
+        if (scoreChange !== 0 && changeReason) {
+          recentScoreChanges.value.push({
+            id: Date.now(),
+            scoreChange: scoreChange,
+            changeReason: changeReason,
+            timestamp: new Date()
+          })
+          
+          // 只保留最近10条记录
+          if (recentScoreChanges.value.length > 10) {
+            recentScoreChanges.value = recentScoreChanges.value.slice(-10)
+          }
+        }
+        
+        console.log(`分数更新: ${oldScore} -> ${currentScore.value}, 变化: ${scoreChange}, 原因: ${changeReason}`)
+      }
+    } else {
+      // 如果API调用失败，显示错误信息
+      aiResponseContent = '抱歉，AI服务暂时不可用，请稍后再试。'
+      console.error('场景模拟API调用失败:', response)
+    }
 
     const aiMessage = {
       id: Date.now() + 1,
       sender: 'ai',
-      content: response.reply || generateAIResponse(question), // 如果API失败则使用本地回复
+      content: aiResponseContent,
       timestamp: new Date(),
-      scoreChange: scoreChange
+      scoreChange: scoreChange,
+      changeReason: changeReason
     }
 
     messages.value.push(aiMessage)
@@ -339,12 +401,11 @@ const sendMessage = async () => {
       alert('网络连接失败，请检查网络后重试')
     }
     
-    // API调用失败时使用本地模拟回复
-    const aiResponse = generateAIResponse(question)
+    // API调用失败时显示错误信息
     const aiMessage = {
       id: Date.now() + 1,
       sender: 'ai',
-      content: aiResponse,
+      content: '抱歉，网络连接失败，AI服务暂时不可用。',
       timestamp: new Date(),
       scoreChange: scoreChange
     }
@@ -402,45 +463,7 @@ const evaluateUserResponse = (response) => {
   return score
 }
 
-// 生成AI回复
-const generateAIResponse = (userInput) => {
-  const scenario = scenarios[scenarioId]
-  if (!scenario) return '系统错误，请重新开始。'
-  
-  // 根据场景类型和用户输入生成回复
-  const responses = {
-    'pig-butchering': [
-      '你看起来很谨慎呢，这样很好！我这个投资平台真的很靠谱，我自己都投了10万，现在每天都有收益。要不你先投个1000试试水？',
-      '我理解你的担心，但是机会不等人啊！这个平台是我朋友内部推荐的，名额有限。你看我的收益截图，一个月就赚了3万！',
-      '好吧，我看你确实很小心。这样吧，我先帮你垫付1000，你看到收益了再还我，怎么样？这总没风险了吧？'
-    ],
-    'phishing': [
-      '请不要忽视这个安全提醒！您的账户确实存在风险，我们的系统检测到异常登录。请立即验证，否则账户将被永久冻结！',
-      '为了您的资金安全，请配合我们的验证流程。您只需要输入银行卡号和手机验证码即可完成验证，这是银行的标准流程。',
-      '时间紧急！如果您在30分钟内不完成验证，账户将被冻结并移交公安部门处理。请立即点击链接完成验证！'
-    ],
-    'fake-customer-service': [
-      '先生/女士，这是我们的退款流程，需要您配合。由于系统升级，退款需要通过银行卡验证。请提供卡号后四位和验证码。',
-      '我理解您的担心，但这确实是我们的标准流程。您可以查看我们的工号和客服证件。为了快速处理，请配合提供相关信息。',
-      '如果您不配合退款流程，我们将无法为您处理，损失只能您自己承担。这个商品确实有质量问题，其他客户都已经成功退款了。'
-    ],
-    'investment': [
-      '这个项目确实收益很高，但我们有专业的风控团队。您看这些成功案例，都是真实的客户收益。机会难得，今天就截止了！',
-      '我明白您的顾虑，但高收益必然伴随机遇。我们公司有正规资质，您可以先投资小额试试。很多客户都是从1000开始，现在都赚了几十万！',
-      '好吧，看您这么谨慎，我给您申请个特殊优惠。您只需要投资500，我们给您1000的额度，怎么样？这样总没风险了吧？'
-    ],
-    'loan': [
-      '保证金是银行的标准流程，用于验证您的还款能力。这2000元在放款后会一并返还给您，相当于免费贷款。',
-      '我理解您的担心，但这确实是正规流程。您可以查看我们的营业执照和金融许可证。很多客户都是这样操作的，非常安全。',
-      '如果您现在不办理，这个优惠利率就没有了。下次办理可能需要更高的保证金。机会难得，建议您抓紧时间！'
-    ]
-  }
-  
-  const scenarioResponses = responses[scenarioId] || ['请继续我们的对话。']
-  const randomResponse = scenarioResponses[Math.floor(Math.random() * scenarioResponses.length)]
-  
-  return randomResponse
-}
+// 注意：AI回复现在完全由后端API处理，不再需要本地生成
 
 // 结束对话
 const endConversation = () => {
@@ -495,18 +518,53 @@ const scrollToBottom = () => {
 }
 
 // 初始化
-onMounted(() => {
-  // 设置场景数据
+onMounted(async () => {
+  // 设置场景数据 - 根据URL参数动态设置
+  console.log('当前场景ID:', scenarioId)
   scenarioData.value = scenarios[scenarioId] || scenarios['pig-butchering']
+  console.log('设置的场景数据:', scenarioData.value)
   
-  // 添加初始消息
-  if (scenarioData.value.initialMessage) {
-    messages.value.push({
-      id: 1,
-      sender: 'ai',
-      content: scenarioData.value.initialMessage,
-      timestamp: new Date()
-    })
+  // 获取AI开场白
+  try {
+    const { accessToken } = useAuth()
+    const token = accessToken.value
+    
+    if (token) {
+      // 发送一个空消息来触发AI的开场白
+      const response = await $fetch('/api/chat/scenario/', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: {
+          message: '开始对话',
+          scenario_type: scenarioId,
+          difficulty: difficulty,
+          mode: mode
+        }
+      })
+      
+      if (response && response.success && response.response) {
+        messages.value.push({
+          id: 1,
+          sender: 'ai',
+          content: response.response,
+          timestamp: new Date()
+        })
+      }
+    }
+  } catch (error) {
+    console.error('获取AI开场白失败:', error)
+    // 如果获取失败，使用默认开场白
+    if (scenarioData.value.initialMessage) {
+      messages.value.push({
+        id: 1,
+        sender: 'ai',
+        content: scenarioData.value.initialMessage,
+        timestamp: new Date()
+      })
+    }
   }
 })
 </script>

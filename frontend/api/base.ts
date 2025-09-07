@@ -116,10 +116,17 @@ export class ApiClient {
         // 添加认证token
         if (process.client) {
           try {
-            const { useAuth } = await import('~/composables/useAuth');
-            const { accessToken } = useAuth();
-            if (accessToken.value) {
-              config.headers.Authorization = `Bearer ${accessToken.value}`;
+            // 优先从cookie获取token
+            const accessTokenCookie = useCookie('access-token');
+            if (accessTokenCookie.value) {
+              config.headers.Authorization = `Bearer ${accessTokenCookie.value}`;
+            } else {
+              // 备选方案：从localStorage获取
+              const { userStorage } = await import('~/utils/storage');
+              const token = userStorage.getToken();
+              if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+              }
             }
           } catch (error) {
             console.warn('无法获取认证状态:', error);
@@ -195,12 +202,16 @@ export class ApiClient {
       if (status === 401) {
         if (process.client) {
           try {
-            const { useAuthStore } = await import('~/stores/auth');
-            const auth = useAuthStore();
-            auth.clear();
+            // 使用 navigateTo 重定向到登录页面，避免直接使用 store
+            await navigateTo('/login');
             console.error('认证失败，请重新登录');
           } catch (e) {
-            console.warn('无法清除认证状态:', e);
+            console.warn('无法处理认证错误:', e);
+            // 作为备选方案，直接清除本地存储
+            if (typeof localStorage !== 'undefined') {
+              localStorage.removeItem('access-token');
+              localStorage.removeItem('user-info');
+            }
           }
         }
       }

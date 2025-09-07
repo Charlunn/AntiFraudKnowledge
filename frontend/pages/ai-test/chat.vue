@@ -119,9 +119,39 @@ const sendMessage = async () => {
   // 显示AI正在输入
   isTyping.value = true
 
-  // 模拟AI回复
-  setTimeout(() => {
-    const aiResponse = generateAIResponse(question)
+  try {
+    // 获取认证token
+    const { accessToken } = useAuth()
+    const token = accessToken.value
+    
+    if (!token) {
+      isTyping.value = false
+      alert('登录状态已过期，请重新登录')
+      await navigateTo('/login?redirect=' + encodeURIComponent('/ai-test/chat'))
+      return
+    }
+    
+    // 调用后端API获取AI回复
+    const { sendMessage: apiSendMessage } = await import('~/api/chat')
+    const response = await apiSendMessage(question)
+    
+    // 处理API响应 - 修复数据解析问题
+    console.log('API完整响应:', response)
+    console.log('API响应数据:', response)
+    
+    let aiResponse
+    if (response && response.success) {
+      // 后端返回成功，尝试获取AI回复
+      aiResponse = response.response || response.reply
+      if (!aiResponse) {
+        console.warn('API返回成功但无AI回复内容，使用模板回复')
+        aiResponse = generateAIResponse(question)
+      }
+    } else {
+      console.warn('API调用失败或返回格式异常，使用模板回复')
+      aiResponse = generateAIResponse(question)
+    }
+
     const aiMessage = {
       id: Date.now() + 1,
       sender: 'ai',
@@ -135,7 +165,41 @@ const sendMessage = async () => {
     nextTick(() => {
       scrollToBottom()
     })
-  }, 1500)
+  } catch (error) {
+    console.error('获取AI回复失败:', error)
+    isTyping.value = false
+    
+    // 处理认证错误
+    if (error.message.includes('用户未登录') || error.status === 401 || error.statusCode === 401) {
+      alert('登录状态已过期，请重新登录后继续对话')
+      await navigateTo('/login?redirect=' + encodeURIComponent('/ai-test/chat'))
+      return
+    }
+    
+    // 处理网络错误
+    if (error.message.includes('fetch') || error.message.includes('网络')) {
+      alert('网络连接失败，请检查网络后重试')
+      return
+    }
+    
+    // 显示系统错误
+    alert('系统错误，请重新开始')
+    
+    // API调用失败时使用本地模拟回复作为备选
+    const aiResponse = generateAIResponse(question)
+    const aiMessage = {
+      id: Date.now() + 1,
+      sender: 'ai',
+      content: aiResponse,
+      timestamp: new Date()
+    }
+
+    messages.value.push(aiMessage)
+
+    nextTick(() => {
+      scrollToBottom()
+    })
+  }
 }
 
 // 快捷问题
