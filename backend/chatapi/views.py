@@ -121,7 +121,7 @@ class ChatAPIView(APIView):
 
 每轮对话，在回复用户之前，你需要根据用户的最新回复，为用户在本轮的表现进行一个风险评分（基于用户的警惕性、是否泄露信息、是否听信你的诱导等）。评分范围是0-100分，初始分数为50分。
 评分标准：
-- 如果用户表现出高度警惕、怀疑、要求核实、提及报警或识破骗局，分数应该显著增加（例如+10到+30）。
+- 如果用户表现出高度警惕、怀疑、要求核实、提及报警或识破骗局，分数应该显著增加（例如10到30分）。
 - 如果用户轻易相信你、按照你的指示操作、询问敏感信息、或表现出焦虑、不知所措，分数应该减少（例如-10到-30）。
 - 如果用户直接泄露银行卡号、身份证号、验证码、密码等极端敏感信息，分数应大幅减少（例如-40到-60）。
 - 如果用户只是进行普通交流，与骗局核心不相关，分数变化较小或不变。
@@ -654,12 +654,12 @@ class ScenarioChatAPIView(APIView):
 
 基础分数：50分（初始分数）
 
-加分项（每项+5到+15分）：
-- 用户对真实服务给予合理信任：+10分
-- 用户通过合理方式验证真实性：+15分
-- 用户保持适度警惕但不过度：+12分
-- 用户询问合理问题验证身份：+8分
-- 用户识别出这是真实服务：+20分
+加分项（每项5到15分）：
+- 用户对真实服务给予合理信任：10分
+- 用户通过合理方式验证真实性：15分
+- 用户保持适度警惕但不过度：12分
+- 用户询问合理问题验证身份：8分
+- 用户识别出这是真实服务：20分
 
 扣分项（每项-3到-20分）：
 - 用户对正常服务过度怀疑：-8分
@@ -684,18 +684,18 @@ class ScenarioChatAPIView(APIView):
 【回复格式要求 - 严格执行】
 你必须严格按照以下JSON格式回复，不能有任何偏差：
 
-{
+{{
   "content": "你的回复正文内容",
   "current_score": 当前分数数字,
-  "score_change": 分数变化数字(正数或负数),
+  "score_change": 分数变化数字(正数或负数，正数不加+号),
   "change_reason": "分数变化的具体原因"
-}
+}}
 
 注意：
 - 必须是有效的JSON格式
 - content字段包含你的对话内容
 - current_score是当前总分数
-- score_change是本次分数变化（+5, -10等）
+- score_change是本次分数变化（5, -10等，正数绝对不能有+号，必须是纯数字）
 - change_reason解释为什么加分或扣分
 
 【重要规则】
@@ -736,15 +736,15 @@ class ScenarioChatAPIView(APIView):
   
   基础分数：50分（初始分数）
 
-加分项（每项+5到+15分）：
-- 用户表现出怀疑态度：+10分
-- 用户要求验证身份或资质：+15分
-- 用户拒绝提供个人信息：+12分
-- 用户拒绝转账或付款：+15分
-- 用户提到要咨询他人：+8分
-- 用户识别出诈骗话术：+20分
-- 用户主动结束对话：+10分
-- 用户提到报警或举报：+25分
+加分项（每项5到15分）：
+- 用户表现出怀疑态度：10分
+- 用户要求验证身份或资质：15分
+- 用户拒绝提供个人信息：12分
+- 用户拒绝转账或付款：15分
+- 用户提到要咨询他人：8分
+- 用户识别出诈骗话术：20分
+- 用户主动结束对话：10分
+- 用户提到报警或举报：25分
 
 扣分项（每项-3到-20分）：
 - 用户轻易相信你的话：-8分
@@ -782,18 +782,18 @@ class ScenarioChatAPIView(APIView):
 【回复格式要求 - 严格执行】
 你必须严格按照以下JSON格式回复，不能有任何偏差：
 
-{
+{{
   "content": "你的回复正文内容",
   "current_score": 当前分数数字,
-  "score_change": 分数变化数字(正数或负数),
+  "score_change": 分数变化数字(正数或负数，正数不加+号),
   "change_reason": "分数变化的具体原因"
-}
+}}
 
 注意：
 - 必须是有效的JSON格式
 - content字段包含你的对话内容
 - current_score是当前总分数
-- score_change是本次分数变化（+5, -10等）
+- score_change是本次分数变化（5, -10等，正数绝对不能有+号，必须是纯数字）
 - change_reason解释为什么加分或扣分
 
 【重要规则】
@@ -833,8 +833,6 @@ class ScenarioChatAPIView(APIView):
     
     def post(self, request):
         """处理场景模拟聊天消息"""
-        SESSION_STATE_KEY = 'scenario_chat_conversation_state'
-        
         try:
             # 获取请求参数
             user_message = request.data.get('message')
@@ -844,15 +842,18 @@ class ScenarioChatAPIView(APIView):
             mode = request.data.get('mode', 'pure')
             user_id = str(request.user.id)
             
+            # 为每个场景类型创建独立的会话状态键，确保不同场景间完全隔离
+            SESSION_STATE_KEY = f'scenario_chat_{scenario_type}_{user_id}'
+            
             logger.info(f"场景模拟聊天请求来自用户: {user_id}, 场景: {scenario_type}, 难度: {difficulty}, 模式: {mode}")
             
             # 处理重置会话请求
             if reset_conversation:
-                logger.info(f"重置用户 {user_id} 的场景模拟会话状态")
+                logger.info(f"重置用户 {user_id} 的场景模拟会话状态: {scenario_type}")
                 if SESSION_STATE_KEY in request.session:
                     del request.session[SESSION_STATE_KEY]
                 return Response(
-                    {'success': True, 'message': '场景模拟会话状态重置成功'},
+                    {'success': True, 'message': f'场景模拟会话状态重置成功: {scenario_type}'},
                     status=status.HTTP_200_OK
                 )
             
@@ -919,6 +920,10 @@ class ScenarioChatAPIView(APIView):
                 if cleaned_response.endswith('```'):
                     cleaned_response = cleaned_response[:-3]
                 cleaned_response = cleaned_response.strip()
+                
+                # 修复score_change字段中的+号问题
+                import re
+                cleaned_response = re.sub(r'"score_change":\s*\+([0-9]+)', r'"score_change": \1', cleaned_response)
                 
                 ai_data = json.loads(cleaned_response)
                 

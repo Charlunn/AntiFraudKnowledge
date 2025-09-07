@@ -337,10 +337,11 @@ const sendMessage = async () => {
     
     // 处理API响应
     let aiResponseContent, scoreChange = 0, changeReason = ''
-    if (response && response.success && response.response) {
+    if (response && response.success) {
+      // 后端已经解析了JSON并返回结构化数据，直接使用
       aiResponseContent = response.response
       
-      // 处理新的JSON格式响应
+      // 处理分数信息
       if (response.current_score !== undefined) {
         const oldScore = currentScore.value
         currentScore.value = response.current_score
