@@ -46,11 +46,24 @@
           <!-- 聊天消息区域 -->
           <div class="h-96 overflow-y-auto p-6 space-y-4" ref="chatContainer">
             <div v-for="message in messages" :key="message.id" class="flex" :class="message.sender === 'user' ? 'justify-end' : 'justify-start'">
-              <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg" :class="message.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 border border-red-200'">
-                <div class="text-sm mb-1" v-if="message.sender === 'ai'">
+              <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg" :class="[
+                message.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 border border-red-200',
+                message.isWaiting ? 'opacity-75' : ''
+              ]">
+                <div class="text-sm mb-1" v-if="message.sender === 'ai' && !message.isWaiting">
                   <span class="font-semibold text-red-600 dark:text-red-400">🚨 诈骗者</span>
                 </div>
-                {{ message.content }}
+                <div class="text-sm mb-1" v-if="message.sender === 'ai' && message.isWaiting">
+                  <span class="font-semibold text-gray-600 dark:text-gray-400">⏳ 系统</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                  <span>{{ message.content }}</span>
+                  <div v-if="message.isWaiting" class="flex space-x-1">
+                    <div class="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce"></div>
+                    <div class="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                    <div class="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                  </div>
+                </div>
                 <div v-if="message.scoreChange" class="text-xs mt-1 font-medium" :class="message.scoreChange > 0 ? 'text-green-600' : 'text-red-600'">
                   {{ message.scoreChange > 0 ? '+' : '' }}{{ message.scoreChange }}分
                 </div>
@@ -606,6 +619,23 @@ onMounted(async () => {
   scenarioData.value = scenarios[scenarioId] || scenarios['pig-butchering']
   console.log('设置的场景数据:', scenarioData.value)
   
+  // 添加等待消息的占位符
+  const waitingMessageId = Date.now()
+  messages.value.push({
+    id: waitingMessageId,
+    sender: 'ai',
+    content: '正在准备场景对话...',
+    timestamp: new Date(),
+    isWaiting: true
+  })
+  
+  // 滚动到底部显示等待消息
+  await nextTick()
+  scrollToBottom()
+  
+  // 设置打字效果
+  isTyping.value = true
+  
   // 获取AI开场白
   try {
     const { accessToken } = useAuth()
@@ -627,6 +657,9 @@ onMounted(async () => {
         }
       })
       
+      // 移除等待消息
+      messages.value = messages.value.filter(msg => msg.id !== waitingMessageId)
+      
       if (response && response.success && response.response) {
         messages.value.push({
           id: 1,
@@ -638,6 +671,9 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error('获取AI开场白失败:', error)
+    // 移除等待消息
+    messages.value = messages.value.filter(msg => msg.id !== waitingMessageId)
+    
     // 如果获取失败，使用默认开场白
     if (scenarioData.value.initialMessage) {
       messages.value.push({
@@ -647,6 +683,12 @@ onMounted(async () => {
         timestamp: new Date()
       })
     }
+  } finally {
+    // 关闭打字效果
+    isTyping.value = false
+    // 滚动到底部
+    await nextTick()
+    scrollToBottom()
   }
 })
 </script>
