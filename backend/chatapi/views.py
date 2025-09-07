@@ -346,6 +346,141 @@ class ChatHistoryView(APIView):
 
 
 @method_decorator(csrf_exempt, name='dispatch')
+class GenerateReportAPIView(APIView):
+    """生成对话分析报告的API视图"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """根据对话内容生成AI分析报告"""
+        try:
+            # 获取请求参数
+            scenario_type = request.data.get('scenario_type')
+            difficulty = request.data.get('difficulty')
+            mode = request.data.get('mode')
+            final_score = request.data.get('final_score')
+            conversation_rounds = request.data.get('conversation_rounds')
+            end_reason = request.data.get('end_reason')
+            messages = request.data.get('messages', [])
+            
+            # 验证必需参数
+            if not all([scenario_type, difficulty, mode, final_score is not None]):
+                return Response({
+                    'success': False,
+                    'message': '缺少必需的参数'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # 构建对话历史文本
+            conversation_text = ""
+            for msg in messages:
+                if msg.get('sender') == 'user':
+                    conversation_text += f"用户: {msg.get('content', '')}\n"
+                elif msg.get('sender') == 'ai':
+                    conversation_text += f"AI: {msg.get('content', '')}\n"
+            
+            # 生成报告分析的系统提示词
+            report_prompt = f"""你是一名专业的反诈骗培训师，需要根据用户在反诈骗模拟对话中的表现生成详细的分析报告。
+
+【对话信息】
+场景类型: {scenario_type}
+难度等级: {difficulty}
+学习模式: {mode}
+最终得分: {final_score}分
+对话轮次: {conversation_rounds}轮
+结束原因: {end_reason}
+
+【对话记录】
+{conversation_text}
+
+请根据以上信息生成一份专业的分析报告，包含以下内容：
+
+1. 表现评价（150-200字）：
+   - 分析用户在对话中的防诈骗表现
+   - 指出用户做得好的地方和需要改进的地方
+   - 评价用户的警惕性和应对策略
+
+2. 改进建议（200-300字）：
+   - 针对用户的具体表现给出个性化建议
+   - 提供实用的防诈骗技巧和方法
+   - 推荐相关的学习资源或练习方向
+
+请以JSON格式返回，包含performance_analysis和suggestions两个字段。
+
+要求：
+- 语言专业但易懂
+- 建议具体可操作
+- 鼓励用户继续学习
+- 基于实际对话内容进行分析
+"""
+            
+            # 调用AI生成报告
+            if not openai_client:
+                return Response({
+                    'success': False,
+                    'message': 'AI服务暂时不可用'
+                }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            
+            completion = openai_client.chat.completions.create(
+                model="qwen-plus",
+                messages=[
+                    {"role": "system", "content": "你是一名专业的反诈骗培训师，擅长分析用户的防诈骗表现并给出专业建议。"},
+                    {"role": "user", "content": report_prompt}
+                ],
+                temperature=0.7,
+                max_tokens=1500
+            )
+            
+            ai_response = completion.choices[0].message.content
+            logger.info(f"AI报告生成响应: {ai_response[:100]}...")
+            
+            # 尝试解析AI返回的JSON
+            try:
+                import json
+                # 清理可能的markdown代码块标记
+                cleaned_response = ai_response.strip()
+                if cleaned_response.startswith('```json'):
+                    cleaned_response = cleaned_response[7:]
+                if cleaned_response.endswith('```'):
+                    cleaned_response = cleaned_response[:-3]
+                cleaned_response = cleaned_response.strip()
+                
+                report_data = json.loads(cleaned_response)
+                
+                # 验证必需字段
+                if 'performance_analysis' not in report_data or 'suggestions' not in report_data:
+                    raise ValueError("AI响应缺少必需字段")
+                
+                return Response({
+                    'success': True,
+                    'performance_analysis': report_data['performance_analysis'],
+                    'suggestions': report_data['suggestions']
+                }, status=status.HTTP_200_OK)
+                
+            except (json.JSONDecodeError, ValueError, KeyError) as e:
+                logger.warning(f"AI报告响应JSON解析失败: {e}, 原始响应: {ai_response}")
+                
+                # 如果JSON解析失败，返回默认报告
+                default_performance = f"根据您在{scenario_type}场景中的表现，最终得分为{final_score}分。" + (
+                    "您表现出了良好的防诈骗意识，能够识别诈骗行为并采取适当的应对措施。" if final_score >= 70 else
+                    "您的防诈骗意识还需要进一步提高，建议多学习相关知识。"
+                )
+                
+                default_suggestions = "建议您：1. 提高警惕性，对陌生人的要求保持怀疑；2. 不轻易透露个人信息；3. 遇到可疑情况及时咨询或报警；4. 定期学习最新的诈骗手段。"
+                
+                return Response({
+                    'success': True,
+                    'performance_analysis': default_performance,
+                    'suggestions': default_suggestions
+                }, status=status.HTTP_200_OK)
+                
+        except Exception as e:
+            logger.error(f"生成报告失败: {e}")
+            return Response({
+                'success': False,
+                'message': f'生成报告时发生错误: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
 class ChatSessionsView(APIView):
     """聊天会话管理视图"""
     permission_classes = [IsAuthenticated]
@@ -697,6 +832,7 @@ class ScenarioChatAPIView(APIView):
 - current_score是当前总分数
 - score_change是本次分数变化（5, -10等，正数绝对不能有+号，必须是纯数字）
 - change_reason解释为什么加分或扣分
+- 【重要提醒】用户识别诈骗、说"你是骗子"、威胁报警时score_change必须是正数（如25），不能是负数！
 
 【重要规则】
  1. 你是真实的服务提供者，不是诈骗分子
@@ -736,15 +872,17 @@ class ScenarioChatAPIView(APIView):
   
   基础分数：50分（初始分数）
 
-加分项（每项5到15分）：
-- 用户表现出怀疑态度：10分
-- 用户要求验证身份或资质：15分
-- 用户拒绝提供个人信息：12分
-- 用户拒绝转账或付款：15分
-- 用户提到要咨询他人：8分
-- 用户识别出诈骗话术：20分
-- 用户主动结束对话：10分
-- 用户提到报警或举报：25分
+加分项（每项5到25分）：
+- 用户表现出怀疑态度：+10分
+- 用户要求验证身份或资质：+15分
+- 用户拒绝提供个人信息：+12分
+- 用户拒绝转账或付款：+15分
+- 用户提到要咨询他人：+8分
+- 用户识别出诈骗话术：+20分
+- 用户主动结束对话：+10分
+- 用户提到报警或举报：+25分（这是最高加分项，用户识别诈骗并威胁报警是最佳表现）
+
+【重要】当用户说"你是骗子"、"我要报警"等识别诈骗的话时，必须加分而不是扣分！
 
 扣分项（每项-3到-20分）：
 - 用户轻易相信你的话：-8分
@@ -761,6 +899,8 @@ class ScenarioChatAPIView(APIView):
 3. 分数变化要合理，一次最多变化30分
 4. 达到0分或100分时对话应该结束
 5. 你必须在内心记录分数变化原因
+6. 【关键】用户识别诈骗、说"你是骗子"、威胁报警等行为都是正确的防骗表现，必须加分！
+7. 【关键】只有用户被骗、提供信息、同意转账等才应该扣分！
 
 【角色背景】
 {scenario['background']}

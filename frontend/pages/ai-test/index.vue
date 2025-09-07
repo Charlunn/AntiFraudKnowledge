@@ -123,6 +123,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { fetchTestRecords } from '~/api/test-records'
 
 // 页面布局
 definePageMeta({
@@ -166,37 +167,47 @@ const viewTestResult = (testId) => {
 // 加载最近的测试记录
 const loadRecentTests = async () => {
   try {
-    // 这里应该调用实际的API
-    // const response = await aiTestApi.getRecentTests()
-    // recentTests.value = response.data
-    
-    // 暂时使用模拟数据
-    recentTests.value = [
-      {
-        id: 1,
-        type: 'chat',
-        title: 'AI反诈骗对话',
-        score: 85,
-        completed_at: new Date().toISOString()
-      },
-      {
-        id: 2,
-        type: 'assessment',
-        title: '风险评估测试',
-        score: 92,
-        completed_at: new Date(Date.now() - 86400000).toISOString()
-      },
-      {
-        id: 3,
-        type: 'simulation',
-        title: '电信诈骗场景',
-        score: 78,
-        completed_at: new Date(Date.now() - 172800000).toISOString()
-      }
-    ]
+    const response = await fetchTestRecords(1, 2) // 只获取最新的2条记录
+    if (response.data && Array.isArray(response.data)) {
+      // 转换数据格式以匹配UI需求
+      recentTests.value = response.data.map(record => ({
+        id: record.id,
+        type: getTestTypeFromScenario(record.scenario_type),
+        title: getTestTitleFromScenario(record.scenario_type),
+        score: record.score,
+        createdAt: record.created_at
+      }))
+    } else {
+      recentTests.value = []
+    }
   } catch (error) {
     console.error('加载测试记录失败:', error)
+    recentTests.value = []
   }
+}
+
+// 根据场景类型获取测试类型
+const getTestTypeFromScenario = (scenarioType) => {
+  const typeMap = {
+    'telecom_fraud': 'simulation',
+    'pig_butchering': 'simulation',
+    'investment_fraud': 'simulation',
+    'online_shopping': 'simulation',
+    'fake_charity': 'simulation'
+  }
+  return typeMap[scenarioType] || 'chat'
+}
+
+// 根据场景类型获取测试标题
+const getTestTitleFromScenario = (scenarioType) => {
+  const titleMap = {
+    'telecom_fraud': '电信诈骗场景',
+    'pig_butchering': '杀猪盘场景',
+    'investment_fraud': '投资诈骗场景',
+    'online_shopping': '网购诈骗场景',
+    'fake_charity': '虚假慈善场景'
+  }
+  return titleMap[scenarioType] || 'AI反诈骗对话'
 }
 
 const getTestTypeClass = (type) => {

@@ -21,7 +21,7 @@ class TestRecordListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        return TestRecord.objects.filter(user=self.request.user)
+        return TestRecord.objects.filter(user=self.request.user).order_by('-created_at')
 
 class TestRecordDetailView(generics.RetrieveAPIView):
     """获取测试记录详情"""
@@ -104,6 +104,18 @@ def save_test_record(request):
     """保存测试记录的便捷接口"""
     data = request.data.copy()
     data['completed_at'] = timezone.now()
+    
+    # 检查是否需要替换最新记录
+    replace_latest = data.pop('replace_latest', False)
+    
+    if replace_latest:
+        # 删除用户相同场景类型的旧记录，只保留最新的
+        scenario_type = data.get('scenario_type')
+        if scenario_type:
+            TestRecord.objects.filter(
+                user=request.user, 
+                scenario_type=scenario_type
+            ).delete()
     
     serializer = TestRecordSerializer(data=data, context={'request': request})
     if serializer.is_valid():

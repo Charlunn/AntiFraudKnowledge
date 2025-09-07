@@ -140,6 +140,7 @@ export async function saveTestRecord(data: {
   conversation_rounds: number;
   ai_feedback: string;
   suggestions: string;
+  replace_latest?: boolean;
 }): Promise<ApiResponse<TestRecord>> {
-  return await createTestRecord(data);
+  return await apiClient.post<TestRecord>('/test-records/save/', data);
 }

@@ -4,12 +4,14 @@ app_name = 'chat_api'  # 定义应用命名空间
 from django.urls import path
 from . import views
 from . import knowledge_views
+from .views import ChatAPIView, ChatHistoryView, ScenarioChatAPIView, ChatSessionsView, GenerateReportAPIView
 
 urlpatterns = [
     path('', views.chat_api_view, name='chat_api'),
     path('scenario/', views.ScenarioChatAPIView.as_view(), name='scenario_chat_api'),
     path('history/', views.ChatHistoryView.as_view(), name='chat_history'),
     path('sessions/', views.ChatSessionsView.as_view(), name='chat_sessions'),
+    path('generate-report/', GenerateReportAPIView.as_view(), name='generate_report'),
     
     # 知识图谱相关API
     path('knowledge/risk-analysis/', knowledge_views.FraudRiskAnalysisView.as_view(), name='fraud_risk_analysis'),

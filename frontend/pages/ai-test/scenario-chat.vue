@@ -155,6 +155,7 @@
 import { ref, computed, nextTick, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuth } from '~/composables/useAuth'
+import { saveTestRecord } from '~/api/test-records'
 
 // 页面元数据
 useHead({
@@ -188,6 +189,8 @@ const conversationRounds = ref(0)
 const maxRounds = 20
 const finalScore = ref(0)
 const recentScoreChanges = ref([]) // 最近的分数变化记录
+const aiGeneratedReport = ref(null)
+const startTime = ref(Date.now())
 
 // 从URL获取参数
 const scenarioId = route.query.scenario
@@ -213,12 +216,18 @@ const modeText = computed(() => {
 })
 
 const performanceText = computed(() => {
+  if (aiGeneratedReport.value?.performance) {
+    return aiGeneratedReport.value.performance
+  }
   if (finalScore.value >= 80) return '优秀！您很好地识别了诈骗行为，保持警惕！'
   if (finalScore.value >= 60) return '良好！您有一定的防诈骗意识，但还需要提高警惕性。'
   return '需要改进！建议您多学习反诈骗知识，提高防范意识。'
 })
 
 const aiAdvice = computed(() => {
+  if (aiGeneratedReport.value?.suggestions) {
+    return aiGeneratedReport.value.suggestions
+  }
   const advices = [
     '1. 遇到要求转账的情况，一定要多方核实',
     '2. 不要轻易透露个人信息和银行卡信息',
@@ -467,15 +476,62 @@ const evaluateUserResponse = (response) => {
 // 注意：AI回复现在完全由后端API处理，不再需要本地生成
 
 // 结束对话
-const endConversation = () => {
+const endConversation = async (reason = 'manual_end') => {
   gameEnded.value = true
   finalScore.value = currentScore.value
+  
+  // 生成AI分析报告
+  await generateAIReport(reason)
+  
   showReport.value = true
+}
+
+// 生成AI分析报告
+const generateAIReport = async (endReason) => {
+  try {
+    const { accessToken } = useAuth()
+    const token = accessToken.value
+    
+    if (!token) {
+      console.error('未找到认证token')
+      return
+    }
+    
+    // 调用后端API生成报告
+    const response = await $fetch('/api/chatapi/generate-report/', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: {
+        scenario_type: scenarioId,
+        difficulty: difficulty,
+        mode: mode,
+        final_score: finalScore.value,
+        conversation_rounds: conversationRounds.value,
+        end_reason: endReason,
+        messages: messages.value
+      }
+    })
+    
+    if (response && response.success) {
+      // 更新报告内容为AI生成的内容
+      aiGeneratedReport.value = {
+        performance: response.performance_analysis,
+        suggestions: response.suggestions
+      }
+    }
+  } catch (error) {
+    console.error('生成AI报告失败:', error)
+    // 如果AI报告生成失败，使用默认模板
+  }
 }
 
 // 保存报告
 const saveReport = async () => {
   try {
+    // 构建智能评估报告数据（只保存AI分析结果，不保存对话历史）
     const reportData = {
       scenario_type: scenarioData.value?.title || '电信诈骗模拟',
       difficulty: difficulty,
@@ -484,21 +540,33 @@ const saveReport = async () => {
       conversation_rounds: conversationRounds.value,
       end_reason: 'manual_end',
       report_data: {
-        title: '对话报告',
-        message: performanceText.value,
-        suggestions: aiAdvice.value,
-        messages: messages.value
+        title: 'AI智能评估报告',
+        performance_analysis: aiGeneratedReport.value?.performance || performanceText.value,
+        suggestions: aiGeneratedReport.value?.suggestions || aiAdvice.value,
+        // 不保存完整对话历史，只保存统计信息
+        statistics: {
+          total_messages: messages.value.length,
+          user_messages: messages.value.filter(m => m.sender === 'user').length,
+          ai_messages: messages.value.filter(m => m.sender === 'ai').length,
+          duration: Math.floor((Date.now() - startTime) / 1000)
+        }
       },
-      completed_at: new Date().toISOString()
+      completed_at: new Date().toISOString(),
+      replace_latest: true // 标记为替换最新记录
     }
     
-    const response = await $fetch('/api/test-records/create/', {
-      method: 'POST',
-      body: reportData
+    const response = await saveTestRecord({
+      scenario_type: reportData.scenario_type,
+      difficulty: reportData.difficulty,
+      score: reportData.score,
+      conversation_rounds: reportData.conversation_rounds,
+      ai_feedback: reportData.report_data.performance_analysis,
+      suggestions: JSON.stringify(reportData.report_data.suggestions),
+      replace_latest: reportData.replace_latest
     })
     
-    console.log('测试记录保存成功:', response)
-    alert('报告已保存到测试记录！')
+    console.log('智能评估报告保存成功:', response)
+    alert('AI评估报告已保存！')
     goBack()
   } catch (error) {
     console.error('保存报告失败:', error)

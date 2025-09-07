@@ -219,7 +219,7 @@ const loadTestRecord = async () => {
 }
 
 const continueChat = () => {
-  navigateTo('/ai-test/scenario-selection')
+  navigateTo('/ai-test/scenario-chat')
 }
 
 const goBack = () => {
