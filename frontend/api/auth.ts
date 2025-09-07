@@ -88,6 +88,25 @@ export async function logout(refreshToken: string): Promise<ApiResponse<void>> {
 }
 
 /**
+ * 刷新访问令牌
+ * @param refreshData - 包含刷新令牌的数据
+ * @param refreshData.refresh - 刷新令牌
+ * @returns 新的访问令牌信息
+ * 
+ * @example
+ * ```typescript
+ * const result = await refreshToken({ refresh: 'your_refresh_token' });
+ * const { access_token } = result.data;
+ * ```
+ */
+export async function refreshToken(refreshData: { refresh: string }): Promise<ApiResponse<{ access_token: string; refresh_token?: string }>> {
+  if (!refreshData || !refreshData.refresh) {
+    throw new Error('刷新令牌不能为空');
+  }
+  return await apiClient.post<{ access_token: string; refresh_token?: string }>('/users/token/refresh/', refreshData);
+}
+
+/**
  * 获取用户个人资料
  * 需要登录权限
  * @returns 用户资料信息

@@ -9,9 +9,9 @@ RUN npm config set registry https://registry.npmmirror.com/ \
     && npm install -g pnpm \
     && pnpm config set registry https://registry.npmmirror.com/
 
-# 如果需要原生依赖编译，安装基础工具链（可选但推荐）
-RUN apt-get update && apt-get install -y python3 make g++ \
-    && rm -rf /var/lib/apt/lists/*
+# 跳过系统依赖安装以避免网络问题
+# RUN apt-get update && apt-get install -y python3 make g++ \
+#     && rm -rf /var/lib/apt/lists/*
 
 # 先复制依赖文件（利用 Docker 缓存）
 COPY package.json pnpm-lock.yaml* ./

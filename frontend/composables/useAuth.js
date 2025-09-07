@@ -28,17 +28,50 @@ export const useAuth = () => {
     sameSite: 'strict'
   })
 
-  // 初始化认证状态 - 只在客户端执行
-  const initializeAuth = () => {
+
+
+  // 清除认证状态
+  const clearAuthState = () => {
+    accessToken.value = null
+    refreshToken.value = null
+    user.value = null
+    isAuthenticated.value = false
+    authError.value = null
+    
+    // 清除本地存储
     if (process.client) {
-      const storedToken = userStorage.getToken()
-      const storedUser = userStorage.getUserInfo()
+      userStorage.removeToken()
+      userStorage.removeUserInfo()
       
-      if (storedToken && storedUser) {
-        accessToken.value = storedToken
-        user.value = storedUser
-        isAuthenticated.value = true
+      // 清除cookies
+      const accessTokenCookie = useCookie('access-token')
+      const refreshTokenCookie = useCookie('refresh-token')
+      accessTokenCookie.value = null
+      refreshTokenCookie.value = null
+    }
+  }
+
+  // 初始化认证状态 - 服务端和客户端都执行
+  const initializeAuth = () => {
+    // 首先从cookies获取token（服务端和客户端都可用）
+    const accessTokenCookie = useCookie('access-token')
+    const refreshTokenCookie = useCookie('refresh-token')
+    
+    if (accessTokenCookie.value) {
+      accessToken.value = accessTokenCookie.value
+      refreshToken.value = refreshTokenCookie.value
+      isAuthenticated.value = true
+      
+      // 在客户端时，同步本地存储的用户信息
+      if (process.client) {
+        const storedUser = userStorage.getUserInfo()
+        if (storedUser) {
+          user.value = storedUser
+        }
       }
+    } else {
+      // 没有认证信息时确保状态一致
+      clearAuthState()
     }
   }
 
@@ -159,32 +192,12 @@ export const useAuth = () => {
     }
   }
   
-  // 清除认证状态
-  const clearAuthState = () => {
-    user.value = null
-    isAuthenticated.value = false
-    accessToken.value = null
-    refreshToken.value = null
-    authError.value = null
-    
-    // 清除本地存储
-    userStorage.clearUserData()
-    
-    // 清除Nuxt cookies
-    if (process.client) {
-      const accessTokenCookie = useCookie('access-token')
-      const refreshTokenCookie = useCookie('refresh-token')
-      const userCookie = useCookie('user')
-      
-      accessTokenCookie.value = null
-      refreshTokenCookie.value = null
-      userCookie.value = null
-    }
-  }
+
   
   // JWT 刷新访问令牌
   const refreshAccessToken = async () => {
     if (!refreshToken.value) {
+      clearAuthState()
       throw new Error('No refresh token available')
     }
     
@@ -219,7 +232,8 @@ export const useAuth = () => {
       
       return response.access_token
     } catch (error) {
-      // 刷新令牌失败，清除认证状态
+      // 刷新令牌失败（可能已被列入黑名单），彻底清除认证状态
+      console.warn('Token refresh failed, clearing auth state:', error)
       clearAuthState()
       await navigateTo('/login')
       throw error
