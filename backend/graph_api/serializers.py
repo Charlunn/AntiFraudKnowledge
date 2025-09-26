@@ -1,4 +1,4 @@
-# serializers.py
+﻿# serializers.py
 from rest_framework import serializers
 # No need to import Node, Relationship, Record from neo4j driver anymore for this logic
 from typing import List, Dict, Any, Set, Optional, Union, Tuple
@@ -63,62 +63,48 @@ class EchartsGraphSerializer(serializers.Serializer):
     )
 
     def _format_node(self, node_dict: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Formats a node dictionary into an ECharts node dictionary."""
+        """Formats a node dictionary into an ECharts-friendly representation."""
         if not isinstance(node_dict, dict):
-            logger.warning(f"Expected a dictionary for node, but got {type(node_dict)}. Skipping.")
+            logger.warning("Expected a dictionary for node, but got %s. Skipping.", type(node_dict))
             return None
 
         node_id = get_node_id(node_dict)
         if node_id is None:
-            logger.warning(f"Could not determine a unique ID for node: {node_dict}. Skipping node.")
+            logger.warning("Could not determine a unique ID for node: %s. Skipping.", node_dict)
             return None
 
-        # 根据节点类型选择合适的显示名称属性
-        # 检查节点是否有 'labels' 属性，这是 Neo4j 节点的标签列表
-        labels = node_dict.get('labels', [])
-        
-        # 默认使用 name 属性
-        node_name = node_dict.get('name', None)
-        
-        # 如果是 Keyword 节点，优先使用 term 属性
-        if 'Keyword' in labels and 'term' in node_dict:
-            node_name = node_dict['term']
-        # 如果是 AssetFlow 节点，优先使用 method 属性
-        elif 'AssetFlow' in labels and 'method' in node_dict:
-            node_name = node_dict['method']
-        
-        # 如果仍然没有找到合适的名称，尝试其他可能的属性
-        if node_name is None:
-            # 按优先级尝试不同的属性
-            for attr in ['name', 'term', 'method', 'description', 'type', 'value']:
-                if attr in node_dict and node_dict[attr]:
-                    node_name = node_dict[attr]
-                    break
-        
-        # 如果所有尝试都失败，使用一个更友好的回退值而不是 node_id
-        if node_name is None:
-            # 尝试使用标签作为名称前缀
-            if labels:
-                node_name = f"{labels[0]}-{node_id[-8:]}"  # 使用标签和ID的最后8位
-            else:
-                node_name = f"Node-{node_id[-8:]}"  # 使用通用前缀和ID的最后8位
+        labels = node_dict.get('labels', []) or []
 
-        # Simple category logic: Use 'type' or 'label' key if present, else default
-        # You might need more specific logic based on your data's conventions
-        category = node_dict.get('type', node_dict.get('label', 'Default'))
+        # Determine the display name with sensible fallbacks.
+        candidate_fields = ['name']
+        if 'Keyword' in labels:
+            candidate_fields.insert(0, 'term')
+        if 'AssetFlow' in labels:
+            candidate_fields.insert(0, 'method')
+        candidate_fields.extend(['term', 'method', 'description', 'type', 'value'])
 
-        # Convert all property values to string for simplicity in ECharts display
-        # Handle potential complex types like neo4j.time explicitly if needed elsewhere
-        properties = {k: str(v) for k, v in node_dict.items()}
+        node_name = None
+        for field in candidate_fields:
+            value = node_dict.get(field)
+            if value:
+                node_name = value
+                break
+
+        if node_name is None:
+            prefix = labels[0] if labels else 'Node'
+            node_name = f"{prefix}-{node_id[-8:]}"
+
+        category = node_dict.get('type') or node_dict.get('label') or 'Default'
+
+        properties = {key: str(value) for key, value in node_dict.items()}
 
         return {
             'id': node_id,
-            'name': str(node_name), # Ensure name is string
+            'name': str(node_name),
             'category': str(category),
             'symbolSize': 30,
-            'value': node_dict.get('value', 1), # Get 'value' if present
-            'properties': properties, # Attach all properties
-            # Add other ECharts specific attributes as needed
+            'value': node_dict.get('value', 1),
+            'properties': properties,
         }
 
     def _format_link(self, rel_tuple: Tuple) -> Optional[Dict[str, Any]]:
@@ -245,12 +231,21 @@ class EchartsGraphSerializer(serializers.Serializer):
         final_nodes_list = list(nodes_data_dict.values())
         logger.info(f"Serialized {len(final_nodes_list)} unique nodes and {len(links_data)} links for ECharts.")
 
-        return {'nodes': final_nodes_list, 'links': links_data}
+        categories = [
+            {'name': str(category)}
+            for category in sorted({node.get('category', 'Default') for node in final_nodes_list})
+        ]
 
+        return {
+            'nodes': final_nodes_list,
+            'links': links_data,
+            'categories': categories,
+            'counts': {
+                'nodes': len(final_nodes_list),
+                'links': len(links_data)
+            }
+        }
 
-class GraphDataSerializer(EchartsGraphSerializer):
-    """保持向后兼容的别名序列化器，直接继承 EchartsGraphSerializer。"""
-    pass
 
 # ==============================================================
 # NodeDetailSerializer - Also needs adaptation for Dict input
@@ -379,3 +374,7 @@ class NodeDetailSerializer(serializers.Serializer):
             f"with {len(neighbors_data)} unique neighbor connections."
         )
         return {'node_properties': node_properties, 'neighbors': neighbors_data}
+
+
+# Backward compatibility alias
+GraphDataSerializer = EchartsGraphSerializer

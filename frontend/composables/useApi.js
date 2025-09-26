@@ -158,45 +158,124 @@ export const useUserApi = () => {
 
 // 知识图谱相关API
 export const useGraphApi = () => {
-  const getGraphData = (params = {}) => {
+  const normalizeGraphResponse = (response = {}) => {
+    const graph = response.graph ?? response ?? {}
+    const nodes = graph.nodes || []
+    const links = graph.links || graph.edges || []
+    const categories = graph.categories || []
+    const counts = graph.counts || {
+      nodes: nodes.length,
+      links: links.length
+    }
+
+    return {
+      nodes,
+      links,
+      categories,
+      counts,
+      meta: response.meta || graph.meta || {}
+    }
+  }
+
+  const getGraphData = (params = {}, options = {}) => {
+    const hasMeaningfulFilters = Object.entries(params || {}).some(([key, value]) => {
+      if (value === undefined || value === null || value === '') return false
+      if (key === 'limit') return false
+      if (Array.isArray(value)) return value.length > 0
+      return true
+    })
+
+    const fetcher = () => hasMeaningfulFilters
+      ? graphApi.filterGraph(params)
+      : graphApi.getGraphSnapshot(params)
+
     return useApiData(
       `graph_data_${JSON.stringify(params)}`,
-      () => graphApi.getGraph(params),
-      { 
-        cache: true, 
-        cacheTime: 10 * 60 * 1000,
-        transform: (data) => {
-          // 处理图谱数据格式
-          return {
-            nodes: data.nodes || [],
-            links: data.links || data.edges || [],
-            categories: data.categories || []
-          }
-        }
+      fetcher,
+      {
+        cache: true,
+        cacheTime: 5 * 60 * 1000,
+        immediate: false,
+        transform: normalizeGraphResponse,
+        ...options
       }
     )
   }
 
-  const getNodeDetails = (nodeId) => {
+  const getNodeDetails = (nodeId, params = {}) => {
     return useApiData(
       `node_details_${nodeId}`,
-      () => graphApi.getNode(nodeId),
-      { cache: true, cacheTime: 15 * 60 * 1000 }
+      () => graphApi.getNode(nodeId, params),
+      {
+        cache: true,
+        cacheTime: 15 * 60 * 1000,
+        immediate: false,
+        transform: (data) => ({
+          node: data?.node || {},
+          neighbors: data?.neighbors || [],
+          graph: normalizeGraphResponse(data?.graph ? { graph: data.graph, meta: data.meta } : data)
+        })
+      }
     )
   }
 
-  const searchNodes = (query, params = {}) => {
+  const expandNode = (nodeId, params = {}) => {
     return useApiData(
-      `search_nodes_${query}_${JSON.stringify(params)}`,
-      () => graphApi.searchNodes(query, params),
-      { cache: true, cacheTime: 5 * 60 * 1000 }
+      `node_expand_${nodeId}_${JSON.stringify(params)}`,
+      () => graphApi.expandNode(nodeId, params),
+      {
+        cache: false,
+        immediate: false,
+        transform: normalizeGraphResponse
+      }
+    )
+  }
+
+  const runAnalysis = (payload = {}) => {
+    return useApiData(
+      `graph_analysis_${JSON.stringify(payload)}`,
+      () => graphApi.runAnalysis(payload),
+      { cache: false, immediate: false }
+    )
+  }
+
+  const runComplexQuery = (payload = {}) => {
+    return useApiData(
+      `graph_query_${JSON.stringify(payload)}`,
+      () => graphApi.runComplexQuery(payload),
+      { cache: false, immediate: false }
+    )
+  }
+
+  const searchGraph = (query, params = {}) => {
+    return useApiData(
+      `graph_search_${query}_${JSON.stringify(params)}`,
+      () => graphApi.searchGraph({ query, ...params }),
+      {
+        cache: true,
+        cacheTime: 5 * 60 * 1000,
+        immediate: false,
+        transform: normalizeGraphResponse
+      }
+    )
+  }
+
+  const getStatistics = (params = {}) => {
+    return useApiData(
+      `graph_stats_${JSON.stringify(params)}`,
+      () => graphApi.getGraphStats(params),
+      { cache: true, cacheTime: 5 * 60 * 1000, immediate: false }
     )
   }
 
   return {
     getGraphData,
     getNodeDetails,
-    searchNodes
+    expandNode,
+    runAnalysis,
+    runComplexQuery,
+    searchGraph,
+    getStatistics
   }
 }
 

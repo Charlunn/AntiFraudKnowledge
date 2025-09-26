@@ -325,36 +325,34 @@ export const userApi = {
 
 // 知识图谱相关API
 export const graphApi = {
-  // 获取图谱数据
-  getGraph: (params = {}) => {
-    const hasFilters = params && Object.keys(params).length > 0;
-    const endpoint = hasFilters ? '/graph/filtered/' : '/graph/initial/';
-    return apiClient.get(endpoint, params);
-  },
-  
-  // 搜索节点
-  searchNodes: (query, params) => apiClient.get('/graph/search/', { query, ...params }),
-  
-  // 获取节点详情
-  getNode: (nodeId) => apiClient.get(`/graph/nodes/${nodeId}/`),
-  
-  // 获取节点关系
-  getNodeRelations: (nodeId, params) => apiClient.get(`/graph/nodes/${nodeId}/relations/`, params),
-  
-  // 执行图分析
-  executeAnalysis: (analysisType, params) => apiClient.post('/graph/analysis/', { type: analysisType, ...params }),
-  
-  // 执行复杂查询
-  executeComplexQuery: (query) => apiClient.post('/graph/query/', query),
-  
-  // 获取图统计
-  getGraphStats: () => apiClient.get('/graph/statistics/'),
-  
-  // 导出图数据
+  // ????????
+  getGraphSnapshot: (params = {}) => apiClient.get('/graph/initial/', params),
+
+  // ???????
+  filterGraph: (payload = {}) => apiClient.post('/graph/filtered/', payload),
+
+  // ????
+  searchGraph: (params = {}) => apiClient.get('/graph/search/', params),
+
+  // ??????
+  getNode: (nodeId, params = {}) => apiClient.get(`/graph/node/${encodeURIComponent(nodeId)}/`, params),
+
+  // ??????
+  expandNode: (nodeId, params = {}) => apiClient.get(`/graph/node/${encodeURIComponent(nodeId)}/expand/`, params),
+
+  // ????
+  runAnalysis: (payload = {}) => apiClient.post('/graph/analysis/', payload),
+
+  // ??????
+  runComplexQuery: (payload = {}) => apiClient.post('/graph/query/', payload),
+
+  // ????
+  getGraphStats: (params = {}) => apiClient.get('/graph/statistics/', params),
+
+  // ????(??)
   exportGraph: (format, params) => apiClient.get('/graph/export', { format, ...params })
 }
 
-// 测验相关API
 export const quizApi = {
   // 获取题目列表
   getQuestions: (params) => apiClient.get('/quiz/questions/', params),

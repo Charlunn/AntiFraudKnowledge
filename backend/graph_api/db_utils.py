@@ -156,8 +156,6 @@ def read_from_neo4j(cypher_query: str, params: Optional[Dict[str, Any]] = None) 
 
     records: List[Dict[str, Any]] = []
     session: Optional[Session] = None
-    print("111111111111111111111111111111111111")
-    print(params)
     try:
         # 使用 execute_read 进行只读事务管理
         # database_ 参数指定要操作的数据库，对于 Neo4j 4.x+ 可能需要配置
@@ -165,7 +163,7 @@ def read_from_neo4j(cypher_query: str, params: Optional[Dict[str, Any]] = None) 
         with driver.session(database=getattr(settings, 'NEO4J_DATABASE', 'neo4j')) as session:
             records = session.execute_read(_execute_read_tx, cypher_query, params)
 
-        logger.info(f"Read query executed successfully: {cypher_query[:100]}...")
+        logger.debug(f"Read query executed successfully: {cypher_query[:100]}...")
     except ServiceUnavailable as e:
         logger.error(f"Neo4j Service Unavailable: {e}. Query: {cypher_query[:100]}...")
         raise
@@ -203,7 +201,7 @@ def _execute_write_tx(tx: Transaction, cypher_query: str, params: Optional[Dict[
         'labels_added': summary.counters.labels_added,
         'labels_removed': summary.counters.labels_removed
     }
-    logger.info(f"Write operation summary: {summary_info}")
+    logger.debug(f"Write operation summary: {summary_info}")
     return records_list, summary_info
 
 def write_to_neo4j(cypher_query: str, params: Optional[Dict[str, Any]] = None) -> Tuple[List[Dict[str, Any]], Dict[str, Any]]:
@@ -232,7 +230,7 @@ def write_to_neo4j(cypher_query: str, params: Optional[Dict[str, Any]] = None) -
     try:
         with driver.session(database=getattr(settings, 'NEO4J_DATABASE', 'neo4j')) as session:
             results, summary_info = session.execute_write(_execute_write_tx, cypher_query, params)
-        logger.info(f"Write query executed successfully: {cypher_query[:100]}...")
+        logger.debug(f"Write query executed successfully: {cypher_query[:100]}...")
     except ServiceUnavailable as e:
         logger.error(f"Neo4j Service Unavailable during write: {e}")
         raise
@@ -270,7 +268,7 @@ def batch_write_to_neo4j(queries_with_params: List[Tuple[str, Optional[Dict[str,
             for cypher_query, params in queries_with_params:
                 result, summary = session.execute_write(_execute_write_tx, cypher_query, params)
                 results.append((result, summary))
-        logger.info(f"Batch write executed successfully. {len(queries_with_params)} queries processed.")
+        logger.debug(f"Batch write executed successfully. {len(queries_with_params)} queries processed.")
     except Exception as e:
         logger.error(f"Error during batch write operation: {e}")
         raise
@@ -309,7 +307,7 @@ def execute_transaction(operations: List[Tuple[str, str, Optional[Dict[str, Any]
     try:
         with driver.session(database=getattr(settings, 'NEO4J_DATABASE', 'neo4j')) as session:
             session.execute_write(_execute_transaction)
-        logger.info(f"Transaction executed successfully. {len(operations)} operations processed.")
+        logger.debug(f"Transaction executed successfully. {len(operations)} operations processed.")
     except Exception as e:
         logger.error(f"Error during transaction execution: {e}")
         raise

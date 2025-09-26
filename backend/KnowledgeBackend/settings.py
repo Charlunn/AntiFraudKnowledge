@@ -301,7 +301,7 @@ LOGGING = {
         },
         'neo4j': { # Neo4j 驱动日志
              'handlers': ['console'],
-             'level': 'INFO', # 通常设为 INFO 或 WARNING
+             'level': 'WARNING', # 减少Neo4j驱动的日志输出
              'propagate': False,
          },
     },

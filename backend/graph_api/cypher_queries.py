@@ -10,7 +10,7 @@
 GET_INITIAL_GRAPH_CYPHER = """
 MATCH (n)-[r]-(m)
 RETURN n, r, m
-LIMIT 50
+LIMIT $limit
 """
 
 # ==================== 节点 CRUD 操作 ====================
@@ -124,7 +124,7 @@ DELETE r
 GET_FILTERED_GRAPH_CYPHER = """
 MATCH (n {prop: $value})-[r]-(m) // $value 将作为参数传入
 RETURN n, r, m
-LIMIT 50 // 同样需要调整 LIMIT
+LIMIT $limit // 同样需要调整 LIMIT
 """
 
 # 获取特定节点的详细信息及其直接邻居
@@ -160,9 +160,17 @@ LIMIT 100
 # 最短路径查询
 SHORTEST_PATH_CYPHER = """
 MATCH (start), (end)
-WHERE elementId(start) = $start_node_id AND elementId(end) = $end_node_id
-MATCH path = shortestPath((start)-[*..10]-(end))
-RETURN path
+WHERE (elementId(start) = $source_id OR toString(start.name) = $source_id)
+  AND (elementId(end) = $target_id OR toString(end.name) = $target_id)
+WITH start, end
+MATCH path = shortestPath((start)-[*..$max_depth]-(end))
+WITH path
+UNWIND range(0, size(relationships(path)) - 1) AS idx
+WITH
+  nodes(path)[idx] AS n,
+  relationships(path)[idx] AS r,
+  nodes(path)[idx + 1] AS m
+RETURN n, r, m
 """
 
 # 所有路径查询（限制深度）
@@ -177,19 +185,30 @@ LIMIT $limit
 # K跳邻居查询
 K_HOP_NEIGHBORS_CYPHER = """
 MATCH (start)
-WHERE elementId(start) = $start_node_id
-MATCH (start)-[*$hops]-(neighbor)
-RETURN DISTINCT neighbor
+WHERE elementId(start) = $node_id OR toString(start.name) = $node_id
+CALL {
+  WITH start
+  MATCH path = (start)-[*1..$hops]-(neighbor)
+  RETURN path
+  LIMIT $limit
+}
+WITH DISTINCT path
+UNWIND range(0, size(relationships(path)) - 1) AS idx
+WITH
+  nodes(path)[idx] AS n,
+  relationships(path)[idx] AS r,
+  nodes(path)[idx + 1] AS m
+RETURN n, r, m
 LIMIT $limit
 """
 
 # 度中心性计算（简化版）
 DEGREE_CENTRALITY_CYPHER = """
 MATCH (n)-[r]-()
-WHERE n:$label OR $label IS NULL
-RETURN n, count(r) as degree
+WITH n, count(r) AS degree
 ORDER BY degree DESC
 LIMIT $limit
+RETURN n, degree
 """
 
 # 介数中心性计算（使用APOC插件）
@@ -361,4 +380,40 @@ MATCH (u1:User)-->(identifier)<--(u2:User)
 WHERE id(u1) < id(u2) // 避免重复和自环
 RETURN u1, u2, identifier
 LIMIT 50
+"""
+# ==================== ??????? ====================
+
+SEARCH_GRAPH_CYPHER = """
+MATCH (n)
+WHERE any(val IN [n.name, n.term, n.title, n.alias, n.type] WHERE val IS NOT NULL AND toLower(toString(val)) CONTAINS toLower($query))
+  AND ($labels IS NULL OR size($labels) = 0 OR any(label IN labels(n) WHERE label IN $labels))
+OPTIONAL MATCH (n)-[r]-(m)
+WITH n, r, m
+LIMIT $limit
+RETURN n, r, m
+"""
+
+EXPAND_NODE_CYPHER = """
+MATCH (n)
+WHERE elementId(n) = $node_id OR n.node_id = $node_id OR n.name = $node_id
+WITH n
+MATCH (n)-[r]-(m)
+RETURN n, r, m
+LIMIT $limit
+"""
+
+# ==================== ?????? ====================
+
+FILTER_GRAPH_CYPHER = """
+MATCH (n)-[r]-(m)
+WHERE
+  ($node_labels IS NULL OR size($node_labels) = 0 OR any(label IN labels(n) WHERE label IN $node_labels))
+  AND ($relationship_types IS NULL OR size($relationship_types) = 0 OR type(r) IN $relationship_types)
+  AND (
+        $search IS NULL OR $search = '' OR
+        toLower(coalesce(n.name, '')) CONTAINS toLower($search) OR
+        toLower(coalesce(m.name, '')) CONTAINS toLower($search)
+      )
+RETURN n, r, m
+LIMIT $limit
 """

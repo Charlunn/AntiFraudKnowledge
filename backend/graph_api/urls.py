@@ -2,6 +2,7 @@
 from django.urls import path
 from .views import (
     InitialGraphView, FilteredGraphView, NodeDetailView,
+    GraphSearchView, NodeExpandView,
     NodeCRUDView, RelationshipCRUDView, GraphAnalysisView,
     GraphStatisticsView, ComplexQueryView
 )
@@ -9,21 +10,23 @@ from .views import (
 app_name = 'graph_api'
 
 urlpatterns = [
-    # 原有的基础视图
+    # Entry points for common retrieval patterns
     path('initial/', InitialGraphView.as_view(), name='initial_graph'),
     path('filtered/', FilteredGraphView.as_view(), name='filtered_graph'),
+    path('search/', GraphSearchView.as_view(), name='graph_search'),
     path('node/<str:node_id>/', NodeDetailView.as_view(), name='node_detail'),
-    
-    # 节点和关系的CRUD操作
+    path('node/<str:node_id>/expand/', NodeExpandView.as_view(), name='node_expand'),
+
+    # CRUD endpoints for nodes and relationships
     path('nodes/', NodeCRUDView.as_view(), name='node_crud'),
     path('relationships/', RelationshipCRUDView.as_view(), name='relationship_crud'),
-    
-    # 高级图分析功能
+
+    # Advanced graph analytics
     path('analysis/', GraphAnalysisView.as_view(), name='graph_analysis'),
-    
-    # 数据统计功能
+
+    # Statistical summaries
     path('statistics/', GraphStatisticsView.as_view(), name='graph_statistics'),
-    
-    # 复杂查询功能
+
+    # Complex query interface
     path('query/', ComplexQueryView.as_view(), name='complex_query'),
 ]

@@ -32,12 +32,20 @@ class FraudTypeDistributionSerializer(serializers.Serializer):
     @classmethod
     def get_data(cls):
         # 执行Cypher查询，获取诈骗类型分布
+        # 注意：这些标签和关系类型需要在数据库中存在
         query = """
-        MATCH (fp:FraudPattern)<-[:IS_A]-(fc:FraudCase)
+        MATCH (fp:FraudType)<-[:BELONGS_TO]-(fc:Case)
         RETURN fp.name as name, count(fc) as value
         ORDER BY value DESC
         """
-        results = read_from_neo4j(query)
+        try:
+            results = read_from_neo4j(query)
+        except Exception as e:
+            # 如果查询失败，记录错误并返回示例数据
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Neo4j查询失败，使用示例数据: {e}")
+            results = []
         
         # 如果没有数据，返回示例数据
         if not results:
@@ -61,11 +69,17 @@ class TacticFrequencySerializer(serializers.Serializer):
     def get_data(cls):
         # 执行Cypher查询，获取诈骗手法使用频次
         query = """
-        MATCH (t:Tactic)<-[:INVOLVES]-(fc:FraudCase)
+        MATCH (t:Technique)<-[:USES]-(fc:Case)
         RETURN t.name as name, count(fc) as value
         ORDER BY value DESC
         """
-        results = read_from_neo4j(query)
+        try:
+            results = read_from_neo4j(query)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Neo4j查询失败，使用示例数据: {e}")
+            results = []
         
         # 如果没有数据，返回示例数据
         if not results:
@@ -89,11 +103,17 @@ class EmotionalTriggerSerializer(serializers.Serializer):
     def get_data(cls):
         # 执行Cypher查询，获取情感触发点
         query = """
-        MATCH (pt:PsychologicalTrigger)<-[:EXPLOITS]-(t:Tactic)
+        MATCH (pt:Trigger)<-[:EXPLOITS]-(t:Technique)
         RETURN pt.name as name, count(t) as value
         ORDER BY value DESC
         """
-        results = read_from_neo4j(query)
+        try:
+            results = read_from_neo4j(query)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Neo4j查询失败，使用示例数据: {e}")
+            results = []
         
         # 如果没有数据，返回示例数据
         if not results:
@@ -120,12 +140,18 @@ class FraudFlowSerializer(serializers.Serializer):
     def get_data(cls):
         # 执行Cypher查询，获取诈骗流程
         query = """
-        MATCH (c:Channel)<-[:CONDUCTED_VIA]-(fc:FraudCase)-[:IS_A]->(fp:FraudPattern)
-        MATCH (fc)-[:INVOLVES]->(t:Tactic)
+        MATCH (c:Channel)<-[:USES_CHANNEL]-(fc:Case)-[:BELONGS_TO]->(fp:FraudType)
+        MATCH (fc)-[:USES_TECHNIQUE]->(t:Technique)
         RETURN c.name as channel, fp.name as pattern, t.name as tactic, count(fc) as value
         ORDER BY value DESC
         """
-        results = read_from_neo4j(query)
+        try:
+            results = read_from_neo4j(query)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"Neo4j查询失败，使用示例数据: {e}")
+            results = []
         
         # 如果没有数据，返回示例数据
         if not results:

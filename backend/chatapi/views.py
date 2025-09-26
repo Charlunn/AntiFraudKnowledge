@@ -45,18 +45,17 @@ class ConversationState(TypedDict):
 DASHSCOPE_API_KEY = os.environ.get("DASHSCOPE_API_KEY")
 
 # 如果 API key 未设置，这里可以根据需要抛出错误或记录警告
-print(f"DEBUG: DASHSCOPE_API_KEY = {DASHSCOPE_API_KEY}")
 if not DASHSCOPE_API_KEY:
-     print("WARNING: DASHSCOPE_API_KEY environment variable not set. AI calls will likely fail.")
+     logger.warning("DASHSCOPE_API_KEY environment variable not set. AI calls will likely fail.")
      openai_client = None
      # raise EnvironmentError("DASHSCOPE_API_KEY environment variable not set.") # 生产环境建议直接中断
 else:
-    print("DEBUG: Initializing OpenAI client with API key")
+    logger.info("正在初始化OpenAI客户端")
     openai_client = openai.OpenAI(
         api_key=DASHSCOPE_API_KEY,
         base_url="https://dashscope.aliyuncs.com/compatible-mode/v1"
     )
-    print(f"DEBUG: OpenAI client initialized: {openai_client is not None}")
+    logger.info("OpenAI客户端初始化成功")
 
 # --- Django View 类 ---
 
