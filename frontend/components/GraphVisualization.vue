@@ -202,6 +202,14 @@ const showLabels = ref(true)
 const labelFontSize = ref(12)
 const nodeOpacity = ref(1)
 
+// 新增：响应式和性能优化配置
+const currentZoomLevel = ref(1)
+const zoomThreshold = ref(0.8) // 缩放阈值，低于此值隐藏文字
+const isMobile = ref(false)
+const coreNodesOnly = ref(true) // 初始只显示核心节点文字
+const minNodeSizeForLabel = ref(30) // 最小节点大小才显示标签
+const dynamicLabelThreshold = ref(50) // 节点数量超过此值时启用动态标签
+
 // 边配置
 const edgeWidthMapping = ref('fixed')
 const fixedEdgeWidth = ref(2)
@@ -210,10 +218,10 @@ const customEdgeColor = ref('#999')
 const edgeOpacity = ref(0.6)
 const edgeCurveness = ref(0.3)
 
-// 布局配置
-const repulsion = ref(300)
-const edgeLength = ref(200)
-const gravity = ref(0.2)
+// 布局配置 - 增强节点互斥效果
+const repulsion = ref(500) // 增加斥力
+const edgeLength = ref(150) // 减少边长度让布局更紧凑
+const gravity = ref(0.1)    // 减少重力
 
 // 节点类型颜色映射
 const nodeTypeColors = ref({})
@@ -250,30 +258,48 @@ const processGraphData = (data) => {
   const processedNodes = data.nodes.map(node => {
     const nodeId = node.id || node.name
     const degree = degreeMap.get(nodeId) || 0
+    const nodeName = node.name || nodeId
     
     return {
       ...node,
       id: nodeId,
-      name: node.name || nodeId,
+      name: nodeName,
       category: node.category || '未分类',
       degree: degree,
       symbolSize: calculateNodeSize({ ...node, degree }),
       itemStyle: {
         opacity: nodeOpacity.value,
-        borderColor: '#fff',
-        borderWidth: 2,
-        shadowBlur: 10,
-        shadowColor: 'rgba(0, 0, 0, 0.3)'
+        color: getNodeColor(node.category || '未分类'),
+        borderColor: 'rgba(255, 255, 255, 0.8)',
+        borderWidth: 1,
+        shadowBlur: 6,
+        shadowColor: 'rgba(0, 0, 0, 0.2)',
+        shadowOffsetX: 2,
+        shadowOffsetY: 2
       },
       label: {
-        show: showLabels.value,
-        fontSize: labelFontSize.value,
+        show: shouldShowLabel({ ...node, degree }, currentZoomLevel.value),
+        position: 'inside',
+        fontSize: calculateFontSize(calculateNodeSize({ ...node, degree }), currentZoomLevel.value),
+        color: '#fff',
+        fontWeight: 'bold',
+        textShadowColor: 'rgba(0, 0, 0, 0.7)',
+        textShadowBlur: isMobile.value ? 2 : 3,
         formatter: (params) => {
           const name = params.data.name || ''
-          if (name.length > 8) {
-            return name.substring(0, 8) + '...'
+          const nodeSize = params.data.symbolSize
+          const zoomLevel = currentZoomLevel.value
+          
+          // 根据缩放级别和节点大小动态调整显示字符数
+          const padding = isMobile.value ? 20 : 24
+          const charWidth = isMobile.value ? 14 : 16
+          const availableWidth = (nodeSize * zoomLevel) - padding
+          const maxChars = Math.floor(availableWidth / charWidth)
+          
+          if (name.length <= maxChars || maxChars < 2) {
+            return name
           }
-          return name
+          return name.substring(0, Math.max(1, maxChars - 1)) + '...'
         }
       }
     }
@@ -287,7 +313,8 @@ const processGraphData = (data) => {
     lineStyle: {
       opacity: edgeOpacity.value,
       curveness: edgeCurveness.value,
-      width: calculateEdgeWidth(link)
+      width: calculateEdgeWidth(link),
+      color: 'rgba(108, 117, 125, 0.6)' // 更柔和的边颜色
     }
   }))
 
@@ -300,18 +327,89 @@ const processGraphData = (data) => {
   }
 }
 
-// 计算节点大小
+// 检测移动端设备
+const detectMobile = () => {
+  isMobile.value = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+}
+
+// 强化节点大小与关联数量的对应关系
 const calculateNodeSize = (node) => {
+  const degree = node.degree || 0
+  const minTextSize = 3 // 最少显示3个汉字
+  const charWidth = isMobile.value ? 14 : 16 // 移动端字符更小
+  const padding = isMobile.value ? 20 : 24 // 移动端减少内边距
+  const minSize = minTextSize * charWidth + padding
+  
+  // 根据关联数量动态调整大小范围
+  const maxSize = isMobile.value ? 80 : 120
+  const sizeMultiplier = isMobile.value ? 3 : 4
+  
   switch (nodeSizeMapping.value) {
     case 'degree':
-      return Math.max(10, Math.min(50, 10 + (node.degree || 0) * 3))
+      // 强化度数与大小的对应关系
+      const baseSize = minSize + Math.sqrt(degree) * sizeMultiplier
+      return Math.max(minSize, Math.min(maxSize, baseSize))
     case 'fixed':
-      return fixedNodeSize.value
+      return Math.max(minSize, fixedNodeSize.value)
     case 'value':
-      return Math.max(10, Math.min(50, (node.value || 1) * 20))
+      return Math.max(minSize, Math.min(maxSize, (node.value || 1) * 25))
     default:
-      return 20
+      return minSize
   }
+}
+
+// 判断是否为核心节点（高度数节点）
+const isCoreNode = (node) => {
+  const degree = node.degree || 0
+  const totalNodes = props.graphData.nodes?.length || 0
+  const threshold = Math.max(3, Math.floor(totalNodes * 0.1)) // 前10%的节点或至少度数为3
+  return degree >= threshold
+}
+
+// 动态计算字体大小（随缩放变化）
+const calculateFontSize = (nodeSize, zoomLevel = 1) => {
+  const baseSize = Math.max(10, Math.min(16, nodeSize / 5))
+  const scaledSize = baseSize * Math.max(0.8, Math.min(1.5, zoomLevel))
+  return isMobile.value ? Math.max(9, scaledSize - 1) : scaledSize
+}
+
+// 判断是否应该显示标签
+const shouldShowLabel = (node, zoomLevel = 1) => {
+  // 缩放级别过低时隐藏所有标签
+  if (zoomLevel < zoomThreshold.value) {
+    return false
+  }
+  
+  // 节点数量过多时的性能优化策略
+  const totalNodes = props.graphData.nodes?.length || 0
+  if (totalNodes > dynamicLabelThreshold.value) {
+    // 只显示核心节点或当前悬停的节点
+    return coreNodesOnly.value ? isCoreNode(node) : node.symbolSize >= minNodeSizeForLabel.value
+  }
+  
+  return showLabels.value
+}
+
+// 计算悬停时的放大尺寸 - 包含充足的安全余量
+const calculateHoverSize = (node) => {
+  const name = node.name || ''
+  const baseSize = calculateNodeSize(node)
+  
+  if (name.length <= 3) {
+    return baseSize
+  }
+  
+  // 根据文字长度动态计算需要的尺寸，包含安全余量
+  const charWidth = 16 // 每个汉字的宽度
+  const charHeight = 18 // 字体高度
+  const padding = 32 // 增加安全余量（上下左右各8px）
+  
+  const textWidth = name.length * charWidth
+  const neededWidth = textWidth + padding
+  const neededHeight = charHeight + padding
+  
+  const neededSize = Math.max(neededWidth, neededHeight)
+  return Math.min(150, Math.max(baseSize, neededSize))
 }
 
 // 计算边宽度
@@ -328,9 +426,19 @@ const calculateEdgeWidth = (edge) => {
   }
 }
 
-// 更新节点类型颜色
+// 更新节点类型颜色 - 使用更柔和的配色方案
 const updateNodeTypeColors = (nodes) => {
-  const colors = ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc']
+  const colors = [
+    '#4F46E5', // 靛蓝
+    '#059669', // 翠绿
+    '#DC2626', // 红色
+    '#7C3AED', // 紫色
+    '#EA580C', // 橙色
+    '#0891B2', // 青色
+    '#BE185D', // 粉红
+    '#65A30D', // 石灰绿
+    '#1F2937'  // 灰色
+  ]
   const types = [...new Set(nodes.map(node => node.category))]
   
   const colorMap = {}
@@ -339,6 +447,11 @@ const updateNodeTypeColors = (nodes) => {
   })
   
   nodeTypeColors.value = colorMap
+}
+
+// 获取节点颜色
+const getNodeColor = (category) => {
+  return nodeTypeColors.value[category] || '#6B7280'
 }
 
 // 获取ECharts配置
@@ -411,8 +524,13 @@ const getEChartsOption = () => {
       force: layoutType.value === 'force' ? {
         repulsion: repulsion.value,
         edgeLength: edgeLength.value,
-        gravity: gravity.value
-      } : undefined
+        gravity: gravity.value,
+        layoutAnimation: true,
+        friction: 0.6
+      } : undefined,
+      draggable: true,
+      focusNodeAdjacency: false,
+      silent: false
     }]
   }
 }
@@ -421,8 +539,38 @@ const getEChartsOption = () => {
 const initChart = () => {
   if (!chartContainer.value) return
   
+  // 检测设备类型
+  detectMobile()
+  
   chartInstance = echarts.init(chartContainer.value)
   updateVisualization()
+  
+  // 添加缩放监听器
+  chartInstance.on('dataZoom', (params) => {
+    // 更新当前缩放级别
+    const option = chartInstance.getOption()
+    if (option && option.series && option.series[0]) {
+      currentZoomLevel.value = params.zoom || 1
+      updateLabelsBasedOnZoom()
+    }
+  })
+  
+  // 添加鼠标滚轮缩放监听
+  chartInstance.getZr().on('mousewheel', (params) => {
+    // 获取当前缩放级别并更新标签显示
+    setTimeout(() => {
+      updateLabelsBasedOnZoom()
+    }, 100)
+  })
+  
+  // 添加触摸缩放监听（移动端）
+  if (isMobile.value) {
+    chartInstance.getZr().on('pinch', (params) => {
+      setTimeout(() => {
+        updateLabelsBasedOnZoom()
+      }, 100)
+    })
+  }
   
   // 添加事件监听
   chartInstance.on('click', (params) => {
@@ -433,68 +581,84 @@ const initChart = () => {
     }
   })
 
-  // 添加鼠标悬停事件
+  // 添加鼠标悬停事件 - 放大节点显示完整文字
   chartInstance.on('mouseover', (params) => {
     if (params.dataType === 'node') {
-      const nodeName = params.data.name || ''
-      if (nodeName.length > 8) {
-        // 开始文字轮播动画
-        originalLabel = nodeName
-        let startIndex = 0
-        
-        hoverInterval = setInterval(() => {
-          const displayText = originalLabel.substring(startIndex) + ' ' + originalLabel.substring(0, startIndex)
-          
-          chartInstance.setOption({
-            series: [{
-              data: chartInstance.getOption().series[0].data.map(node => {
-                if (node.id === params.data.id) {
-                  return {
-                    ...node,
-                    label: {
-                      ...node.label,
-                      formatter: displayText.substring(0, 8)
-                    }
-                  }
+      const nodeData = params.data
+      const hoverSize = calculateHoverSize(nodeData)
+      
+      // 放大节点并显示完整文字
+      chartInstance.setOption({
+        series: [{
+          data: chartInstance.getOption().series[0].data.map(node => {
+            if (node.id === params.data.id) {
+              return {
+                ...node,
+                symbolSize: hoverSize,
+                label: {
+                  ...node.label,
+                  fontSize: Math.max(12, Math.min(16, hoverSize / 6)),
+                  formatter: nodeData.name // 显示完整文字
+                },
+                itemStyle: {
+                  ...node.itemStyle,
+                  shadowBlur: 12,
+                  shadowColor: 'rgba(0, 0, 0, 0.4)',
+                  borderWidth: 2,
+                  borderColor: 'rgba(255, 255, 255, 0.9)'
                 }
-                return node
-              })
-            }]
+              }
+            }
+            return node
           })
-          
-          startIndex = (startIndex + 1) % originalLabel.length
-        }, 200)
-      }
+        }]
+      })
       
       emit('nodeHover', params.data)
     }
   })
 
-  // 添加鼠标离开事件
+  // 添加鼠标离开事件 - 恢复原始大小
   chartInstance.on('mouseout', (params) => {
-    if (params.dataType === 'node' && hoverInterval) {
-      clearInterval(hoverInterval)
-      hoverInterval = null
+    if (params.dataType === 'node') {
+      const nodeData = params.data
+      const originalSize = calculateNodeSize(nodeData)
       
-      // 恢复原始标签
-      if (originalLabel.length > 8) {
-        chartInstance.setOption({
-          series: [{
-            data: chartInstance.getOption().series[0].data.map(node => {
-              if (node.id === params.data.id) {
-                return {
-                  ...node,
-                  label: {
-                    ...node.label,
-                    formatter: originalLabel.substring(0, 8) + '...'
+      // 恢复原始大小和标签
+      chartInstance.setOption({
+        series: [{
+          data: chartInstance.getOption().series[0].data.map(node => {
+            if (node.id === params.data.id) {
+              return {
+                ...node,
+                symbolSize: originalSize,
+                label: {
+                  ...node.label,
+                  fontSize: Math.max(10, Math.min(14, originalSize / 4)),
+                  formatter: (params) => {
+                    const name = params.data.name || ''
+                    const nodeSize = originalSize
+                    const maxChars = Math.floor(nodeSize / 15)
+                    
+                    if (name.length <= maxChars) {
+                      return name
+                    }
+                    return name.substring(0, Math.max(2, maxChars - 1)) + '...'
                   }
+                },
+                itemStyle: {
+                  ...node.itemStyle,
+                  shadowBlur: 6,
+                  shadowColor: 'rgba(0, 0, 0, 0.2)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255, 255, 255, 0.8)'
                 }
               }
-              return node
-            })
-          }]
-        })
-      }
+            }
+            return node
+          })
+        }]
+      })
     }
   })
 }
@@ -570,10 +734,59 @@ watch(() => props.graphData, () => {
   updateVisualization()
 }, { deep: true })
 
+// 根据缩放级别更新标签显示
+const updateLabelsBasedOnZoom = () => {
+  if (!chartInstance) return
+  
+  const option = chartInstance.getOption()
+  if (!option || !option.series || !option.series[0]) return
+  
+  // 估算当前缩放级别
+  const viewBox = chartInstance.getModel().getComponent('grid').coordinateSystem
+  if (viewBox) {
+    const currentZoom = viewBox.getZoom ? viewBox.getZoom() : 1
+    currentZoomLevel.value = currentZoom
+  }
+  
+  // 更新节点标签显示
+  const updatedData = option.series[0].data.map(node => {
+    const shouldShow = shouldShowLabel(node, currentZoomLevel.value)
+    const fontSize = calculateFontSize(node.symbolSize, currentZoomLevel.value)
+    
+    return {
+      ...node,
+      label: {
+        ...node.label,
+        show: shouldShow,
+        fontSize: fontSize
+      }
+    }
+  })
+  
+  chartInstance.setOption({
+    series: [{
+      ...option.series[0],
+      data: updatedData
+    }]
+  })
+}
+
+// 窗口大小变化监听
+const handleResize = () => {
+  detectMobile()
+  if (chartInstance) {
+    chartInstance.resize()
+    updateVisualization()
+  }
+}
+
 // 组件挂载
 onMounted(() => {
   nextTick(() => {
     initChart()
+    
+    // 添加窗口大小变化监听
+    window.addEventListener('resize', handleResize)
   })
 })
 
@@ -585,6 +798,9 @@ onUnmounted(() => {
   if (chartInstance) {
     chartInstance.dispose()
   }
+  
+  // 移除事件监听器
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -729,6 +945,66 @@ onUnmounted(() => {
 .chart-container {
   width: 100%;
   height: 600px;
+  touch-action: manipulation; /* 优化移动端触摸体验 */
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+  
+  .toolbar-left,
+  .toolbar-right {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .search-input {
+    width: 150px;
+    font-size: 12px;
+  }
+  
+  .btn {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .config-panel {
+    width: 90%;
+    right: 5%;
+    max-height: 400px;
+  }
+  
+  .legend {
+    font-size: 11px;
+    padding: 8px;
+  }
+  
+  .stats-panel {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+  }
+  
+  .stat-item {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  .chart-container {
+    height: 500px; /* 移动端减少高度 */
+  }
+}
+
+/* 高DPI屏幕优化 */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .chart-container {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
 }
 
 .legend {
