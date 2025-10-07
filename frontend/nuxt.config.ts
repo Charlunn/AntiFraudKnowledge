@@ -1,25 +1,25 @@
-import { defineNuxtConfig } from 'nuxt/config';
+import { defineNuxtConfig } from 'nuxt/config'
 
 export default defineNuxtConfig({
   modules: ['@pinia/nuxt', '@nuxtjs/tailwindcss'],
   css: ['~/assets/css/main.css', '~/assets/css/animations.css'],
-  // é¡µé¢è¿‡æ¸¡é…ç½®
+  // Ò³Ãæ¹ý¶ÉÅäÖÃ
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
     layoutTransition: { name: 'layout', mode: 'out-in' }
   },
   runtimeConfig: {
     public: {
-      // å§‹ç»ˆä½¿ç”¨ /api è·¯å¾„ï¼Œé€šè¿‡ä»£ç†è½¬å‘åˆ°åŽç«¯
+      // Ê¼ÖÕÊ¹ÓÃ /api Â·¾¶£¬Í¨¹ý´úÀí×ª·¢µ½ºó¶Ë
       apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
-      // OAuthåŠŸèƒ½å¼€å…³
+      // OAuth¹¦ÄÜ¿ª¹Ø
       enableOAuthLogin: process.env.ENABLE_OAUTH_LOGIN === 'true'
     }
   },
-  // å¼€å‘æœåŠ¡å™¨é…ç½®
+  // ¿ª·¢·þÎñÆ÷ÅäÖÃ
   devServer: {
     port: 3000,
-    // é…ç½®ä»£ç†ï¼Œå°†APIè¯·æ±‚è½¬å‘åˆ°åŽç«¯
+    // ÅäÖÃ´úÀí£¬½«APIÇëÇó×ª·¢µ½ºó¶Ë
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:8000',
@@ -28,7 +28,7 @@ export default defineNuxtConfig({
       }
     }
   },
-  // ç”Ÿäº§çŽ¯å¢ƒä»£ç†é…ç½®
+  // Éú²ú»·¾³´úÀíÅäÖÃ
   nitro: {
     routeRules: {
       '/api/**': {
@@ -36,14 +36,17 @@ export default defineNuxtConfig({
       }
     }
   },
-  // æ·»åŠ å…¼å®¹æ€§æ—¥æœŸé…ç½®ä»¥æ¶ˆé™¤è­¦å‘Š
+  // Ìí¼Ó¼æÈÝÐÔÈÕÆÚÅäÖÃÒÔÏû³ý¾¯¸æ
   compatibilityDate: '2025-09-02',
-  // TypeScripté…ç½®
+  // TypeScriptÅäÖÃ
   typescript: {
     strict: true,
     typeCheck: false
   },
-  // Viteé…ç½®
+  devtools: {
+    enabled: false
+  },
+  // ViteÅäÖÃ
   vite: {
     resolve: {
       alias: {
@@ -53,17 +56,38 @@ export default defineNuxtConfig({
     server: {
       hmr: {
         overlay: false
+      },
+      watch: {
+        usePolling: true,
+        interval: 500,
+        ignored: [
+          '**/node_modules/**',
+          '**/.git/**',
+          '**/.nuxt/**',
+          '**/.output/**',
+          '**/.pnpm-store/**',
+          '**/node-compile-cache/**'
+        ]
       }
-    }
+    },
+    optimizeDeps: {
+      include: ['echarts', 'vue-echarts']
+    },
+    logLevel: 'error'
   },
-  // é…ç½®Vue Routerä»¥å¿½ç•¥/@vite/clientè·¯å¾„è­¦å‘Š
+  viteNode: {
+    fetchTimeout: 60000,
+    fetchInterval: 200
+  },
+  // ÅäÖÃVue RouterÒÔºöÂÔ@vite/clientÂ·¾¶¾¯¸æ
   hooks: {
-    'vite:extendConfig': (config, { isClient, isServer }) => {
+    'vite:extendConfig': (config, { isClient }) => {
       if (isClient) {
-        config.server = config.server || {};
-        config.server.hmr = config.server.hmr || {};
-        config.server.hmr.overlay = false;
+        config.server = config.server || {}
+        config.server.hmr = config.server.hmr || {}
+        config.server.hmr.overlay = false
       }
     }
   }
-});
+})
+

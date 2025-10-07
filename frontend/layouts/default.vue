@@ -1,23 +1,13 @@
 <template>
-  <div class="min-h-screen bg-neutral-50 dark:bg-dark-bg transition-colors duration-300">
-    <!-- 主导航头部 -->
+  <div class="flex min-h-screen flex-col bg-background text-foreground">
     <Header />
-    
-    <!-- 主要内容区域 -->
-    <main class="flex-1">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- 页面内容插槽 -->
+    <main class="flex-1 py-10">
+      <div class="container-grid">
         <slot />
       </div>
     </main>
-    
-    <!-- 页面底部 -->
     <Footer />
-    
-    <!-- 全局通知组件 -->
     <NotificationContainer />
-    
-    <!-- 全局加载指示器 -->
     <GlobalLoading />
   </div>
 </template>

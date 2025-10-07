@@ -1,348 +1,215 @@
 <template>
-  <header class="bg-white dark:bg-dark-surface border-b border-neutral-200 dark:border-dark-border sticky top-0 z-50 transition-colors duration-300 slideInDown">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
-        <!-- Logo和品牌 -->
-        <div class="flex items-center space-x-4 fadeInLeft">
-          <NuxtLink to="/" class="flex items-center space-x-2 hover:opacity-80 transition-opacity hover-lift">
-            <div class="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center">
-              <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-              </svg>
+  <header class="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+    <div class="container-grid flex h-16 items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <NuxtLink to="/" class="flex items-center gap-2 text-foreground transition-colors hover:text-primary">
+          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <ShieldCheck class="h-5 w-5" />
+          </div>
+          <span class="hidden text-lg font-semibold sm:inline">澄源</span>
+        </NuxtLink>
+
+        <nav class="hidden items-center gap-1 lg:flex">
+          <NuxtLink
+            v-for="item in primaryNavigationItems"
+            :key="item.href"
+            :to="item.href"
+            class="rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            :class="{ 'bg-muted text-foreground': isActive(item.href) }"
+          >
+            {{ item.name }}
+          </NuxtLink>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <Button variant="ghost" class="hidden items-center gap-1 text-sm font-medium text-muted-foreground lg:inline-flex">
+                更多
+                <ChevronDown class="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent class="w-56">
+              <DropdownMenuLabel>更多功能</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem v-for="item in secondaryNavigationItems" :key="item.href" @select="navigate(item.href)">
+                {{ item.name }}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </nav>
+      </div>
+
+      <div class="flex flex-1 items-center justify-end gap-2">
+        <Button variant="ghost" size="icon" class="hidden md:inline-flex" @click="navigate('/search')">
+          <Search class="h-5 w-5" />
+          <span class="sr-only">搜索</span>
+        </Button>
+
+        <Button
+          v-if="isAuthenticated"
+          variant="ghost"
+          size="icon"
+          class="relative hidden md:inline-flex"
+          @click="navigate('/notifications')"
+        >
+          <Bell class="h-5 w-5" />
+          <span v-if="unreadCount > 0" class="absolute -right-1 -top-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-destructive px-1 text-xs font-semibold text-destructive-foreground">
+            {{ unreadCount > 9 ? '9+' : unreadCount }}
+          </span>
+          <span class="sr-only">通知</span>
+        </Button>
+
+        <Button variant="ghost" size="icon" class="hidden md:inline-flex" @click="toggleDarkMode">
+          <Sun v-if="!isDark" class="h-5 w-5" />
+          <MoonStar v-else class="h-5 w-5" />
+          <span class="sr-only">切换主题</span>
+        </Button>
+
+        <DropdownMenu v-if="isAuthenticated">
+          <DropdownMenuTrigger as-child>
+            <Button variant="ghost" class="flex items-center gap-2">
+              <Avatar :src="user?.avatar" :fallback="userInitials" class="h-9 w-9" />
+              <span class="hidden text-sm font-medium text-foreground md:inline">
+                {{ user?.name || user?.username || '用户' }}
+              </span>
+              <ChevronDown class="hidden h-4 w-4 md:inline" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent class="w-60">
+            <DropdownMenuLabel class="flex flex-col gap-1">
+              <span class="text-sm font-semibold text-foreground">{{ user?.name || user?.username || '用户' }}</span>
+              <span class="text-xs text-muted-foreground">欢迎回来，保持学习节奏！</span>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem v-for="item in userMenuItems" :key="item.href" class="flex items-center gap-2" @select="navigate(item.href)">
+              <component :is="item.icon" class="h-4 w-4 text-muted-foreground" />
+              <span>{{ item.name }}</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem class="flex items-center gap-2 text-destructive focus:text-destructive" @select="handleLogout">
+              <LogOut class="h-4 w-4" />
+              <span>退出登录</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <div v-else class="hidden items-center gap-2 md:flex">
+          <Button variant="ghost" @click="navigate('/login')">登录</Button>
+          <Button @click="navigate('/register')">注册</Button>
+        </div>
+
+        <Sheet v-model:open="mobileMenuOpen">
+          <SheetTrigger as-child>
+            <Button variant="ghost" size="icon" class="lg:hidden">
+              <Menu class="h-5 w-5" />
+              <span class="sr-only">打开菜单</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" class="w-full max-w-xs">
+            <SheetHeader class="space-y-2">
+              <SheetTitle class="flex items-center gap-2 text-lg font-semibold">
+                <ShieldCheck class="h-5 w-5 text-primary" />
+                澄源导航
+              </SheetTitle>
+              <SheetDescription>探索平台的全部反诈功能</SheetDescription>
+            </SheetHeader>
+            <div class="mt-6 flex flex-col gap-4">
+              <div class="flex flex-col gap-1">
+                <h3 class="text-xs font-semibold uppercase text-muted-foreground">主要功能</h3>
+                <Button
+                  v-for="item in allNavigationItems"
+                  :key="item.href"
+                  variant="ghost"
+                  class="justify-start"
+                  :class="{ 'bg-muted text-foreground': isActive(item.href) }"
+                  @click="handleMobileNavigate(item.href)"
+                >
+                  {{ item.name }}
+                </Button>
+              </div>
+              <Separator />
+              <div v-if="!isAuthenticated" class="flex flex-col gap-2">
+                <Button variant="secondary" @click="handleMobileNavigate('/login')">登录</Button>
+                <Button @click="handleMobileNavigate('/register')">注册</Button>
+              </div>
+              <div v-else class="space-y-4">
+                <div class="flex items-center gap-3">
+                  <Avatar :src="user?.avatar" :fallback="userInitials" class="h-12 w-12" />
+                  <div>
+                    <p class="text-sm font-semibold text-foreground">{{ user?.name || user?.username }}</p>
+                    <p class="text-xs text-muted-foreground">继续保持警惕</p>
+                  </div>
+                </div>
+                <div class="flex items-center justify-between rounded-md bg-muted px-3 py-2">
+                  <div class="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Bell class="h-4 w-4" />
+                    未读通知
+                  </div>
+                  <Badge v-if="unreadCount > 0" variant="secondary">{{ unreadCount }}</Badge>
+                </div>
+                <div class="grid gap-2">
+                  <Button
+                    v-for="item in userMenuItems"
+                    :key="item.href"
+                    variant="ghost"
+                    class="justify-start"
+                    @click="handleMobileNavigate(item.href)"
+                  >
+                    <component :is="item.icon" class="mr-2 h-4 w-4" />
+                    {{ item.name }}
+                  </Button>
+                  <Button variant="destructive" class="justify-start" @click="handleLogout">退出登录</Button>
+                </div>
+              </div>
             </div>
-            <!-- 网站名称在手机端隐藏，在更大屏幕显示 -->
-            <span class="hidden sm:block text-xl font-semibold text-neutral-500 dark:text-dark-text">澄源</span>
-          </NuxtLink>
-        </div>
-
-        <!-- 桌面端导航菜单 -->
-        <nav class="hidden lg:flex items-center space-x-6 xl:space-x-8 fadeInUp">
-          <NuxtLink 
-            v-for="item in primaryNavigationItems" 
-            :key="item.name"
-            :to="item.href"
-            class="text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 px-2 xl:px-3 py-2 text-sm font-medium transition-colors duration-200 relative group hover-lift whitespace-nowrap"
-            :class="{ 'text-primary-500 dark:text-primary-400': isActiveRoute(item.href) }"
-          >
-            {{ item.name }}
-            <span 
-              class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 dark:bg-primary-400 transition-all duration-200 group-hover:w-full"
-              :class="{ 'w-full': isActiveRoute(item.href) }"
-            ></span>
-          </NuxtLink>
-          
-          <!-- 更多菜单下拉 -->
-          <div v-if="secondaryNavigationItems.length > 0" class="relative more-menu-container">
-            <button 
-              @click="toggleMoreMenu"
-              class="text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 px-2 xl:px-3 py-2 text-sm font-medium transition-colors duration-200 relative group hover-lift flex items-center space-x-1"
-            >
-              <span>更多</span>
-              <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': showMoreMenu }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            
-            <Transition name="dropdown">
-              <div 
-                v-if="showMoreMenu"
-                class="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-dark-surface rounded-lg shadow-modal border border-neutral-200 dark:border-dark-border py-1 z-50"
-              >
-                <NuxtLink 
-                  v-for="item in secondaryNavigationItems" 
-                  :key="item.name"
-                  :to="item.href"
-                  class="block px-4 py-2 text-sm text-neutral-500 dark:text-dark-text hover:bg-neutral-50 dark:hover:bg-dark-bg transition-colors duration-200"
-                  :class="{ 'text-primary-500 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20': isActiveRoute(item.href) }"
-                  @click="showMoreMenu = false"
-                >
-                  {{ item.name }}
-                </NuxtLink>
+            <SheetFooter class="mt-8">
+              <div class="flex w-full items-center justify-between rounded-md border px-3 py-2">
+                <span class="text-sm text-muted-foreground">暗色模式</span>
+                <Switch :checked="isDark" @update:checked="toggleDarkMode" />
               </div>
-            </Transition>
-          </div>
-        </nav>
-        
-        <!-- 中等屏幕导航菜单 -->
-        <nav class="hidden md:flex lg:hidden items-center space-x-4 fadeInUp">
-          <NuxtLink 
-            v-for="item in compactNavigationItems" 
-            :key="item.name"
-            :to="item.href"
-            class="text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 px-2 py-2 text-sm font-medium transition-colors duration-200 relative group hover-lift whitespace-nowrap"
-            :class="{ 'text-primary-500 dark:text-primary-400': isActiveRoute(item.href) }"
-          >
-            {{ item.name }}
-            <span 
-              class="absolute bottom-0 left-0 w-0 h-0.5 bg-primary-500 dark:bg-primary-400 transition-all duration-200 group-hover:w-full"
-              :class="{ 'w-full': isActiveRoute(item.href) }"
-            ></span>
-          </NuxtLink>
-          
-          <!-- 中等屏幕更多菜单 -->
-          <div class="relative more-menu-container">
-            <button 
-              @click="toggleMoreMenu"
-              class="text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 px-2 py-2 text-sm font-medium transition-colors duration-200 relative group hover-lift flex items-center space-x-1"
-            >
-              <span>更多</span>
-              <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': showMoreMenu }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            
-            <Transition name="dropdown">
-              <div 
-                v-if="showMoreMenu"
-                class="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-dark-surface rounded-lg shadow-modal border border-neutral-200 dark:border-dark-border py-1 z-50"
-              >
-                <NuxtLink 
-                  v-for="item in compactSecondaryNavigationItems" 
-                  :key="item.name"
-                  :to="item.href"
-                  class="block px-4 py-2 text-sm text-neutral-500 dark:text-dark-text hover:bg-neutral-50 dark:hover:bg-dark-bg transition-colors duration-200"
-                  :class="{ 'text-primary-500 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20': isActiveRoute(item.href) }"
-                  @click="showMoreMenu = false"
-                >
-                  {{ item.name }}
-                </NuxtLink>
-              </div>
-            </Transition>
-          </div>
-        </nav>
-
-        <!-- 右侧操作区 -->
-        <div class="flex items-center space-x-2 sm:space-x-4 fadeInRight">
-          <!-- 搜索按钮 - 在小屏幕隐藏 -->
-          <button 
-            @click="toggleSearch"
-            class="hidden sm:block p-2 text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 transition-colors duration-200 hover-lift"
-            title="搜索"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
-
-          <!-- 通知按钮 - 在小屏幕隐藏，仅登录用户可见 -->
-          <button 
-            v-if="isAuthenticated"
-            @click="toggleNotifications"
-            class="hidden sm:block relative p-2 text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 transition-colors duration-200"
-            title="通知"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM10.5 3.75a6 6 0 0 1 6 6v2.25a2.25 2.25 0 0 0 2.25 2.25H21a.75.75 0 0 1 0 1.5H3a.75.75 0 0 1 0-1.5h2.25A2.25 2.25 0 0 0 7.5 12V9.75a6 6 0 0 1 6-6Z" />
-            </svg>
-            <span v-if="unreadCount > 0" class="absolute -top-1 -right-1 bg-error-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center animate-pulse">
-              {{ unreadCount > 9 ? '9+' : unreadCount }}
-            </span>
-          </button>
-
-          <!-- 深色模式切换 - 在小屏幕隐藏 -->
-          <button 
-            @click="toggleDarkMode"
-            class="hidden sm:block p-2 text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 transition-colors duration-200"
-            title="切换主题"
-          >
-            <svg v-if="!isDark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
-            <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          </button>
-
-          <!-- 用户菜单 -->
-          <div class="relative" ref="userMenuRef" v-if="isAuthenticated">
-            <button 
-              @click="toggleUserMenu"
-              class="flex items-center space-x-1 sm:space-x-2 p-1 sm:p-2 rounded-lg hover:bg-neutral-100 dark:hover:bg-dark-surface transition-colors duration-200"
-            >
-              <img 
-                :src="user?.avatar || '/default-avatar.svg'"
-                :alt="user?.name || '用户头像'"
-                class="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover"
-              >
-              <span class="hidden md:block text-sm font-medium text-neutral-500 dark:text-dark-text">{{ user?.name || user?.username || '用户' }}</span>
-              <svg class="w-3 h-3 sm:w-4 sm:h-4 text-neutral-400 dark:text-dark-text-secondary transition-transform duration-200" :class="{ 'rotate-180': showUserMenu }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-
-            <!-- 用户下拉菜单 -->
-            <Transition name="dropdown">
-              <div 
-                v-if="showUserMenu"
-                class="absolute right-0 mt-2 w-48 bg-white dark:bg-dark-surface rounded-lg shadow-modal border border-neutral-200 dark:border-dark-border py-1 z-50"
-              >
-                <NuxtLink 
-                  v-for="item in userMenuItems" 
-                  :key="item.name"
-                  :to="item.href"
-                  class="flex items-center px-4 py-2 text-sm text-neutral-500 dark:text-dark-text hover:bg-neutral-50 dark:hover:bg-dark-bg transition-colors duration-200"
-                  @click="handleUserMenuClick(item.href)"
-                >
-                  <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path v-if="item.icon === 'heroicons:user'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    <path v-else-if="item.icon === 'heroicons:trophy'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-                    <path v-else-if="item.icon === 'heroicons:cog-6-tooth'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  </svg>
-                  {{ item.name }}
-                </NuxtLink>
-                <hr class="my-1 border-neutral-200 dark:border-dark-border">
-                <button 
-                  @click="handleLogout"
-                  class="flex items-center w-full px-4 py-2 text-sm text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors duration-200"
-                >
-                  <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  退出登录
-                </button>
-              </div>
-            </Transition>
-          </div>
-
-          <!-- 未认证状态下的登录按钮 -->
-          <div v-else class="flex items-center space-x-1 sm:space-x-2">
-            <NuxtLink 
-              to="/login"
-              class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200"
-            >
-              登录
-            </NuxtLink>
-            <NuxtLink 
-              to="/register"
-              class="px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors duration-200"
-            >
-              注册
-            </NuxtLink>
-          </div>
-
-          <!-- 移动端菜单按钮 -->
-          <button 
-            @click="toggleMobileMenu"
-            class="md:hidden p-2 text-neutral-400 hover:text-primary-500 dark:text-dark-text-secondary dark:hover:text-primary-400 transition-colors duration-200"
-          >
-            <svg v-if="!showMobileMenu" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <svg v-else class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
+            </SheetFooter>
+          </SheetContent>
+        </Sheet>
       </div>
     </div>
-
-    <!-- 移动端菜单 -->
-    <Transition name="mobile-menu">
-      <div v-if="showMobileMenu" class="md:hidden bg-white dark:bg-dark-surface border-t border-neutral-200 dark:border-dark-border">
-        <div class="px-2 pt-2 pb-3 space-y-1">
-          <NuxtLink 
-            v-for="item in navigationItems" 
-            :key="item.name"
-            :to="item.href"
-            class="block px-3 py-2 text-base font-medium text-neutral-500 dark:text-dark-text hover:text-primary-500 dark:hover:text-primary-400 hover:bg-neutral-50 dark:hover:bg-dark-bg rounded-md transition-colors duration-200"
-            :class="{ 'text-primary-500 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/20': isActiveRoute(item.href) }"
-            @click="showMobileMenu = false"
-          >
-            {{ item.name }}
-          </NuxtLink>
-        </div>
-      </div>
-    </Transition>
   </header>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { Bell, ChevronDown, LogOut, Menu, MoonStar, Search, ShieldCheck, Sun, UserCircle2, Award, Settings } from 'lucide-vue-next'
+
+import Avatar from '~/components/ui/avatar.vue'
+import Badge from '~/components/ui/badge.vue'
+import Button from '~/components/ui/button.vue'
+import DropdownMenu from '~/components/ui/dropdown-menu/DropdownMenu.vue'
+import DropdownMenuContent from '~/components/ui/dropdown-menu/DropdownMenuContent.vue'
+import DropdownMenuItem from '~/components/ui/dropdown-menu/DropdownMenuItem.vue'
+import DropdownMenuLabel from '~/components/ui/dropdown-menu/DropdownMenuLabel.vue'
+import DropdownMenuSeparator from '~/components/ui/dropdown-menu/DropdownMenuSeparator.vue'
+import DropdownMenuTrigger from '~/components/ui/dropdown-menu/DropdownMenuTrigger.vue'
+import Sheet from '~/components/ui/sheet/Sheet.vue'
+import SheetContent from '~/components/ui/sheet/SheetContent.vue'
+import SheetDescription from '~/components/ui/sheet/SheetDescription.vue'
+import SheetFooter from '~/components/ui/sheet/SheetFooter.vue'
+import SheetHeader from '~/components/ui/sheet/SheetHeader.vue'
+import SheetTitle from '~/components/ui/sheet/SheetTitle.vue'
+import SheetTrigger from '~/components/ui/sheet/SheetTrigger.vue'
+import Switch from '~/components/ui/switch.vue'
+import Separator from '~/components/ui/separator.vue'
+
 import { dashboardApi } from '~/services/api.js'
 
-// 响应式数据
 const route = useRoute()
 const router = useRouter()
-const showMobileMenu = ref(false)
-const showUserMenu = ref(false)
-const showMoreMenu = ref(false)
-const showSearch = ref(false)
-const showNotifications = ref(false)
-const isDark = ref(false)
-const userMenuRef = ref(null)
 
-// 认证状态 - 客户端安全初始化
-const user = ref(null)
 const isAuthenticated = ref(false)
-const authLogout = ref(null)
-
-// 在客户端初始化认证状态和主题
-onMounted(async () => {
-  if (process.client) {
-    // 动态导入useAuth以避免SSR问题
-    const { useAuth } = await import('~/composables/useAuth')
-    const auth = useAuth()
-    user.value = auth.user.value
-    isAuthenticated.value = auth.isAuthenticated.value
-    authLogout.value = auth.logout
-    
-    // 监听认证状态变化
-    watch(() => auth.user.value, (newUser) => {
-      user.value = newUser
-      // 当用户状态变化时，重新获取通知数量
-      if (newUser) {
-        fetchUnreadCount()
-      } else {
-        unreadCount.value = 0
-      }
-    })
-    
-    watch(() => auth.isAuthenticated.value, (newAuth) => {
-      isAuthenticated.value = newAuth
-      // 当认证状态变化时，获取通知数量
-      if (newAuth) {
-        fetchUnreadCount()
-      } else {
-        unreadCount.value = 0
-      }
-    })
-    
-    // 初始化时获取通知数量
-    if (auth.isAuthenticated.value) {
-      fetchUnreadCount()
-    }
-  }
-  
-  // 初始化主题
-  if (typeof window !== 'undefined' && window.localStorage) {
-    const savedTheme = window.localStorage.getItem('theme')
-    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      isDark.value = true
-      document.documentElement.classList.add('dark')
-    }
-  }
-  
-  // 添加点击外部事件监听
-  document.addEventListener('click', handleClickOutside)
-})
-
-// 未读通知数量
+const user = ref<Record<string, any> | null>(null)
 const unreadCount = ref(0)
+const isDark = ref(false)
+const mobileMenuOpen = ref(false)
+let authLogout: (() => Promise<void>) | null = null
 
-// 导航菜单项
-const navigationItems = [
-  { name: '首页', href: '/' },
-  { name: '仪表盘', href: '/dashboard' },
-  { name: '知识图谱', href: '/graph' },
-  { name: '反欺诈测验', href: '/quiz' },
-  { name: 'AI测试', href: '/ai-test' },
-  { name: '社区', href: '/community' },
-  { name: '学习资源', href: '/resources' },
-  { name: '举报中心', href: '/report' },
-]
-
-// 大屏幕主要菜单项（显示在导航栏中）
 const primaryNavigationItems = computed(() => [
   { name: '首页', href: '/' },
   { name: '仪表盘', href: '/dashboard' },
@@ -351,78 +218,64 @@ const primaryNavigationItems = computed(() => [
   { name: 'AI测试', href: '/ai-test' }
 ])
 
-// 大屏幕次要菜单项（显示在更多下拉菜单中）
 const secondaryNavigationItems = computed(() => [
   { name: '社区', href: '/community' },
   { name: '学习资源', href: '/resources' },
   { name: '举报中心', href: '/report' }
 ])
 
-// 中等屏幕紧凑菜单项（显示在导航栏中）
-const compactNavigationItems = computed(() => [
-  { name: '首页', href: '/' },
-  { name: '仪表盘', href: '/dashboard' },
-  { name: '知识图谱', href: '/graph' }
-])
+const allNavigationItems = computed(() => [...primaryNavigationItems.value, ...secondaryNavigationItems.value])
 
-// 中等屏幕次要菜单项（显示在更多下拉菜单中）
-const compactSecondaryNavigationItems = computed(() => [
-  { name: '测验', href: '/quiz' },
-  { name: 'AI测试', href: '/ai-test' },
-  { name: '社区', href: '/community' },
-  { name: '学习资源', href: '/resources' },
-  { name: '举报中心', href: '/report' }
-])
-
-// 用户菜单项
 const userMenuItems = [
-  { name: '个人中心', href: '/profile', icon: 'heroicons:user' },
-  { name: '我的成就', href: '/achievements', icon: 'heroicons:trophy' },
-  { name: '设置', href: '/settings', icon: 'heroicons:cog-6-tooth' },
+  { name: '个人中心', href: '/profile', icon: UserCircle2 },
+  { name: '我的成就', href: '/achievements', icon: Award },
+  { name: '设置', href: '/settings', icon: Settings }
 ]
 
-// 计算属性
-const isActiveRoute = (href) => {
+const userInitials = computed(() => {
+  const name = user.value?.name || user.value?.username
+  if (!name) return 'CY'
+  return name
+    .split('')
+    .slice(0, 2)
+    .join('')
+})
+
+const isActive = (href: string) => {
   if (href === '/') {
     return route.path === '/'
   }
   return route.path.startsWith(href)
 }
 
-// 方法
-const toggleMobileMenu = () => {
-  showMobileMenu.value = !showMobileMenu.value
+const navigate = async (href: string) => {
+  await router.push(href)
 }
 
-const toggleUserMenu = () => {
-  showUserMenu.value = !showUserMenu.value
-  // 关闭其他菜单
-  showMoreMenu.value = false
+const handleMobileNavigate = async (href: string) => {
+  mobileMenuOpen.value = false
+  await navigate(href)
 }
 
-const toggleMoreMenu = () => {
-  showMoreMenu.value = !showMoreMenu.value
-  // 关闭其他菜单
-  showUserMenu.value = false
-}
-
-const toggleSearch = () => {
-  showSearch.value = !showSearch.value
-  if (showSearch.value) {
-    // 跳转到搜索页面或打开搜索模态框
-    router.push('/search')
+const toggleDarkMode = (value?: boolean) => {
+  const target = typeof value === 'boolean' ? value : !isDark.value
+  isDark.value = target
+  if (target) {
+    document.documentElement.classList.add('dark')
+    localStorage.setItem('theme', 'dark')
+  } else {
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem('theme', 'light')
   }
 }
 
-const toggleNotifications = () => {
-  showNotifications.value = !showNotifications.value
-  if (showNotifications.value) {
-    // 跳转到通知页面
-    router.push('/notifications')
+const handleLogout = async () => {
+  if (authLogout) {
+    await authLogout().catch(() => {})
   }
+  await router.push('/login')
 }
 
-// 获取未读通知数量
 const fetchUnreadCount = async () => {
   try {
     const response = await dashboardApi.getNotificationCount()
@@ -433,88 +286,44 @@ const fetchUnreadCount = async () => {
   }
 }
 
-const toggleDarkMode = () => {
-  isDark.value = !isDark.value
-  if (isDark.value) {
-    document.documentElement.classList.add('dark')
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem('theme', 'dark')
+onMounted(async () => {
+  if (process.client) {
+    const { useAuth } = await import('~/composables/useAuth')
+    const auth = useAuth()
+    user.value = auth.user.value
+    isAuthenticated.value = auth.isAuthenticated.value
+    authLogout = auth.logout
+
+    if (auth.isAuthenticated.value) {
+      fetchUnreadCount()
     }
-  } else {
-    document.documentElement.classList.remove('dark')
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem('theme', 'light')
-    }
+
+    watch(
+      () => auth.user.value,
+      (value) => {
+        user.value = value
+        if (value) {
+          fetchUnreadCount()
+        }
+      }
+    )
+
+    watch(
+      () => auth.isAuthenticated.value,
+      (value) => {
+        isAuthenticated.value = value
+        if (value) {
+          fetchUnreadCount()
+        } else {
+          unreadCount.value = 0
+        }
+      }
+    )
   }
-}
 
-const handleUserMenuClick = async (href) => {
-  showUserMenu.value = false
-  // 确保导航正常执行
-  await router.push(href)
-}
-
-const handleLogout = async () => {
-  try {
-    if (authLogout.value) {
-      await authLogout.value()
-    }
-    // logout函数内部已经处理了重定向，这里不需要再次重定向
-  } catch (error) {
-    console.error('登出失败:', error)
-    // 即使登出失败，也清除本地状态并重定向
-    await router.push('/login')
+  const storedTheme = localStorage.getItem('theme')
+  if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    toggleDarkMode(true)
   }
-  showUserMenu.value = false
-}
-
-// 点击外部关闭菜单
-const handleClickOutside = (event) => {
-  if (userMenuRef.value && !userMenuRef.value.contains(event.target)) {
-    showUserMenu.value = false
-  }
-  // 检查更多菜单
-  const moreMenuElements = document.querySelectorAll('.more-menu-container')
-  let clickedInsideMoreMenu = false
-  moreMenuElements.forEach(element => {
-    if (element.contains(event.target)) {
-      clickedInsideMoreMenu = true
-    }
-  })
-  if (!clickedInsideMoreMenu) {
-    showMoreMenu.value = false
-  }
-}
-
-
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
 })
 </script>
-
-<style scoped>
-/* 下拉菜单动画 */
-.dropdown-enter-active,
-.dropdown-leave-active {
-  transition: all 0.2s ease;
-}
-
-.dropdown-enter-from,
-.dropdown-leave-to {
-  opacity: 0;
-  transform: translateY(-10px) scale(0.95);
-}
-
-/* 移动端菜单动画 */
-.mobile-menu-enter-active,
-.mobile-menu-leave-active {
-  transition: all 0.3s ease;
-}
-
-.mobile-menu-enter-from,
-.mobile-menu-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
-}
-</style>

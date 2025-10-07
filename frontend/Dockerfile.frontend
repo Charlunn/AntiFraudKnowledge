@@ -1,20 +1,21 @@
-# 使用 Node 18 作为基础镜像（更稳定）
+# syntax=docker/dockerfile:1.7-labs
 FROM node:20
 
-# 设置工作目录
+ENV PNPM_HOME="/usr/local/share/pnpm"
+ENV PNPM_STORE_PATH="/pnpm/store"
+ENV PATH="$PNPM_HOME:$PATH"
+
 WORKDIR /app
 
-# 复制 package.json 和 package-lock.json
-COPY package.json package-lock.json* ./
+RUN corepack enable pnpm
 
-# 使用 npm 安装依赖（包括 devDependencies）
-RUN npm install
+COPY package.json pnpm-lock.yaml ./
 
-# 再复制项目代码
+RUN --mount=type=cache,target=/pnpm/store \
+    pnpm install --frozen-lockfile
+
 COPY . .
 
-# 暴露 Nuxt 默认端口
 EXPOSE 3000
 
-# 启动 Nuxt 开发服务器
-CMD ["npm", "run", "dev"]
+CMD ["pnpm", "run", "dev"]

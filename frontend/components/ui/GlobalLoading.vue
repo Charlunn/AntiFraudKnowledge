@@ -2,9 +2,9 @@
   <Teleport to="body">
     <!-- 全局加载遮罩 -->
     <Transition name="loading-overlay">
-      <div 
+      <div
         v-if="isLoading"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-white/80 dark:bg-dark-bg/80 backdrop-blur-sm"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
         aria-label="页面加载中"
       >
         <div class="text-center">
@@ -23,33 +23,33 @@
           
           <!-- 加载文本 -->
           <div class="mt-4">
-            <h3 class="text-lg font-medium text-neutral-900 dark:text-dark-text mb-2">
+            <h3 class="mb-2 text-lg font-semibold text-foreground">
               {{ loadingTitle }}
             </h3>
-            <p class="text-sm text-neutral-500 dark:text-dark-text-secondary">
+            <p class="text-sm text-muted-foreground">
               {{ loadingMessage }}
             </p>
-            
+
             <!-- 进度条 -->
             <div v-if="showProgress" class="mt-4 w-64 mx-auto">
-              <div class="flex justify-between text-xs text-neutral-500 dark:text-dark-text-secondary mb-1">
+              <div class="mb-1 flex justify-between text-xs text-muted-foreground">
                 <span>{{ progressText }}</span>
                 <span>{{ Math.round(progress) }}%</span>
               </div>
-              <div class="w-full bg-neutral-200 dark:bg-dark-border rounded-full h-2 overflow-hidden">
-                <div 
-                  class="h-full bg-gradient-to-r from-primary-500 to-primary-600 rounded-full transition-all duration-300 ease-out"
+              <div class="h-2 w-full overflow-hidden rounded-full bg-muted">
+                <div
+                  class="h-full rounded-full bg-primary transition-all duration-300 ease-out"
                   :style="{ width: progress + '%' }"
                 ></div>
               </div>
             </div>
           </div>
-          
+
           <!-- 取消按钮 -->
-          <button 
+          <button
             v-if="showCancel"
             @click="handleCancel"
-            class="mt-6 px-4 py-2 text-sm font-medium text-neutral-600 dark:text-dark-text-secondary hover:text-neutral-800 dark:hover:text-dark-text border border-neutral-300 dark:border-dark-border rounded-md hover:bg-neutral-50 dark:hover:bg-dark-surface transition-colors duration-200"
+            class="mt-6 rounded-md border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             取消
           </button>
@@ -59,9 +59,9 @@
     
     <!-- 页面顶部加载条 -->
     <Transition name="loading-bar">
-      <div 
+      <div
         v-if="showTopBar"
-        class="fixed top-0 left-0 right-0 z-50 h-1 bg-gradient-to-r from-primary-500 to-primary-600 transform-gpu"
+        class="fixed top-0 left-0 right-0 z-50 h-1 transform-gpu bg-primary"
         :style="{ transform: `translateX(-${100 - topBarProgress}%)` }"
       ></div>
     </Transition>

@@ -10,7 +10,7 @@
         <div
           v-for="notification in notifications"
           :key="notification.id"
-          class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white dark:bg-dark-surface shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-white dark:ring-opacity-10"
+          class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg border border-border bg-card text-card-foreground shadow-lg"
           :class="getNotificationClasses(notification.type)"
         >
           <div class="p-4">
@@ -26,13 +26,13 @@
               
               <!-- 内容 -->
               <div class="ml-3 w-0 flex-1 pt-0.5">
-                <p 
+                <p
                   v-if="notification.title"
-                  class="text-sm font-medium text-neutral-900 dark:text-dark-text"
+                  class="text-sm font-semibold text-foreground"
                 >
                   {{ notification.title }}
                 </p>
-                <p class="mt-1 text-sm text-neutral-500 dark:text-dark-text-secondary">
+                <p class="mt-1 text-sm text-muted-foreground">
                   {{ notification.message }}
                 </p>
                 
@@ -42,8 +42,8 @@
                     v-for="action in notification.actions"
                     :key="action.label"
                     @click="handleAction(notification.id, action)"
-                    class="rounded-md text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors duration-200"
-                    :class="action.primary ? 'bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500 px-3 py-1.5' : 'text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300'"
+                    class="rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 transition-colors duration-200"
+                    :class="action.primary ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'text-primary hover:text-primary/80'"
                   >
                     {{ action.label }}
                   </button>
@@ -54,7 +54,7 @@
               <div class="ml-4 flex flex-shrink-0">
                 <button
                   @click="removeNotification(notification.id)"
-                  class="inline-flex rounded-md bg-white dark:bg-dark-surface text-neutral-400 dark:text-dark-text-secondary hover:text-neutral-500 dark:hover:text-dark-text focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-dark-surface transition-colors duration-200"
+                  class="inline-flex rounded-md text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
                   <span class="sr-only">关闭</span>
                   <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -66,11 +66,11 @@
           </div>
           
           <!-- 进度条 -->
-          <div 
+          <div
             v-if="notification.duration && notification.duration > 0"
-            class="h-1 bg-neutral-200 dark:bg-dark-border overflow-hidden"
+            class="h-1 overflow-hidden bg-muted"
           >
-            <div 
+            <div
               class="h-full transition-all ease-linear"
               :class="getProgressClasses(notification.type)"
               :style="{ width: getProgressWidth(notification) + '%', transitionDuration: notification.duration + 'ms' }"
@@ -179,30 +179,30 @@ const getNotificationIcon = (type) => {
 
 const getNotificationClasses = (type) => {
   const classes = {
-    success: 'border-l-4 border-success-500',
-    error: 'border-l-4 border-error-500',
-    warning: 'border-l-4 border-warning-500',
-    info: 'border-l-4 border-primary-500'
+    success: 'border-l-4 border-l-emerald-500',
+    error: 'border-l-4 border-l-destructive',
+    warning: 'border-l-4 border-l-amber-500',
+    info: 'border-l-4 border-l-primary'
   }
   return classes[type] || classes.info
 }
 
 const getIconClasses = (type) => {
   const classes = {
-    success: 'text-success-500',
-    error: 'text-error-500',
-    warning: 'text-warning-500',
-    info: 'text-primary-500'
+    success: 'text-emerald-500',
+    error: 'text-destructive',
+    warning: 'text-amber-500',
+    info: 'text-primary'
   }
   return classes[type] || classes.info
 }
 
 const getProgressClasses = (type) => {
   const classes = {
-    success: 'bg-success-500',
-    error: 'bg-error-500',
-    warning: 'bg-warning-500',
-    info: 'bg-primary-500'
+    success: 'bg-emerald-500',
+    error: 'bg-destructive',
+    warning: 'bg-amber-500',
+    info: 'bg-primary'
   }
   return classes[type] || classes.info
 }

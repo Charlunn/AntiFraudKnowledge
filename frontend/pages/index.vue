@@ -1,255 +1,202 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-    <!-- Hero Section -->
-    <section class="relative overflow-hidden bg-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div class="text-center">
-          <h1 class="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl">
-            <span class="block">反诈骗知识平台</span>
-            <span class="block text-indigo-600">守护您的财产安全</span>
+  <div class="space-y-24">
+    <section class="relative overflow-hidden">
+      <div class="container-grid grid gap-12 py-16 lg:grid-cols-[1.2fr_1fr] lg:items-center">
+        <div class="space-y-8">
+          <Badge class="bg-primary/10 text-primary">全新 shadcn / vue 体验</Badge>
+          <h1 class="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+            识别骗局，从澄源开始
           </h1>
-          <p class="mt-6 max-w-2xl mx-auto text-xl text-gray-500">
-            通过互动学习、知识图谱和社区交流，提升您的反诈骗意识和防范能力
+          <p class="max-w-2xl text-lg text-muted-foreground">
+            借助知识图谱、互动测验与社区经验，构建立体化的反诈防线。澄源通过结构化的学习路径与实时诈骗情报，帮助每个人看穿骗局、快速决策。
           </p>
-          <div class="mt-8 flex justify-center space-x-4">
-            <NuxtLink to="/quiz" class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors">
-              开始学习
-            </NuxtLink>
-            <NuxtLink to="/graph" class="bg-white text-indigo-600 border-2 border-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-indigo-50 transition-colors">
+          <div class="flex flex-col gap-3 sm:flex-row">
+            <Button size="lg" class="w-full sm:w-auto" @click="navigate('/quiz')">开始测验</Button>
+            <Button size="lg" variant="outline" class="w-full sm:w-auto" @click="navigate('/graph')">
               探索知识图谱
-            </NuxtLink>
+            </Button>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-3">
+            <div class="rounded-lg border border-border bg-card p-4 shadow-sm">
+              <p class="text-2xl font-semibold text-foreground">{{ stats.totalUsers.toLocaleString() }}+</p>
+              <p class="text-sm text-muted-foreground">学习用户</p>
+            </div>
+            <div class="rounded-lg border border-border bg-card p-4 shadow-sm">
+              <p class="text-2xl font-semibold text-foreground">{{ stats.totalQuestions.toLocaleString() }}+</p>
+              <p class="text-sm text-muted-foreground">测验题库</p>
+            </div>
+            <div class="rounded-lg border border-border bg-card p-4 shadow-sm">
+              <p class="text-2xl font-semibold text-foreground">{{ formatNumber(stats.preventedCases) }}</p>
+              <p class="text-sm text-muted-foreground">预防损失金额（元）</p>
+            </div>
           </div>
         </div>
+        <Card class="relative overflow-hidden border-dashed">
+          <CardHeader>
+            <CardTitle class="flex items-center gap-3 text-xl">
+              <ShieldCheck class="h-6 w-6 text-primary" />
+              澄源反诈情报概览
+            </CardTitle>
+            <CardDescription>最近 30 天的诈骗举报与防御动态</CardDescription>
+          </CardHeader>
+          <CardContent class="space-y-6">
+            <div class="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+              <div>
+                <p class="text-sm text-muted-foreground">举报线索</p>
+                <p class="text-2xl font-semibold text-foreground">1,248</p>
+              </div>
+              <Badge variant="secondary" class="bg-emerald-100 text-emerald-700">+18% 同比</Badge>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-sm text-muted-foreground">
+              <div class="rounded-lg bg-muted/40 p-3">
+                <p class="text-xs uppercase tracking-wide text-muted-foreground">高发渠道</p>
+                <p class="mt-1 font-medium text-foreground">社交媒体</p>
+              </div>
+              <div class="rounded-lg bg-muted/40 p-3">
+                <p class="text-xs uppercase tracking-wide text-muted-foreground">重点关注</p>
+                <p class="mt-1 font-medium text-foreground">投资理财、刷单</p>
+              </div>
+            </div>
+            <Separator />
+            <p class="text-sm text-muted-foreground">
+              澄源联合各地公安、反诈中心提供实时动态，帮助快速识别新型手法。订阅预警，第一时间获知风险。
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button variant="link" class="px-0" @click="navigate('/resources')">
+              查看最新预警
+              <ArrowRight class="ml-1 h-4 w-4" />
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     </section>
 
-    <!-- Stats Section -->
-    <section class="py-16 bg-indigo-600">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-center">
-          <div class="text-white">
-            <div class="text-3xl font-bold">{{ stats.totalUsers }}+</div>
-            <div class="text-indigo-200 mt-2">注册用户</div>
-          </div>
-          <div class="text-white">
-            <div class="text-3xl font-bold">{{ stats.totalQuestions }}+</div>
-            <div class="text-indigo-200 mt-2">题目数量</div>
-          </div>
-          <div class="text-white">
-            <div class="text-3xl font-bold">{{ stats.totalKnowledge }}+</div>
-            <div class="text-indigo-200 mt-2">知识点</div>
-          </div>
-          <div class="text-white">
-            <div class="text-3xl font-bold">{{ stats.preventedCases }}+</div>
-            <div class="text-indigo-200 mt-2">成功防范案例</div>
-          </div>
+    <section class="container-grid">
+      <div class="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 class="text-3xl font-semibold text-foreground">全局防护能力</h2>
+          <p class="mt-2 max-w-2xl text-muted-foreground">
+            澄源围绕“识别 — 防范 — 处置”三大阶段打造一体化反诈能力，引导用户快速上手并持续精进。
+          </p>
         </div>
+        <Button variant="outline" class="self-start" @click="navigate('/dashboard')">进入仪表盘</Button>
+      </div>
+
+      <div class="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <Card v-for="feature in features" :key="feature.title" class="group h-full border-border/80">
+          <CardHeader class="space-y-3">
+            <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <component :is="feature.icon" class="h-6 w-6" />
+            </div>
+            <CardTitle class="text-xl">{{ feature.title }}</CardTitle>
+            <CardDescription>{{ feature.description }}</CardDescription>
+          </CardHeader>
+          <CardContent class="space-y-3 text-sm text-muted-foreground">
+            <ul class="space-y-2">
+              <li v-for="item in feature.points" :key="item" class="flex items-center gap-2">
+                <Check class="h-4 w-4 text-primary" />
+                <span>{{ item }}</span>
+              </li>
+            </ul>
+          </CardContent>
+          <CardFooter>
+            <Button variant="ghost" class="px-0 text-primary" @click="navigate(feature.href)">
+              了解详情
+              <ArrowRight class="ml-1 h-4 w-4" />
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     </section>
 
-    <!-- Features Section -->
-    <section class="py-16">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-          <h2 class="text-3xl font-bold text-gray-900">平台功能</h2>
-          <p class="mt-4 text-xl text-gray-600">多维度提升您的反诈骗能力</p>
+    <section class="bg-muted/40">
+      <div class="container-grid py-16">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 class="text-3xl font-semibold text-foreground">实时学习轨迹</h2>
+            <p class="mt-2 max-w-2xl text-muted-foreground">登陆后即可同步社区交流、测验进度与安全日历，为个人安全策略打分。</p>
+          </div>
+          <Button variant="outline" @click="navigate('/community')">加入社区</Button>
         </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <!-- 知识测验 -->
-          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">知识测验</h3>
-            <p class="text-gray-600 mb-4">通过互动测验检验和提升反诈骗知识水平</p>
-            <NuxtLink to="/quiz" class="text-blue-600 font-semibold hover:text-blue-700">开始测验 →</NuxtLink>
-          </div>
 
-          <!-- 知识图谱 -->
-          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">知识图谱</h3>
-            <p class="text-gray-600 mb-4">可视化展示诈骗类型和防范策略的关联关系</p>
-            <NuxtLink to="/graph" class="text-green-600 font-semibold hover:text-green-700">探索图谱 →</NuxtLink>
-          </div>
-
-          <!-- 社区交流 -->
-          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-6a2 2 0 012-2h8z"></path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">社区交流</h3>
-            <p class="text-gray-600 mb-4">与其他用户分享经验，共同提升防范意识</p>
-            <NuxtLink to="/community" class="text-purple-600 font-semibold hover:text-purple-700">加入社区 →</NuxtLink>
-          </div>
-
-          <!-- 个人中心 -->
-          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">个人中心</h3>
-            <p class="text-gray-600 mb-4">查看学习进度、成就徽章和个人设置</p>
-            <NuxtLink to="/profile" class="text-yellow-600 font-semibold hover:text-yellow-700">个人中心 →</NuxtLink>
-          </div>
-
-          <!-- 学习资源 -->
-          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">学习资源</h3>
-            <p class="text-gray-600 mb-4">丰富的反诈骗案例和防范指南</p>
-            <NuxtLink to="/resources" class="text-red-600 font-semibold hover:text-red-700">查看资源 →</NuxtLink>
-          </div>
-
-          <!-- AI智能测试 -->
-          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">AI智能测试</h3>
-            <p class="text-gray-600 mb-4">AI驱动的智能问答和个性化评估</p>
-            <NuxtLink to="/ai-test" class="text-indigo-600 font-semibold hover:text-indigo-700">开始测试 →</NuxtLink>
-          </div>
-
-          <!-- 举报中心 -->
-          <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow">
-            <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-              <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-              </svg>
-            </div>
-            <h3 class="text-xl font-semibold text-gray-900 mb-2">举报中心</h3>
-            <p class="text-gray-600 mb-4">发现可疑信息？立即举报帮助他人</p>
-            <NuxtLink to="/report" class="text-orange-600 font-semibold hover:text-orange-700">立即举报 →</NuxtLink>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Recent Activity -->
-    <section class="py-16 bg-gray-50" v-if="auth?.accessToken">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-          <h2 class="text-3xl font-bold text-gray-900">最近活动</h2>
-          <p class="mt-4 text-xl text-gray-600">继续您的学习之旅</p>
-        </div>
-        
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- 学习进度 -->
-          <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-xl font-semibold text-gray-900 mb-4">学习进度</h3>
-            <div class="space-y-4">
-              <div class="flex items-center justify-between">
-                <span class="text-gray-600">基础防范知识</span>
-                <span class="text-green-600 font-semibold">85%</span>
+        <div
+          v-if="isAuthenticated"
+          class="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]"
+        >
+          <Card class="h-full">
+            <CardHeader>
+              <CardTitle>学习进度</CardTitle>
+              <CardDescription>继续完成课程，解锁新的安全策略</CardDescription>
+            </CardHeader>
+            <CardContent class="space-y-4 text-sm text-muted-foreground">
+              <div v-for="track in learningTracks" :key="track.title" class="space-y-2">
+                <div class="flex items-center justify-between text-sm text-foreground">
+                  <span>{{ track.title }}</span>
+                  <span class="font-medium text-primary">{{ track.progress }}%</span>
+                </div>
+                <div class="h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div class="h-full rounded-full bg-primary" :style="{ width: `${track.progress}%` }"></div>
+                </div>
               </div>
-              <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="bg-green-600 h-2 rounded-full" style="width: 85%"></div>
-              </div>
-              
-              <div class="flex items-center justify-between">
-                <span class="text-gray-600">网络诈骗识别</span>
-                <span class="text-blue-600 font-semibold">72%</span>
-              </div>
-              <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="bg-blue-600 h-2 rounded-full" style="width: 72%"></div>
-              </div>
-              
-              <div class="flex items-center justify-between">
-                <span class="text-gray-600">电信诈骗防范</span>
-                <span class="text-yellow-600 font-semibold">58%</span>
-              </div>
-              <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="bg-yellow-600 h-2 rounded-full" style="width: 58%"></div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- 最近成就 -->
-          <div class="bg-white rounded-xl shadow-lg p-6">
-            <h3 class="text-xl font-semibold text-gray-900 mb-4">最近成就</h3>
-            <div class="space-y-4">
-              <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-                  <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                  </svg>
+            </CardContent>
+          </Card>
+
+          <Card class="h-full">
+            <CardHeader>
+              <CardTitle>最近成就</CardTitle>
+              <CardDescription>新勋章实时同步，分享你的防诈心得</CardDescription>
+            </CardHeader>
+            <CardContent class="space-y-4">
+              <div v-for="badge in achievements" :key="badge.title" class="flex items-center gap-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Trophy class="h-5 w-5" />
                 </div>
                 <div>
-                  <div class="font-semibold text-gray-900">初级防范专家</div>
-                  <div class="text-sm text-gray-500">完成10道基础题目</div>
+                  <p class="font-medium text-foreground">{{ badge.title }}</p>
+                  <p class="text-sm text-muted-foreground">{{ badge.description }}</p>
                 </div>
               </div>
-              
-              <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                  </svg>
-                </div>
-                <div>
-                  <div class="font-semibold text-gray-900">知识图谱探索者</div>
-                  <div class="text-sm text-gray-500">浏览50个知识节点</div>
-                </div>
-              </div>
-              
-              <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z" clip-rule="evenodd"></path>
-                  </svg>
-                </div>
-                <div>
-                  <div class="font-semibold text-gray-900">社区贡献者</div>
-                  <div class="text-sm text-gray-500">发布首个帖子</div>
-                </div>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
-    </section>
 
-    <!-- CTA Section -->
-    <section class="py-16 bg-indigo-600" v-if="!auth?.accessToken">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 class="text-3xl font-bold text-white mb-4">立即加入我们</h2>
-        <p class="text-xl text-indigo-200 mb-8">开始您的反诈骗学习之旅，保护自己和家人的财产安全</p>
-        <div class="space-x-4">
-          <NuxtLink to="/register" class="bg-white text-indigo-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-            立即注册
-          </NuxtLink>
-          <NuxtLink to="/login" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-indigo-600 transition-colors">
-            已有账号？登录
-          </NuxtLink>
-        </div>
+        <Card v-else class="mt-10 flex flex-col gap-6 border-dashed border-border/80 p-8 text-center">
+          <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Sparkles class="h-6 w-6" />
+          </div>
+          <div class="space-y-2">
+            <h3 class="text-2xl font-semibold text-foreground">立即登录，定制你的反诈策略</h3>
+            <p class="text-sm text-muted-foreground">
+              登录后可同步测验记录、收藏案例、跟进社区提问，澄源会基于个人弱点推荐补充课程。
+            </p>
+          </div>
+          <div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Button class="sm:w-auto" @click="navigate('/login')">登录澄源</Button>
+            <Button variant="outline" class="sm:w-auto" @click="navigate('/register')">创建账户</Button>
+          </div>
+        </Card>
       </div>
     </section>
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { ArrowRight, Check, ShieldCheck, Sparkles, Trophy, FileWarning, Brain, Users } from 'lucide-vue-next'
+
+import Badge from '~/components/ui/badge.vue'
+import Button from '~/components/ui/button.vue'
+import Card from '~/components/ui/card.vue'
+import CardContent from '~/components/ui/card-content.vue'
+import CardDescription from '~/components/ui/card-description.vue'
+import CardFooter from '~/components/ui/card-footer.vue'
+import CardHeader from '~/components/ui/card-header.vue'
+import CardTitle from '~/components/ui/card-title.vue'
+import Separator from '~/components/ui/separator.vue'
+
 import { fetchPlatformStats } from '~/api/statistics'
 
-// 页面元数据
 useHead({
   title: '澄源 - 守护您的财产安全',
   meta: [
@@ -258,110 +205,92 @@ useHead({
   ]
 })
 
-// 状态管理 - 延迟初始化
-let auth = null
-
-// 统计数据
 const stats = ref({
-  totalUsers: 0,
-  totalQuestions: 0,
-  totalKnowledge: 0,
-  preventedCases: 0
+  totalUsers: 15420,
+  totalQuestions: 2580,
+  totalKnowledge: 5,
+  preventedCases: 1005000
 })
 
-// 加载状态
-const loading = ref(true)
+const isAuthenticated = ref(false)
+const learningTracks = [
+  { title: '基础防诈课程', progress: 85 },
+  { title: '网络诈骗应对', progress: 72 },
+  { title: '电信诈骗识别', progress: 58 }
+]
 
-// 获取统计数据
-const fetchStats = async () => {
+const achievements = [
+  { title: '初级防诈守护者', description: '完成 10 道基础测验题目' },
+  { title: '情景模拟达人', description: '成功通过 3 次高风险情景演练' }
+]
+
+const features = [
+  {
+    title: '知识图谱引擎',
+    description: '梳理诈骗链路、风险节点与防护策略，构建清晰的应对地图。',
+    points: ['实时更新最新骗局', '智能关联人物 / 场景 / 渠道', '一键导出风险提示'],
+    href: '/graph',
+    icon: Brain
+  },
+  {
+    title: '互动式测验',
+    description: '多难度试题结合 AI 解析，精准定位安全盲区，提供个性化复盘建议。',
+    points: ['分级评估个人风险', 'AI 给出防护建议', '错题自动加入复习清单'],
+    href: '/quiz',
+    icon: FileWarning
+  },
+  {
+    title: '社区共建',
+    description: '与公安、志愿者、普通用户共同分享真实案例，快速提升识诈能力。',
+    points: ['案例复盘与标注', '高赞回答精选', '志愿者实时答疑'],
+    href: '/community',
+    icon: Users
+  }
+]
+
+const navigate = async (href: string) => {
+  await useRouter().push(href)
+}
+
+const formatNumber = (value: number) => {
+  if (value >= 1_000_000) {
+    return `${(value / 1_000_000).toFixed(1)}M`
+  }
+  if (value >= 10_000) {
+    return `${(value / 10_000).toFixed(1)}万`
+  }
+  return value.toLocaleString()
+}
+
+const loadStats = async () => {
   try {
-    // 只在客户端获取统计数据
-    if (process.client) {
-      loading.value = true
-      try {
-        const response = await fetchPlatformStats()
-        if (response && typeof response === 'object') {
-          // 根据平台统计数据计算首页展示数据
-          const fraudCases = response.fraud_cases_yearly || []
-          const totalCases = fraudCases.reduce((sum, item) => sum + (item.reported_cases || 0), 0)
-          
-          stats.value = {
-            totalUsers: 15420, // 暂时使用固定值，后续可从用户统计API获取
-            totalQuestions: 2580, // 暂时使用固定值，后续可从测验API获取
-            totalKnowledge: response.fraud_type_distribution?.length || 5,
-            preventedCases: Math.max(totalCases * 0.1, 1005000) // 基于案例数据估算防范案例
-          }
-        } else {
-          throw new Error('API响应格式错误')
-        }
-      } catch (apiError) {
-        console.warn('API调用失败，使用默认数据:', apiError)
-        // 使用默认数据
-        stats.value = {
-          totalUsers: 15420,
-          totalQuestions: 2580,
-          totalKnowledge: 5,
-          preventedCases: 1005000
-        }
-      }
-    } else {
-      // 服务端渲染时使用默认数据
+    const response = await fetchPlatformStats()
+    if (response && typeof response === 'object') {
+      const fraudCases = response.fraud_cases_yearly || []
+      const totalCases = fraudCases.reduce((sum: number, item: any) => sum + (item.reported_cases || 0), 0)
       stats.value = {
         totalUsers: 15420,
         totalQuestions: 2580,
-        totalKnowledge: 5,
-        preventedCases: 1005000
+        totalKnowledge: response.fraud_type_distribution?.length || 5,
+        preventedCases: Math.max(totalCases * 0.1, 1005000)
       }
     }
   } catch (error) {
-    console.error('获取统计数据失败:', error)
-    // 使用默认数据
-    stats.value = {
-      totalUsers: 15420,
-      totalQuestions: 2580,
-      totalKnowledge: 5,
-      preventedCases: 1005000
-    }
-  } finally {
-    if (process.client) {
-      loading.value = false
-    }
+    console.warn('使用默认统计数据', error)
   }
 }
 
-// 组件挂载时初始化
 onMounted(async () => {
-  // 先设置默认统计数据
-  stats.value = {
-    totalUsers: 15420,
-    totalQuestions: 2580,
-    totalKnowledge: 5,
-    preventedCases: 1005000
-  }
-  loading.value = false
-  
-  // 在客户端初始化auth store
   if (process.client) {
-    await nextTick()
     try {
-      const { $pinia } = useNuxtApp()
-      if ($pinia) {
-        const { useAuthStore } = await import('~/stores/auth')
-        auth = useAuthStore()
-        auth.initialize()
-      }
+      const { useAuth } = await import('~/composables/useAuth')
+      const auth = useAuth()
+      isAuthenticated.value = auth.isAuthenticated.value
     } catch (error) {
-      console.warn('Failed to initialize auth store:', error)
+      console.warn('初始化认证状态失败', error)
     }
-    // 尝试获取实际统计数据
-    await fetchStats()
+
+    await loadStats()
   }
 })
 </script>
-
-<style scoped>
-/* 自定义样式 */
-.hero-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f0f9ff' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-}
-</style>

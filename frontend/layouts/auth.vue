@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 dark:from-dark-bg dark:to-dark-surface transition-colors duration-300">
+  <div class="min-h-screen bg-gradient-to-br from-background via-muted/40 to-muted transition-colors duration-300">
     <!-- 认证页面内容 -->
     <slot />
     
