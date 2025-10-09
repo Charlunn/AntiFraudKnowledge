@@ -1,11 +1,11 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-dark-bg dark:to-dark-surface">
+  <div class="min-h-screen bg-gradient-to-br from-primary/10 to-primary/20 dark:from-dark-bg dark:to-dark-surface">
     <div class="container mx-auto px-4 py-8">
       <!-- 返回按钮 -->
       <div class="mb-6">
         <button 
           @click="goBack"
-          class="flex items-center text-blue-500 hover:text-blue-600 transition-colors duration-200"
+          class="flex items-center text-primary hover:text-primary transition-colors duration-200"
         >
           <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -15,13 +15,13 @@
       </div>
 
       <!-- 页面标题和测试信息 -->
-      <div class="bg-white dark:bg-dark-surface rounded-xl shadow-lg p-6 mb-8">
+      <div class="bg-card dark:bg-card rounded-xl shadow-lg p-6 mb-8">
         <div class="flex items-center justify-between mb-4">
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-dark-text">
+          <h1 class="text-3xl font-bold text-foreground dark:text-foreground">
             测试记录详情
           </h1>
           <div class="flex items-center space-x-4">
-            <span class="text-sm text-gray-500 dark:text-dark-text-secondary">
+            <span class="text-sm text-muted-foreground dark:text-muted-foreground">
               会话ID: {{ sessionInfo.session_id || 'N/A' }}
             </span>
             <span class="px-3 py-1 rounded-full text-sm font-medium" :class="getScoreClass(sessionInfo.score)">
@@ -31,41 +31,41 @@
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div class="text-center p-4 bg-gray-50 dark:bg-dark-bg rounded-lg">
-            <div class="text-2xl font-bold text-blue-500">{{ chatHistory.length }}</div>
-            <div class="text-sm text-gray-600 dark:text-dark-text-secondary">消息总数</div>
+          <div class="text-center p-4 bg-muted/40 dark:bg-muted/40 rounded-lg">
+            <div class="text-2xl font-bold text-primary">{{ chatHistory.length }}</div>
+            <div class="text-sm text-muted-foreground dark:text-muted-foreground">消息总数</div>
           </div>
-          <div class="text-center p-4 bg-gray-50 dark:bg-dark-bg rounded-lg">
-            <div class="text-2xl font-bold text-green-500">{{ userMessageCount }}</div>
-            <div class="text-sm text-gray-600 dark:text-dark-text-secondary">用户消息</div>
+          <div class="text-center p-4 bg-muted/40 dark:bg-muted/40 rounded-lg">
+            <div class="text-2xl font-bold text-success-500">{{ userMessageCount }}</div>
+            <div class="text-sm text-muted-foreground dark:text-muted-foreground">用户消息</div>
           </div>
-          <div class="text-center p-4 bg-gray-50 dark:bg-dark-bg rounded-lg">
+          <div class="text-center p-4 bg-muted/40 dark:bg-muted/40 rounded-lg">
             <div class="text-2xl font-bold text-purple-500">{{ aiMessageCount }}</div>
-            <div class="text-sm text-gray-600 dark:text-dark-text-secondary">AI回复</div>
+            <div class="text-sm text-muted-foreground dark:text-muted-foreground">AI回复</div>
           </div>
         </div>
       </div>
 
       <!-- 对话报告 -->
-      <div class="bg-white dark:bg-dark-surface rounded-xl shadow-lg p-6">
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-dark-text mb-6">对话报告</h2>
+      <div class="bg-card dark:bg-card rounded-xl shadow-lg p-6">
+        <h2 class="text-2xl font-semibold text-foreground dark:text-foreground mb-6">对话报告</h2>
         
         <!-- 加载状态 -->
         <div v-if="loading" class="text-center py-8">
-          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-          <p class="text-gray-500 dark:text-dark-text-secondary mt-4">加载对话记录中...</p>
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p class="text-muted-foreground dark:text-muted-foreground mt-4">加载对话记录中...</p>
         </div>
 
         <!-- 错误状态 -->
         <div v-else-if="error" class="text-center py-8">
-          <svg class="w-16 h-16 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-16 h-16 text-destructive mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p class="text-red-500 mb-2">加载失败</p>
-          <p class="text-gray-500 dark:text-dark-text-secondary text-sm">{{ error }}</p>
+          <p class="text-destructive mb-2">加载失败</p>
+          <p class="text-muted-foreground dark:text-muted-foreground text-sm">{{ error }}</p>
           <button 
             @click="loadChatHistory"
-            class="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+            class="mt-4 px-4 py-2 bg-primary/100 text-white rounded-lg hover:bg-primary transition-colors duration-200"
           >
             重新加载
           </button>
@@ -73,17 +73,17 @@
 
         <!-- 空状态 -->
         <div v-else-if="chatHistory.length === 0" class="text-center py-8">
-          <svg class="w-16 h-16 text-gray-400 dark:text-dark-text-secondary mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-16 h-16 text-muted-foreground dark:text-muted-foreground mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
           </svg>
-          <p class="text-gray-500 dark:text-dark-text-secondary">暂无对话记录</p>
-          <p class="text-sm text-gray-400 dark:text-dark-text-secondary mt-2">开始一次新的AI对话吧！</p>
+          <p class="text-muted-foreground dark:text-muted-foreground">暂无对话记录</p>
+          <p class="text-sm text-muted-foreground dark:text-muted-foreground mt-2">开始一次新的AI对话吧！</p>
         </div>
 
         <!-- 对话报告内容 -->
         <div v-else class="space-y-6">
           <!-- 最终得分 -->
-          <div class="flex justify-between items-center p-4 bg-gray-50 dark:bg-dark-bg rounded-lg">
+          <div class="flex justify-between items-center p-4 bg-muted/40 dark:bg-muted/40 rounded-lg">
             <span class="font-semibold text-lg">最终得分:</span>
             <span class="text-3xl font-bold" :class="getScoreClass(testRecord?.final_score || sessionInfo.score)">
               {{ testRecord?.final_score || sessionInfo.score }}分
@@ -91,32 +91,32 @@
           </div>
           
           <!-- 表现评价 -->
-          <div class="p-4 bg-gray-50 dark:bg-dark-bg rounded-lg">
+          <div class="p-4 bg-muted/40 dark:bg-muted/40 rounded-lg">
             <h3 class="font-semibold mb-3 text-lg">表现评价:</h3>
-            <p class="text-gray-700 dark:text-dark-text-secondary leading-relaxed">
+            <p class="text-muted-foreground dark:text-muted-foreground leading-relaxed">
               {{ getPerformanceText(testRecord?.final_score || sessionInfo.score) }}
             </p>
           </div>
           
           <!-- AI建议 -->
-          <div class="p-4 bg-gray-50 dark:bg-dark-bg rounded-lg">
+          <div class="p-4 bg-muted/40 dark:bg-muted/40 rounded-lg">
             <h3 class="font-semibold mb-3 text-lg">防诈骗建议:</h3>
-            <div class="text-gray-700 dark:text-dark-text-secondary leading-relaxed whitespace-pre-line">
+            <div class="text-muted-foreground dark:text-muted-foreground leading-relaxed whitespace-pre-line">
               {{ testRecord?.report?.suggestions || getDefaultSuggestions() }}
             </div>
           </div>
           
           <!-- 测试统计 -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <h4 class="font-semibold text-blue-800 dark:text-blue-300 mb-2">对话轮次</h4>
-              <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <div class="p-4 bg-primary/10 dark:bg-primary/20 rounded-lg">
+              <h4 class="font-semibold text-primary dark:text-primary mb-2">对话轮次</h4>
+              <p class="text-2xl font-bold text-primary dark:text-primary">
                 {{ testRecord?.report?.conversation_rounds || Math.floor(chatHistory.length / 2) }}
               </p>
             </div>
-            <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-              <h4 class="font-semibold text-green-800 dark:text-green-300 mb-2">测试时长</h4>
-              <p class="text-2xl font-bold text-green-600 dark:text-green-400">
+            <div class="p-4 bg-primary/10 dark:bg-success-900/20 rounded-lg">
+              <h4 class="font-semibold text-success-700 dark:text-success-300 mb-2">测试时长</h4>
+              <p class="text-2xl font-bold text-primary dark:text-success-400">
                 {{ formatDuration(testRecord?.report?.duration) }}
               </p>
             </div>
@@ -127,7 +127,7 @@
         <div class="flex justify-center mt-6">
           <button 
             @click="continueChat"
-            class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors duration-200"
+            class="px-6 py-2 bg-primary/100 hover:bg-primary text-white rounded-lg transition-colors duration-200"
           >
             重新测试
           </button>
@@ -227,9 +227,9 @@ const goBack = () => {
 }
 
 const getScoreClass = (score) => {
-  if (score >= 80) return 'text-green-600 dark:text-green-400'
-  if (score >= 60) return 'text-yellow-600 dark:text-yellow-400'
-  return 'text-red-600 dark:text-red-400'
+  if (score >= 80) return 'text-primary dark:text-success-400'
+  if (score >= 60) return 'text-primary dark:text-primary'
+  return 'text-destructive dark:text-destructive'
 }
 
 const getPerformanceText = (score) => {
@@ -263,14 +263,14 @@ const formatDuration = (seconds) => {
 
 const getMessageClass = (role) => {
   return role === 'user' 
-    ? 'bg-blue-500 text-white'
-    : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
+    ? 'bg-primary/100 text-white'
+    : 'bg-muted/60 dark:bg-muted/40 text-foreground dark:text-foreground'
 }
 
 const getAvatarClass = (role) => {
   return role === 'user' 
-    ? 'bg-blue-500'
-    : 'bg-green-500'
+    ? 'bg-primary/100'
+    : 'bg-primary/100'
 }
 
 // 生命周期

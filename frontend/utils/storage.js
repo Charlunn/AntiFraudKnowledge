@@ -563,7 +563,6 @@ export const initStorageCleanup = () => {
     const sessionCleaned = sessionStorage.cleanup()
     
     if (process.env.NODE_ENV === 'development') {
-      console.log(`Storage cleanup completed: ${localCleaned + sessionCleaned} expired items removed`)
     }
   } catch (error) {
     console.error('Storage cleanup error:', error)

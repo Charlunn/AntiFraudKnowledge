@@ -25,7 +25,7 @@
     <div class="community-stats slideInUp">
       <div class="stat-card hover-lift fadeInUp delay-100">
         <div class="stat-icon">
-          <Icon name="heroicons:chat-bubble-left-right" class="w-6 h-6 text-blue-500" />
+          <Icon name="heroicons:chat-bubble-left-right" class="w-6 h-6 text-primary" />
         </div>
         <div class="stat-content">
           <div class="stat-value">{{ stats?.total_posts || 0 }}</div>
@@ -35,7 +35,7 @@
       
       <div class="stat-card hover-lift fadeInUp delay-200">
         <div class="stat-icon">
-          <Icon name="heroicons:users" class="w-6 h-6 text-green-500" />
+          <Icon name="heroicons:users" class="w-6 h-6 text-success-500" />
         </div>
         <div class="stat-content">
           <div class="stat-value">{{ stats?.active_users || 0 }}</div>
@@ -55,7 +55,7 @@
       
       <div class="stat-card">
         <div class="stat-icon">
-          <Icon name="heroicons:heart" class="w-6 h-6 text-red-500" />
+          <Icon name="heroicons:heart" class="w-6 h-6 text-destructive" />
         </div>
         <div class="stat-content">
           <div class="stat-value">{{ stats?.total_likes || 0 }}</div>
@@ -70,7 +70,7 @@
         <!-- 分类筛选 -->
         <div class="filter-group">
           <label class="filter-label">分类:</label>
-          <select v-model="filters.category" class="filter-select">
+          <select v-model="filterState.category" class="filter-select">
             <option value="">全部分类</option>
             <option v-for="category in categories" :key="category.value" :value="category.value">
               {{ category.label }}
@@ -81,7 +81,7 @@
         <!-- 排序方式 -->
         <div class="filter-group">
           <label class="filter-label">排序:</label>
-          <select v-model="filters.sort" class="filter-select">
+          <select v-model="filterState.sort" class="filter-select">
             <option value="latest">最新发布</option>
             <option value="hot">热门讨论</option>
             <option value="most_replies">回复最多</option>
@@ -92,7 +92,7 @@
         <!-- 时间筛选 -->
         <div class="filter-group">
           <label class="filter-label">时间:</label>
-          <select v-model="filters.timeRange" class="filter-select">
+          <select v-model="filterState.timeRange" class="filter-select">
             <option value="">全部时间</option>
             <option value="today">今天</option>
             <option value="week">本周</option>
@@ -134,7 +134,7 @@
           :key="tag?.name || tag"
           @click="filterByTag(tag.name)"
           class="tag-item"
-          :class="{ 'active': filters.tag === tag.name }"
+          :class="{ 'active': filterState.tag === tag.name }"
           v-if="tag && tag.name"
         >
           {{ tag.name }}
@@ -153,7 +153,7 @@
       
       <!-- 错误状态 -->
       <div v-else-if="error" class="error-state">
-        <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-red-500" />
+        <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-destructive" />
         <h3>加载失败</h3>
         <p>{{ error }}</p>
         <button @click="fetchPosts" class="btn btn-primary">重试</button>
@@ -161,7 +161,7 @@
       
       <!-- 空状态 -->
       <div v-else-if="filteredPosts.length === 0" class="empty-state">
-        <Icon name="heroicons:chat-bubble-left-ellipsis" class="w-16 h-16 text-gray-400" />
+        <Icon name="heroicons:chat-bubble-left-ellipsis" class="w-16 h-16 text-muted-foreground" />
         <h3>暂无帖子</h3>
         <p>{{ searchQuery ? '没有找到匹配的帖子' : '还没有人发布帖子，快来发布第一个吧！' }}</p>
         <button v-if="!searchQuery" @click="showCreatePost = true" class="btn btn-primary">
@@ -348,7 +348,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useCommunityApi } from '~/composables/useApi'
 import { useToast } from '~/composables/useNotification'
 import { formatDate } from '~/utils/formatters'
@@ -386,7 +386,7 @@ const showCreatePost = ref(false)
 const creating = ref(false)
 
 // 筛选条件
-const filters = ref({
+const filterState = reactive({
   category: '',
   sort: 'latest',
   timeRange: '',
@@ -515,13 +515,13 @@ const filteredPosts = computed(() => {
   let result = [...posts.value]
   
   // 分类筛选
-  if (filters.value.category) {
-    result = result.filter(post => post.category === filters.value.category)
+  if (filterState.category) {
+    result = result.filter(post => post.category === filterState.category)
   }
   
   // 标签筛选
-  if (filters.value.tag) {
-    result = result.filter(post => post.tags.includes(filters.value.tag))
+  if (filterState.tag) {
+    result = result.filter(post => post.tags.includes(filterState.tag))
   }
   
   // 搜索筛选
@@ -535,7 +535,7 @@ const filteredPosts = computed(() => {
   }
   
   // 排序
-  switch (filters.value.sort) {
+  switch (filterState.sort) {
     case 'hot':
       result.sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies))
       break
@@ -560,9 +560,9 @@ const fetchPosts = async () => {
   try {
     const params = {
       search: searchQuery.value,
-      category: filters.value.category,
-      sort: filters.value.sort,
-      tag: filters.value.tag,
+      category: filterState.category,
+      sort: filterState.sort,
+      tag: filterState.tag,
       page: currentPage.value,
       page_size: pageSize
     }
@@ -611,10 +611,10 @@ const clearSearch = () => {
 }
 
 const filterByTag = (tagName) => {
-  if (filters.value.tag === tagName) {
-    filters.value.tag = ''
+  if (filterState.tag === tagName) {
+    filterState.tag = ''
   } else {
-    filters.value.tag = tagName
+    filterState.tag = tagName
   }
   currentPage.value = 1
 }
@@ -706,7 +706,7 @@ const goToPage = (page) => {
 }
 
 // 监听筛选条件变化
-watch(filters, () => {
+watch(filterState, () => {
   currentPage.value = 1
 }, { deep: true })
 
@@ -718,11 +718,11 @@ onMounted(() => {
 
 <style scoped>
 .community-page {
-  @apply min-h-screen bg-gray-50 dark:bg-gray-900;
+  @apply min-h-screen bg-muted/40 dark:bg-background;
 }
 
 .page-header {
-  @apply bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700;
+  @apply bg-card dark:bg-card border-b border-border dark:border-border;
 }
 
 .header-content {
@@ -734,11 +734,11 @@ onMounted(() => {
 }
 
 .page-title {
-  @apply text-3xl font-bold text-gray-900 dark:text-white mb-2;
+  @apply text-3xl font-bold text-foreground dark:text-white mb-2;
 }
 
 .page-description {
-  @apply text-gray-600 dark:text-gray-400;
+  @apply text-muted-foreground dark:text-muted-foreground;
 }
 
 .header-actions {
@@ -750,7 +750,7 @@ onMounted(() => {
 }
 
 .stat-card {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700
+  @apply bg-card dark:bg-card rounded-lg p-6 shadow-sm border border-border dark:border-border
          flex items-center gap-4;
 }
 
@@ -763,15 +763,15 @@ onMounted(() => {
 }
 
 .stat-value {
-  @apply text-2xl font-bold text-gray-900 dark:text-white;
+  @apply text-2xl font-bold text-foreground dark:text-white;
 }
 
 .stat-label {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .filters-section {
-  @apply max-w-6xl mx-auto px-6 py-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700;
+  @apply max-w-6xl mx-auto px-6 py-6 bg-card dark:bg-card border-b border-border dark:border-border;
 }
 
 .filters-row {
@@ -783,13 +783,13 @@ onMounted(() => {
 }
 
 .filter-label {
-  @apply text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap;
+  @apply text-sm font-medium text-muted-foreground dark:text-muted-foreground whitespace-nowrap;
 }
 
 .filter-select {
-  @apply px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+  @apply px-3 py-2 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-primary;
 }
 
 .search-row {
@@ -801,25 +801,25 @@ onMounted(() => {
 }
 
 .search-icon {
-  @apply absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400;
+  @apply absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground;
 }
 
 .search-input {
-  @apply w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500
-         focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+  @apply w-full pl-10 pr-10 py-2 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white placeholder:text-muted-foreground
+         focus:ring-2 focus:ring-primary focus:border-primary;
 }
 
 .clear-search {
-  @apply absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600;
+  @apply absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-muted-foreground;
 }
 
 .tags-section {
-  @apply max-w-6xl mx-auto px-6 py-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700;
+  @apply max-w-6xl mx-auto px-6 py-4 bg-card dark:bg-card border-b border-border dark:border-border;
 }
 
 .section-title {
-  @apply flex items-center gap-2 text-lg font-semibold text-gray-900 dark:text-white mb-3;
+  @apply flex items-center gap-2 text-lg font-semibold text-foreground dark:text-white mb-3;
 }
 
 .tags-list {
@@ -827,14 +827,14 @@ onMounted(() => {
 }
 
 .tag-item {
-  @apply inline-flex items-center gap-1 px-3 py-1 bg-gray-100 dark:bg-gray-700
-         text-gray-700 dark:text-gray-300 rounded-full text-sm
-         hover:bg-primary-100 dark:hover:bg-primary-900 hover:text-primary-700 dark:hover:text-primary-300
+  @apply inline-flex items-center gap-1 px-3 py-1 bg-muted/60 dark:bg-muted/40
+         text-muted-foreground dark:text-muted-foreground rounded-full text-sm
+         hover:bg-primary/20 dark:hover:bg-primary/25 hover:text-primary dark:hover:text-primary/80
          transition-colors;
 }
 
 .tag-item.active {
-  @apply bg-primary-600 text-white;
+  @apply bg-primary text-white;
 }
 
 .tag-count {
@@ -852,7 +852,7 @@ onMounted(() => {
 }
 
 .loading-spinner {
-  @apply w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin mb-4;
+  @apply w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mb-4;
 }
 
 .posts-list {
@@ -860,8 +860,8 @@ onMounted(() => {
 }
 
 .post-card {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700
-         hover:shadow-md hover:border-primary-200 dark:hover:border-primary-700
+  @apply bg-card dark:bg-card rounded-lg p-6 shadow-sm border border-border dark:border-border
+         hover:shadow-md hover:border-primary/40 dark:hover:border-primary
          transition-all cursor-pointer;
 }
 
@@ -882,15 +882,15 @@ onMounted(() => {
 }
 
 .author-name {
-  @apply font-semibold text-gray-900 dark:text-white;
+  @apply font-semibold text-foreground dark:text-white;
 }
 
 .post-meta {
-  @apply flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400;
+  @apply flex items-center gap-3 text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .post-category {
-  @apply bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-xs;
+  @apply bg-muted/60 dark:bg-muted/40 px-2 py-1 rounded text-xs;
 }
 
 .post-actions {
@@ -898,12 +898,12 @@ onMounted(() => {
 }
 
 .action-btn {
-  @apply p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
-         hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors;
+  @apply p-2 rounded-lg text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground
+         hover:bg-muted/60 dark:hover:bg-muted/40 transition-colors;
 }
 
 .action-btn.liked {
-  @apply text-red-500;
+  @apply text-destructive;
 }
 
 .action-btn.bookmarked {
@@ -915,11 +915,11 @@ onMounted(() => {
 }
 
 .post-title {
-  @apply text-xl font-semibold text-gray-900 dark:text-white mb-2 hover:text-primary-600 dark:hover:text-primary-400;
+  @apply text-xl font-semibold text-foreground dark:text-white mb-2 hover:text-primary dark:hover:text-primary;
 }
 
 .post-excerpt {
-  @apply text-gray-600 dark:text-gray-400 leading-relaxed mb-3;
+  @apply text-muted-foreground dark:text-muted-foreground leading-relaxed mb-3;
 }
 
 .post-tags {
@@ -927,20 +927,20 @@ onMounted(() => {
 }
 
 .post-tag {
-  @apply text-xs bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300
+  @apply text-xs bg-primary/20 dark:bg-primary/30 text-primary dark:text-primary/80
          px-2 py-1 rounded;
 }
 
 .post-stats {
-  @apply flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700;
+  @apply flex items-center justify-between pt-4 border-t border-border dark:border-border;
 }
 
 .stat-item {
-  @apply flex items-center gap-1 text-sm text-gray-600 dark:text-gray-400;
+  @apply flex items-center gap-1 text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .last-reply {
-  @apply flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400;
+  @apply flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .last-reply-text {
@@ -956,17 +956,17 @@ onMounted(() => {
 }
 
 .pagination {
-  @apply flex items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700;
+  @apply flex items-center justify-between mt-8 pt-6 border-t border-border dark:border-border;
 }
 
 .pagination-btn {
   @apply flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg
-         border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300
-         hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed;
+         border border-border dark:border-border text-muted-foreground dark:text-muted-foreground
+         hover:bg-muted/40 dark:hover:bg-muted/40 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .pagination-info {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .modal-overlay {
@@ -974,20 +974,20 @@ onMounted(() => {
 }
 
 .modal-content {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto;
+  @apply bg-card dark:bg-card rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto;
 }
 
 .modal-header {
-  @apply flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700;
+  @apply flex items-center justify-between p-6 border-b border-border dark:border-border;
 }
 
 .modal-title {
-  @apply text-xl font-semibold text-gray-900 dark:text-white;
+  @apply text-xl font-semibold text-foreground dark:text-white;
 }
 
 .modal-close {
-  @apply p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300
-         hover:bg-gray-100 dark:hover:bg-gray-700;
+  @apply p-2 rounded-lg text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground
+         hover:bg-muted/60 dark:hover:bg-muted/40;
 }
 
 .modal-body {
@@ -999,29 +999,29 @@ onMounted(() => {
 }
 
 .form-label {
-  @apply block text-sm font-medium text-gray-700 dark:text-gray-300;
+  @apply block text-sm font-medium text-muted-foreground dark:text-muted-foreground;
 }
 
 .form-input,
 .form-select {
-  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+  @apply w-full px-3 py-2 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-primary;
 }
 
 .form-textarea {
-  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+  @apply w-full px-3 py-2 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-primary
          resize-y;
 }
 
 .form-help {
-  @apply text-xs text-gray-500 dark:text-gray-400;
+  @apply text-xs text-muted-foreground dark:text-muted-foreground;
 }
 
 .modal-actions {
-  @apply flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700;
+  @apply flex justify-end gap-3 pt-4 border-t border-border dark:border-border;
 }
 
 .btn {
@@ -1030,10 +1030,10 @@ onMounted(() => {
 }
 
 .btn-primary {
-  @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  @apply bg-primary text-white hover:bg-primary/90 focus:ring-primary;
 }
 
 .btn-secondary {
-  @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+  @apply bg-muted/80 text-white hover:bg-muted/40 focus:ring-primary;
 }
 </style>

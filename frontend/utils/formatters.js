@@ -442,7 +442,7 @@ export const formatColor = {
     const percentage = (score / total) * 100
     
     if (percentage >= 90) return 'text-green-600'
-    if (percentage >= 80) return 'text-blue-600'
+  if (percentage >= 80) return 'text-primary'
     if (percentage >= 70) return 'text-yellow-600'
     if (percentage >= 60) return 'text-orange-600'
     return 'text-red-600'
@@ -454,7 +454,7 @@ export const formatColor = {
       'success': 'text-green-600',
       'warning': 'text-yellow-600',
       'error': 'text-red-600',
-      'info': 'text-blue-600',
+      'info': 'text-primary',
       'pending': 'text-gray-600',
       'active': 'text-green-600',
       'inactive': 'text-gray-600'

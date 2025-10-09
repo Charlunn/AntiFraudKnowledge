@@ -8,7 +8,7 @@
     
     <!-- 错误状态 -->
     <div v-else-if="error" class="error-state">
-      <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-red-500" />
+      <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-destructive" />
       <h3>加载失败</h3>
       <p>{{ error }}</p>
       <button @click="fetchProfile" class="btn btn-primary">重试</button>
@@ -78,7 +78,7 @@
         <div class="stats-grid">
           <div class="stat-card">
             <div class="stat-icon">
-              <Icon name="heroicons:academic-cap" class="w-6 h-6 text-blue-500" />
+              <Icon name="heroicons:academic-cap" class="w-6 h-6 text-primary" />
             </div>
             <div class="stat-content">
               <div class="stat-value">{{ profile.stats.learning_hours }}</div>
@@ -98,7 +98,7 @@
           
           <div class="stat-card">
             <div class="stat-icon">
-              <Icon name="heroicons:chat-bubble-left-right" class="w-6 h-6 text-green-500" />
+              <Icon name="heroicons:chat-bubble-left-right" class="w-6 h-6 text-success-500" />
             </div>
             <div class="stat-content">
               <div class="stat-value">{{ profile.stats.posts }}</div>
@@ -108,7 +108,7 @@
           
           <div class="stat-card">
             <div class="stat-icon">
-              <Icon name="heroicons:heart" class="w-6 h-6 text-red-500" />
+              <Icon name="heroicons:heart" class="w-6 h-6 text-destructive" />
             </div>
             <div class="stat-content">
               <div class="stat-value">{{ profile.stats.likes_received }}</div>
@@ -210,9 +210,9 @@
             <!-- 学习统计图表 -->
             <div class="learning-chart">
               <div class="chart-placeholder">
-                <Icon name="heroicons:chart-bar" class="w-12 h-12 text-gray-400" />
-                <p class="text-gray-500">学习时长趋势图</p>
-                <p class="text-sm text-gray-400">（图表功能待实现）</p>
+                <Icon name="heroicons:chart-bar" class="w-12 h-12 text-muted-foreground" />
+                <p class="text-muted-foreground">学习时长趋势图</p>
+                <p class="text-sm text-muted-foreground">（图表功能待实现）</p>
               </div>
             </div>
             
@@ -268,8 +268,8 @@
             </div>
             
             <div v-if="userPosts.length === 0" class="empty-posts">
-              <Icon name="heroicons:document-text" class="w-12 h-12 text-gray-400" />
-              <p class="text-gray-500">还没有发布任何帖子</p>
+              <Icon name="heroicons:document-text" class="w-12 h-12 text-muted-foreground" />
+              <p class="text-muted-foreground">还没有发布任何帖子</p>
               <NuxtLink v-if="isOwnProfile" to="/community" class="btn btn-primary mt-4">
                 <Icon name="heroicons:plus" class="w-4 h-4" />
                 发布第一个帖子
@@ -972,7 +972,6 @@ const fetchTestRecordsData = async () => {
 // 查看测试记录详情
 const viewRecordDetails = (record) => {
   // 这里可以跳转到详情页面或打开模态框
-  console.log('查看测试记录详情:', record)
   // 可以实现跳转到详情页面
   // navigateTo(`/test-records/${record.id}`)
 }
@@ -1035,7 +1034,6 @@ const shareProfile = () => {
   const url = window.location.href
   navigator.clipboard.writeText(url).then(() => {
     // TODO: 显示成功提示
-    console.log('链接已复制到剪贴板')
   })
 }
 
@@ -1080,7 +1078,7 @@ onMounted(() => {
 
 <style scoped>
 .profile-page {
-  @apply min-h-screen bg-gray-50 dark:bg-gray-900;
+  @apply min-h-screen bg-muted/40 dark:bg-background;
 }
 
 .loading-state,
@@ -1089,7 +1087,7 @@ onMounted(() => {
 }
 
 .loading-spinner {
-  @apply w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin mb-4;
+  @apply w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mb-4;
 }
 
 .profile-content {
@@ -1101,7 +1099,7 @@ onMounted(() => {
 }
 
 .header-background {
-  @apply h-48 bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-800 dark:via-gray-700 dark:to-gray-600 rounded-b-2xl;
+  @apply h-48 bg-gradient-to-br from-muted/40 via-muted/50 to-muted/60 dark:from-muted/20 dark:via-muted/30 dark:to-muted/40 rounded-b-2xl;
   background-image: 
     radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
@@ -1137,8 +1135,8 @@ onMounted(() => {
 }
 
 .avatar-edit-btn {
-  @apply absolute bottom-2 right-2 w-8 h-8 bg-primary-600 text-white rounded-full
-         flex items-center justify-center hover:bg-primary-700 transition-all duration-200
+  @apply absolute bottom-2 right-2 w-8 h-8 bg-primary text-white rounded-full
+         flex items-center justify-center hover:bg-primary/90 transition-all duration-200
          shadow-lg;
   &:hover {
     transform: scale(1.05);
@@ -1151,19 +1149,19 @@ onMounted(() => {
 }
 
 .user-name {
-  @apply text-3xl font-bold text-gray-900 dark:text-white mb-2;
+  @apply text-3xl font-bold text-foreground dark:text-white mb-2;
 }
 
 .user-title {
-  @apply text-lg text-gray-600 dark:text-gray-400 mb-3;
+  @apply text-lg text-muted-foreground dark:text-muted-foreground mb-3;
 }
 
 .user-bio {
-  @apply text-gray-700 dark:text-gray-300 max-w-2xl leading-relaxed mb-4;
+  @apply text-muted-foreground dark:text-muted-foreground max-w-2xl leading-relaxed mb-4;
 }
 
 .user-meta {
-  @apply flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400;
+  @apply flex flex-wrap gap-4 text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .meta-item {
@@ -1183,7 +1181,7 @@ onMounted(() => {
 }
 
 .stat-card {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700;
+  @apply bg-card dark:bg-card rounded-lg p-6 shadow-sm border border-border dark:border-border;
 }
 
 .stat-icon {
@@ -1191,11 +1189,11 @@ onMounted(() => {
 }
 
 .stat-value {
-  @apply text-2xl font-bold text-gray-900 dark:text-white mb-1;
+  @apply text-2xl font-bold text-foreground dark:text-white mb-1;
 }
 
 .stat-label {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .main-content {
@@ -1203,21 +1201,21 @@ onMounted(() => {
 }
 
 .content-tabs {
-  @apply flex border-b border-gray-200 dark:border-gray-700 mb-8;
+  @apply flex border-b border-border dark:border-border mb-8;
 }
 
 .tab-btn {
-  @apply flex items-center gap-2 px-6 py-3 text-gray-600 dark:text-gray-400
-         hover:text-gray-900 dark:hover:text-white border-b-2 border-transparent
-         hover:border-gray-300 dark:hover:border-gray-600 transition-colors;
+  @apply flex items-center gap-2 px-6 py-3 text-muted-foreground dark:text-muted-foreground
+         hover:text-foreground dark:hover:text-white border-b-2 border-transparent
+         hover:border-border dark:hover:border-primary transition-colors;
 }
 
 .tab-btn.active {
-  @apply text-primary-600 dark:text-primary-400 border-primary-600 dark:border-primary-400;
+  @apply text-primary dark:text-primary border-primary dark:border-primary;
 }
 
 .tab-content {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8;
+  @apply bg-card dark:bg-card rounded-lg shadow-sm border border-border dark:border-border p-8;
 }
 
 .section-header {
@@ -1225,11 +1223,11 @@ onMounted(() => {
 }
 
 .section-title {
-  @apply text-2xl font-bold text-gray-900 dark:text-white;
+  @apply text-2xl font-bold text-foreground dark:text-white;
 }
 
 .subsection-title {
-  @apply text-lg font-semibold text-gray-900 dark:text-white mb-4;
+  @apply text-lg font-semibold text-foreground dark:text-white mb-4;
 }
 
 .achievement-progress {
@@ -1237,15 +1235,15 @@ onMounted(() => {
 }
 
 .progress-text {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .progress-bar {
-  @apply w-32 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden;
+  @apply w-32 h-2 bg-muted/60 dark:bg-muted/40 rounded-full overflow-hidden;
 }
 
 .progress-fill {
-  @apply h-full bg-primary-600 transition-all duration-300;
+  @apply h-full bg-primary transition-all duration-300;
 }
 
 .achievements-grid {
@@ -1253,12 +1251,12 @@ onMounted(() => {
 }
 
 .achievement-card {
-  @apply p-6 border border-gray-200 dark:border-gray-700 rounded-lg
+  @apply p-6 border border-border dark:border-border rounded-lg
          transition-all duration-200 hover:shadow-md;
 }
 
 .achievement-card.unlocked {
-  @apply bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800;
+  @apply bg-primary/10 dark:bg-success-900/20 border-green-200 dark:border-green-800;
 }
 
 .achievement-card.featured {
@@ -1267,15 +1265,15 @@ onMounted(() => {
 
 .achievement-icon {
   @apply relative w-16 h-16 mx-auto mb-4 flex items-center justify-center
-         bg-gray-100 dark:bg-gray-700 rounded-full;
+         bg-muted/60 dark:bg-muted/40 rounded-full;
 }
 
 .achievement-card.unlocked .achievement-icon {
-  @apply bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-400;
+  @apply bg-primary/20 dark:bg-success-800 text-primary dark:text-success-400;
 }
 
 .unlock-badge {
-  @apply absolute -top-1 -right-1 w-5 h-5 bg-green-500 text-white rounded-full
+  @apply absolute -top-1 -right-1 w-5 h-5 bg-primary/100 text-white rounded-full
          flex items-center justify-center;
 }
 
@@ -1284,15 +1282,15 @@ onMounted(() => {
 }
 
 .achievement-name {
-  @apply font-semibold text-gray-900 dark:text-white mb-2;
+  @apply font-semibold text-foreground dark:text-white mb-2;
 }
 
 .achievement-description {
-  @apply text-sm text-gray-600 dark:text-gray-400 mb-3;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground mb-3;
 }
 
 .achievement-date {
-  @apply flex items-center justify-center gap-1 text-xs text-green-600 dark:text-green-400;
+  @apply flex items-center justify-center gap-1 text-xs text-primary dark:text-success-400;
 }
 
 .achievement-progress-bar {
@@ -1300,19 +1298,19 @@ onMounted(() => {
 }
 
 .progress-info {
-  @apply flex items-center justify-center gap-1 text-sm text-gray-600 dark:text-gray-400;
+  @apply flex items-center justify-center gap-1 text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .progress-current {
-  @apply font-semibold text-primary-600 dark:text-primary-400;
+  @apply font-semibold text-primary dark:text-primary;
 }
 
 .progress-separator {
-  @apply text-gray-400;
+  @apply text-muted-foreground;
 }
 
 .progress-total {
-  @apply text-gray-500;
+  @apply text-muted-foreground;
 }
 
 .learning-chart {
@@ -1320,7 +1318,7 @@ onMounted(() => {
 }
 
 .chart-placeholder {
-  @apply h-64 bg-gray-50 dark:bg-gray-700 rounded-lg flex flex-col items-center justify-center;
+  @apply h-64 bg-muted/40 dark:bg-muted/40 rounded-lg flex flex-col items-center justify-center;
 }
 
 .learning-timeline {
@@ -1332,13 +1330,13 @@ onMounted(() => {
 }
 
 .timeline-marker {
-  @apply flex-shrink-0 w-10 h-10 bg-primary-100 dark:bg-primary-900
-         text-primary-600 dark:text-primary-400 rounded-full
+  @apply flex-shrink-0 w-10 h-10 bg-primary/20 dark:bg-primary/30
+         text-primary dark:text-primary rounded-full
          flex items-center justify-center;
 }
 
 .timeline-content {
-  @apply flex-1 pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0;
+  @apply flex-1 pb-6 border-b border-border dark:border-border last:border-b-0;
 }
 
 .activity-header {
@@ -1346,15 +1344,15 @@ onMounted(() => {
 }
 
 .activity-title {
-  @apply font-semibold text-gray-900 dark:text-white;
+  @apply font-semibold text-foreground dark:text-white;
 }
 
 .activity-time {
-  @apply text-sm text-gray-500 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .activity-description {
-  @apply text-gray-700 dark:text-gray-300 mb-3;
+  @apply text-muted-foreground dark:text-muted-foreground mb-3;
 }
 
 .activity-meta {
@@ -1362,21 +1360,21 @@ onMounted(() => {
 }
 
 .activity-type {
-  @apply px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded;
+  @apply px-2 py-1 bg-muted/60 dark:bg-muted/40 text-muted-foreground dark:text-muted-foreground rounded;
 }
 
 .activity-score {
-  @apply px-2 py-1 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded;
+  @apply px-2 py-1 bg-primary/20 dark:bg-success-900 text-success-700 dark:text-success-300 rounded;
 }
 
 .activity-duration {
-  @apply px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded;
+  @apply px-2 py-1 bg-primary/20 dark:bg-primary/30 text-primary dark:text-primary rounded;
 }
 
 .filter-select {
-  @apply px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+  @apply px-3 py-2 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-primary;
 }
 
 .empty-posts {
@@ -1388,7 +1386,7 @@ onMounted(() => {
 }
 
 .post-card {
-  @apply p-6 border border-gray-200 dark:border-gray-700 rounded-lg
+  @apply p-6 border border-border dark:border-border rounded-lg
          hover:shadow-md transition-shadow;
 }
 
@@ -1397,12 +1395,12 @@ onMounted(() => {
 }
 
 .post-category {
-  @apply flex items-center gap-2 px-2 py-1 bg-gray-100 dark:bg-gray-700
-         text-gray-700 dark:text-gray-300 rounded text-sm;
+  @apply flex items-center gap-2 px-2 py-1 bg-muted/60 dark:bg-muted/40
+         text-muted-foreground dark:text-muted-foreground rounded text-sm;
 }
 
 .post-date {
-  @apply text-sm text-gray-500 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .post-title {
@@ -1410,12 +1408,12 @@ onMounted(() => {
 }
 
 .post-link {
-  @apply text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400
+  @apply text-foreground dark:text-white hover:text-primary dark:hover:text-primary
          transition-colors;
 }
 
 .post-excerpt {
-  @apply text-gray-700 dark:text-gray-300 mb-4 line-clamp-3;
+  @apply text-muted-foreground dark:text-muted-foreground mb-4 line-clamp-3;
 }
 
 .post-tags {
@@ -1423,12 +1421,12 @@ onMounted(() => {
 }
 
 .post-tag {
-  @apply px-2 py-1 bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300
+  @apply px-2 py-1 bg-primary/20 dark:bg-primary/30 text-primary dark:text-primary/80
          rounded text-sm;
 }
 
 .post-stats {
-  @apply flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400;
+  @apply flex items-center gap-4 text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .stat-item {
@@ -1440,15 +1438,15 @@ onMounted(() => {
 }
 
 .settings-group {
-  @apply border border-gray-200 dark:border-gray-700 rounded-lg p-6;
+  @apply border border-border dark:border-border rounded-lg p-6;
 }
 
 .settings-group.danger-group {
-  @apply border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20;
+  @apply border-destructive/40 dark:border-red-800 bg-red-50 dark:bg-destructive/20;
 }
 
 .group-title {
-  @apply text-lg font-semibold text-gray-900 dark:text-white mb-4;
+  @apply text-lg font-semibold text-foreground dark:text-white mb-4;
 }
 
 .settings-items {
@@ -1456,7 +1454,7 @@ onMounted(() => {
 }
 
 .setting-item {
-  @apply flex items-center justify-between py-3 border-b border-gray-200 dark:border-gray-700
+  @apply flex items-center justify-between py-3 border-b border-border dark:border-border
          last:border-b-0;
 }
 
@@ -1465,20 +1463,20 @@ onMounted(() => {
 }
 
 .setting-name {
-  @apply font-medium text-gray-900 dark:text-white mb-1;
+  @apply font-medium text-foreground dark:text-white mb-1;
 }
 
 .setting-description {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .setting-action {
-  @apply px-4 py-2 text-sm font-medium text-primary-600 dark:text-primary-400
-         hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors;
+  @apply px-4 py-2 text-sm font-medium text-primary dark:text-primary
+         hover:bg-primary/10 dark:hover:bg-primary/20 rounded-lg transition-colors;
 }
 
 .setting-action.danger {
-  @apply text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20;
+  @apply text-destructive dark:text-destructive hover:bg-red-50 dark:hover:bg-destructive/20;
 }
 
 .setting-toggle {
@@ -1490,17 +1488,17 @@ onMounted(() => {
 }
 
 .toggle-label {
-  @apply block w-12 h-6 bg-gray-300 dark:bg-gray-600 rounded-full cursor-pointer
+  @apply block w-12 h-6 bg-muted/70 dark:bg-muted/20 rounded-full cursor-pointer
          transition-colors relative;
 }
 
 .toggle-label::after {
-  @apply content-[''] absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full
+  @apply content-[''] absolute top-0.5 left-0.5 w-5 h-5 bg-card rounded-full
          transition-transform;
 }
 
 .toggle-input:checked + .toggle-label {
-  @apply bg-primary-600;
+  @apply bg-primary;
 }
 
 .toggle-input:checked + .toggle-label::after {
@@ -1512,19 +1510,19 @@ onMounted(() => {
 }
 
 .modal-content {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto;
+  @apply bg-card dark:bg-card rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto;
 }
 
 .modal-header {
-  @apply flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700;
+  @apply flex items-center justify-between p-6 border-b border-border dark:border-border;
 }
 
 .modal-title {
-  @apply text-lg font-semibold text-gray-900 dark:text-white;
+  @apply text-lg font-semibold text-foreground dark:text-white;
 }
 
 .modal-close {
-  @apply p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors;
+  @apply p-2 text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground transition-colors;
 }
 
 .modal-body {
@@ -1536,19 +1534,19 @@ onMounted(() => {
 }
 
 .form-label {
-  @apply block text-sm font-medium text-gray-700 dark:text-gray-300;
+  @apply block text-sm font-medium text-muted-foreground dark:text-muted-foreground;
 }
 
 .form-input {
-  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+  @apply w-full px-3 py-2 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-primary;
 }
 
 .form-textarea {
-  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+  @apply w-full px-3 py-2 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-primary
          resize-y;
 }
 
@@ -1562,11 +1560,11 @@ onMounted(() => {
 }
 
 .btn-primary {
-  @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  @apply bg-primary text-white hover:bg-primary/90 focus:ring-primary;
 }
 
 .btn-secondary {
-  @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+  @apply bg-muted/80 text-white hover:bg-muted/40 focus:ring-primary;
 }
 
 /* 测试记录样式 */
@@ -1575,7 +1573,7 @@ onMounted(() => {
 }
 
 .stats-summary {
-  @apply flex gap-6 mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg;
+  @apply flex gap-6 mt-4 p-4 bg-muted/40 dark:bg-card rounded-lg;
 }
 
 .stat-item {
@@ -1583,11 +1581,11 @@ onMounted(() => {
 }
 
 .stat-label {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .stat-value {
-  @apply text-lg font-semibold text-gray-900 dark:text-white;
+  @apply text-lg font-semibold text-foreground dark:text-white;
 }
 
 .test-records-list {
@@ -1595,7 +1593,7 @@ onMounted(() => {
 }
 
 .test-record-card {
-  @apply bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow;
+  @apply bg-card dark:bg-card rounded-lg border border-border dark:border-border p-6 hover:shadow-md transition-shadow;
 }
 
 .record-header {
@@ -1607,15 +1605,15 @@ onMounted(() => {
 }
 
 .record-title {
-  @apply text-lg font-semibold text-gray-900 dark:text-white mb-2;
+  @apply text-lg font-semibold text-foreground dark:text-white mb-2;
 }
 
 .record-meta {
-  @apply flex gap-4 text-sm text-gray-600 dark:text-gray-400;
+  @apply flex gap-4 text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .difficulty {
-  @apply px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded;
+  @apply px-2 py-1 bg-primary/20 dark:bg-primary/30 text-primary dark:text-primary rounded;
 }
 
 .record-score {
@@ -1623,15 +1621,15 @@ onMounted(() => {
 }
 
 .score-excellent {
-  @apply text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30;
+  @apply text-success-700 dark:text-success-400 bg-primary/20 dark:bg-success-900/30;
 }
 
 .score-good {
-  @apply text-yellow-700 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30;
+  @apply text-yellow-700 dark:text-primary bg-primary/20 dark:bg-yellow-900/30;
 }
 
 .score-poor {
-  @apply text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/30;
+  @apply text-destructive dark:text-destructive bg-destructive/10 dark:bg-destructive/25;
 }
 
 .record-details {
@@ -1647,15 +1645,15 @@ onMounted(() => {
 }
 
 .detail-label {
-  @apply text-sm font-medium text-gray-600 dark:text-gray-400 mb-1;
+  @apply text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-1;
 }
 
 .detail-value {
-  @apply text-gray-900 dark:text-white;
+  @apply text-foreground dark:text-white;
 }
 
 .feedback-text {
-  @apply text-gray-700 dark:text-gray-300 text-sm leading-relaxed;
+  @apply text-muted-foreground dark:text-muted-foreground text-sm leading-relaxed;
 }
 
 .record-actions {
@@ -1667,7 +1665,7 @@ onMounted(() => {
 }
 
 .action-btn.secondary {
-  @apply bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600;
+  @apply bg-muted/60 dark:bg-muted/40 text-muted-foreground dark:text-muted-foreground hover:bg-muted/60 dark:hover:bg-muted/80;
 }
 
 .loading-state, .empty-state {
@@ -1675,7 +1673,7 @@ onMounted(() => {
 }
 
 .loading-spinner {
-  @apply w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mx-auto mb-4;
+  @apply w-8 h-8 border-4 border-primary/40 border-t-primary rounded-full animate-spin mx-auto mb-4;
 }
 
 .empty-icon {
@@ -1683,6 +1681,6 @@ onMounted(() => {
 }
 
 .cta-button {
-  @apply inline-flex items-center px-6 py-3 bg-primary-600 text-white font-medium rounded-lg hover:bg-primary-700 transition-colors;
+  @apply inline-flex items-center px-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 transition-colors;
 }
 </style>

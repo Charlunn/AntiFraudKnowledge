@@ -46,8 +46,8 @@ class ApiClient {
       } catch (error) {
         console.warn('Failed to get token from cookie:', error)
       }
-      
-      // 如果cookie中没有token，从localStorage获取
+
+      // 如果cookie中没有token，再从localStorage中读取
       if (!token && window.localStorage) {
         const storageKey = 'antifraud_user_token'
         const storedData = window.localStorage.getItem(storageKey)
@@ -69,7 +69,7 @@ class ApiClient {
         }
       }
     }
-    
+
     return token ? { 'Authorization': `Bearer ${token}` } : {}
   }
 
@@ -94,15 +94,6 @@ class ApiClient {
     }
 
     // 添加调试日志（仅在开发环境）
-    if (process.env.NODE_ENV === 'development') {
-      console.log('API Request:', {
-        url,
-        method: config.method,
-        headers: Object.keys(headers),
-        bodyLength: config.body ? config.body.length : 0
-      })
-    }
-
     try {
       const controller = new AbortController()
       const timeoutId = setTimeout(() => controller.abort(), this.timeout)
@@ -382,55 +373,55 @@ export const quizApi = {
 // 社区相关API
 export const communityApi = {
   // 获取帖子列表
-  getPosts: (params) => apiClient.get('/api/community/posts/', params),
+  getPosts: (params) => apiClient.get('/community/posts/', params),
   
   // 获取帖子详情
-  getPostDetails: (postId) => apiClient.get(`/api/community/posts/${postId}/`),
+  getPostDetails: (postId) => apiClient.get(`/community/posts/${postId}/`),
   
   // 创建帖子
-  createPost: (postData) => apiClient.post('/api/community/posts/', postData),
+  createPost: (postData) => apiClient.post('/community/posts/', postData),
   
   // 更新帖子
-  updatePost: (postId, postData) => apiClient.put(`/api/community/posts/${postId}/`, postData),
+  updatePost: (postId, postData) => apiClient.put(`/community/posts/${postId}/`, postData),
   
   // 删除帖子
-  deletePost: (postId) => apiClient.delete(`/api/community/posts/${postId}/`),
+  deletePost: (postId) => apiClient.delete(`/community/posts/${postId}/`),
   
   // 点赞帖子
-  likePost: (postId) => apiClient.post(`/api/community/posts/${postId}/like/`),
+  likePost: (postId) => apiClient.post(`/community/posts/${postId}/like/`),
   
   // 取消点赞
-  unlikePost: (postId) => apiClient.delete(`/api/community/posts/${postId}/like/`),
+  unlikePost: (postId) => apiClient.delete(`/community/posts/${postId}/like/`),
   
   // 收藏帖子
-  bookmarkPost: (postId) => apiClient.post(`/api/community/posts/${postId}/bookmark/`),
+  bookmarkPost: (postId) => apiClient.post(`/community/posts/${postId}/bookmark/`),
   
   // 取消收藏
-  unbookmarkPost: (postId) => apiClient.delete(`/api/community/posts/${postId}/bookmark/`),
+  unbookmarkPost: (postId) => apiClient.delete(`/community/posts/${postId}/bookmark/`),
   
   // 获取评论列表
-  getComments: (postId, params) => apiClient.get(`/api/community/posts/${postId}/comments/`, params),
+  getComments: (postId, params) => apiClient.get(`/community/posts/${postId}/comments/`, params),
   
   // 创建评论
-  createComment: (postId, commentData) => apiClient.post(`/api/community/posts/${postId}/comments/`, commentData),
+  createComment: (postId, commentData) => apiClient.post(`/community/posts/${postId}/comments/`, commentData),
   
   // 更新评论
-  updateComment: (commentId, commentData) => apiClient.put(`/api/community/comments/${commentId}/`, commentData),
+  updateComment: (commentId, commentData) => apiClient.put(`/community/comments/${commentId}/`, commentData),
   
   // 删除评论
-  deleteComment: (commentId) => apiClient.delete(`/api/community/comments/${commentId}/`),
+  deleteComment: (commentId) => apiClient.delete(`/community/comments/${commentId}/`),
   
   // 点赞评论
-  likeComment: (commentId) => apiClient.post(`/api/community/comments/${commentId}/like/`),
+  likeComment: (commentId) => apiClient.post(`/community/comments/${commentId}/like/`),
   
   // 取消点赞评论
-  unlikeComment: (commentId) => apiClient.delete(`/api/community/comments/${commentId}/like/`),
+  unlikeComment: (commentId) => apiClient.delete(`/community/comments/${commentId}/like/`),
   
   // 获取热门标签
-  getPopularTags: () => apiClient.get('/api/community/tags/popular/'),
+  getPopularTags: () => apiClient.get('/community/tags/popular/'),
   
   // 获取社区统计
-  getCommunityStats: () => apiClient.get('/api/community/stats/')
+  getCommunityStats: () => apiClient.get('/community/stats/')
 }
 
 // 仪表板相关API
@@ -448,7 +439,7 @@ export const dashboardApi = {
   getRecommendations: (type) => apiClient.get('/dashboard/recommendations', { type }),
   
   // 获取系统通知
-  getNotifications: (params) => apiClient.get('/notifications/notifications/', { params }),
+  getNotifications: (params) => apiClient.get('/notifications/notifications/', params),
   
   // 标记通知为已读
   markNotificationRead: (notificationId) => apiClient.patch(`/notifications/notifications/${notificationId}/`, { is_read: true }),

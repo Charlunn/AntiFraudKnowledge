@@ -24,7 +24,6 @@ import type {
  *   content: '详细描述问题...',
  *   rating: 3
  * });
- * console.log('反馈提交成功:', result.data);
  * ```
  */
 export async function submitFeedback(
@@ -74,7 +73,6 @@ export async function submitFeedback(
  * @example
  * ```typescript
  * const myFeedback = await fetchUserFeedback();
- * console.log('我的反馈:', myFeedback.data);
  * ```
  */
 export async function fetchUserFeedback(
@@ -102,7 +100,6 @@ export async function fetchUserFeedback(
  * @example
  * ```typescript
  * const feedback = await fetchFeedbackDetail(123);
- * console.log('反馈详情:', feedback.data);
  * ```
  */
 export async function fetchFeedbackDetail(
@@ -125,7 +122,6 @@ export async function fetchFeedbackDetail(
  * @example
  * ```typescript
  * await updateFeedbackStatus(123, 'resolved', '问题已修复');
- * console.log('反馈状态更新成功');
  * ```
  */
 // 注意：后端没有提供更新反馈状态的API
@@ -138,7 +134,6 @@ export async function fetchFeedbackDetail(
  * @example
  * ```typescript
  * const stats = await fetchFeedbackStats();
- * console.log('反馈统计:', stats.data);
  * ```
  */
 export async function fetchFeedbackStats(): Promise<ApiResponse<{
@@ -158,7 +153,6 @@ export async function fetchFeedbackStats(): Promise<ApiResponse<{
  * @example
  * ```typescript
  * const types = await fetchFeedbackTypes();
- * console.log('反馈类型:', types.data);
  * ```
  */
 // 注意：后端没有提供反馈类型列表API
@@ -172,7 +166,6 @@ export async function fetchFeedbackStats(): Promise<ApiResponse<{
  * @example
  * ```typescript
  * await deleteFeedback(123);
- * console.log('反馈删除成功');
  * ```
  */
 // 注意：后端只有管理员可以删除反馈，路径为 /feedback/admin/{id}/

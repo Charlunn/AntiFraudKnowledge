@@ -16,7 +16,6 @@ import type {
  * @example
  * ```typescript
  * const stats = await fetchPlatformStats();
- * console.log('平台统计:', stats.data);
  * ```
  */
 export async function fetchPlatformStats(): Promise<ApiResponse<{
@@ -36,7 +35,6 @@ export async function fetchPlatformStats(): Promise<ApiResponse<{
  * @example
  * ```typescript
  * const userStats = await fetchUserStats();
- * console.log('用户统计:', userStats.data);
  * ```
  */
 export async function fetchUserStats(): Promise<ApiResponse<{

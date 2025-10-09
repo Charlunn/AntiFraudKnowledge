@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { DropdownMenuContent, type DropdownMenuContentEmits, type DropdownMenuContentProps } from 'radix-vue'
+import { mergeProps, useAttrs } from 'vue'
+import { DropdownMenuContent, type DropdownMenuContentProps } from 'radix-vue'
 import { cn } from '~/lib/utils'
 
 const props = withDefaults(defineProps<DropdownMenuContentProps & { class?: string }>(), {
@@ -7,13 +8,12 @@ const props = withDefaults(defineProps<DropdownMenuContentProps & { class?: stri
   sideOffset: 8
 })
 
-const emits = defineEmits<DropdownMenuContentEmits>()
+const attrs = useAttrs()
 </script>
 
 <template>
   <DropdownMenuContent
-    v-bind="props"
-    v-on="emits"
+    v-bind="mergeProps(props, attrs)"
     :class="cn('z-50 min-w-[12rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md focus:outline-none', props.class)"
   >
     <slot />

@@ -81,7 +81,6 @@ export async function fetchCommunityPosts(
  * @example
  * ```typescript
  * const post = await fetchPostDetail(123);
- * console.log('帖子详情:', post.data);
  * ```
  */
 export async function fetchPostDetail(
@@ -107,7 +106,6 @@ export async function fetchPostDetail(
  *   category: 'case-study',
  *   tags: ['反欺诈', '案例分析']
  * });
- * console.log('帖子创建成功:', newPost.data);
  * ```
  */
 export async function createPost(
@@ -169,7 +167,6 @@ export async function updatePost(
  * @example
  * ```typescript
  * await deletePost(123);
- * console.log('帖子删除成功');
  * ```
  */
 export async function deletePost(
@@ -190,7 +187,6 @@ export async function deletePost(
  * @example
  * ```typescript
  * const result = await togglePostLike(123);
- * console.log('点赞状态:', result.data.liked);
  * ```
  */
 export async function togglePostLike(
@@ -213,7 +209,6 @@ export async function togglePostLike(
  * @example
  * ```typescript
  * const comments = await fetchPostComments(123);
- * console.log('评论列表:', comments.data);
  * ```
  */
 export async function fetchPostComments(
@@ -287,7 +282,6 @@ export async function createComment(
  * @example
  * ```typescript
  * const updatedComment = await updateComment(456, '更新后的评论内容');
- * console.log('评论更新成功:', updatedComment.data);
  * ```
  */
 export async function updateComment(
@@ -315,7 +309,6 @@ export async function updateComment(
  * @example
  * ```typescript
  * await deleteComment(456);
- * console.log('评论删除成功');
  * ```
  */
 export async function deleteComment(
@@ -336,7 +329,6 @@ export async function deleteComment(
  * @example
  * ```typescript
  * const result = await toggleCommentLike(456);
- * console.log('点赞状态:', result.data.liked);
  * ```
  */
 export async function toggleCommentLike(
@@ -360,7 +352,6 @@ export async function toggleCommentLike(
  * @example
  * ```typescript
  * const results = await searchPosts('反欺诈技巧');
- * console.log('搜索结果:', results.data);
  * ```
  */
 export async function searchPosts(
@@ -399,7 +390,6 @@ export async function searchPosts(
  * @example
  * ```typescript
  * const categories = await fetchCommunityCategories();
- * console.log('社区分类:', categories.data);
  * ```
  */
 export async function fetchCommunityCategories(): Promise<ApiResponse<Array<{

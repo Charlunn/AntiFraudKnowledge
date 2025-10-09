@@ -1,5 +1,5 @@
 <template>
-  <div class="tooltip-container relative inline-block" @mouseenter="show" @mouseleave="hide">
+  <div ref="triggerRef" class="tooltip-container relative inline-block" @mouseenter="show" @mouseleave="hide">
     <!-- 触发元素 -->
     <slot></slot>
     
@@ -30,7 +30,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 interface Props {
   content?: string
   placement?: 'top' | 'bottom' | 'left' | 'right' | 'top-start' | 'top-end' | 'bottom-start' | 'bottom-end' | 'left-start' | 'left-end' | 'right-start' | 'right-end'
@@ -64,10 +64,10 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<Emits>()
 
 const visible = ref(false)
-const tooltipRef = ref(null)
-const triggerRef = ref(null)
-const showTimer = ref(null)
-const hideTimer = ref(null)
+const tooltipRef = ref<HTMLElement | null>(null)
+const triggerRef = ref<HTMLElement | null>(null)
+const showTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+const hideTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 
 // 计算样式类
 const sizeClass = computed(() => {
@@ -82,7 +82,7 @@ const sizeClass = computed(() => {
 const themeClass = computed(() => {
   const themeMap = {
     dark: 'bg-gray-900 text-white',
-    light: 'bg-white text-gray-900 border border-gray-200 shadow-lg'
+    light: 'bg-card text-foreground border border-border shadow-lg'
   }
   return themeMap[props.theme]
 })

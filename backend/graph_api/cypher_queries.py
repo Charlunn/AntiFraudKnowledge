@@ -407,13 +407,66 @@ LIMIT $limit
 FILTER_GRAPH_CYPHER = """
 MATCH (n)-[r]-(m)
 WHERE
-  ($node_labels IS NULL OR size($node_labels) = 0 OR any(label IN labels(n) WHERE label IN $node_labels))
-  AND ($relationship_types IS NULL OR size($relationship_types) = 0 OR type(r) IN $relationship_types)
-  AND (
-        $search IS NULL OR $search = '' OR
-        toLower(coalesce(n.name, '')) CONTAINS toLower($search) OR
-        toLower(coalesce(m.name, '')) CONTAINS toLower($search)
-      )
+    ($node_labels IS NULL OR size($node_labels) = 0 OR any(label IN labels(n) WHERE label IN $node_labels))
+    AND ($relationship_types IS NULL OR size($relationship_types) = 0 OR type(r) IN $relationship_types)
+    AND (
+          $search IS NULL OR $search = '' OR
+          toLower(coalesce(n.name, '')) CONTAINS toLower($search) OR
+          toLower(coalesce(m.name, '')) CONTAINS toLower($search)
+        )
 RETURN n, r, m
 LIMIT $limit
+"""
+
+TOP_DEGREE_NODES_CYPHER = """
+MATCH (n)
+WITH n, size((n)--()) AS degree
+WHERE degree > 0
+ORDER BY degree DESC
+SKIP $skip
+LIMIT $limit
+RETURN n, degree
+"""
+
+NODE_LABEL_USAGE_CYPHER = """
+MATCH (n)
+UNWIND labels(n) AS label
+RETURN label, count(*) AS count
+ORDER BY count DESC
+LIMIT $limit
+"""
+
+RELATIONSHIP_USAGE_CYPHER = """
+MATCH ()-[r]-()
+RETURN type(r) AS type, count(*) AS count
+ORDER BY count DESC
+LIMIT $limit
+"""
+
+UNIVERSAL_SEARCH_CYPHER = """
+CALL {
+  MATCH (n)
+  WHERE any(val IN keys(n) WHERE toLower(toString(n[val])) CONTAINS toLower($query))
+  RETURN 'node' AS kind,
+         elementId(n) AS id,
+         labels(n) AS labels,
+         properties(n) AS properties,
+         size((n)--()) AS degree
+  ORDER BY degree DESC
+  LIMIT $node_limit
+}
+UNION ALL
+CALL {
+  MATCH (a)-[r]-(b)
+  WHERE any(key IN keys(r) WHERE toLower(toString(r[key])) CONTAINS toLower($query))
+        OR toLower(type(r)) CONTAINS toLower($query)
+  RETURN 'relationship' AS kind,
+         elementId(r) AS id,
+         type(r) AS type,
+         properties(r) AS properties,
+         elementId(a) AS source,
+         elementId(b) AS target
+  LIMIT $relationship_limit
+}
+RETURN kind, id, labels, type, properties, source, target, degree
 """

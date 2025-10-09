@@ -1,0 +1,329 @@
+{
+  "pageTitle": "反诈知识图谱",
+  "pageSubtitle": "三步洞察诈骗链路 · 快速识别高风险节点",
+  "appBar": {
+    "searchPlaceholder": "输入查询或按 / 呼出指令面板",
+    "advanced": "高级功能",
+    "timeRange": "时间窗口",
+    "locale": "语言",
+    "help": "帮助",
+    "readAloud": "朗读"
+  },
+  "controls": {
+    "collapseSidebar": "收起侧栏",
+    "expandSidebar": "展开侧栏"
+  },
+  "sidebar": {
+    "scenario": "场景",
+    "filters": "筛选",
+    "trending": "高发",
+    "pitfalls": "误区",
+    "insight": "洞察"
+  },
+  "timeRanges": {
+    "24h": "近 24 小时",
+    "7d": "近 7 天",
+    "30d": "近 30 天",
+    "custom": "自定义"
+  },
+  "sceneWizard": {
+    "title": "场景向导",
+    "subtitle": "三步快速定位风险场景",
+    "next": "下一步",
+    "prev": "上一步",
+    "submit": "生成图谱",
+    "reset": "重选场景",
+    "steps": {
+      "who": "谁被骗？",
+      "ask": "他们遇到什么？",
+      "where": "在哪触发？"
+    },
+    "options": {
+      "senior": {
+        "label": "中老年群体",
+        "description": "55 岁以上、退休或空巢"
+      },
+      "youth": {
+        "label": "大学毕业生",
+        "description": "求职、兼职、贷款"
+      },
+      "pro": {
+        "label": "自由职业者",
+        "description": "创作者、咨询师、设计师"
+      },
+      "investment": {
+        "label": "虚假投资",
+        "description": "荐股、虚拟币、AI 理财"
+      },
+      "impersonation": {
+        "label": "冒充公检法",
+        "description": "安全账户、洗钱调查"
+      },
+      "romance": {
+        "label": "感情交友",
+        "description": "杀猪盘、网恋借钱"
+      },
+      "shortVideo": {
+        "label": "短视频私信",
+        "description": "直播间、粉丝群"
+      },
+      "telecom": {
+        "label": "电话短信",
+        "description": "虚拟号、伪基站"
+      },
+      "socialApp": {
+        "label": "交友社交",
+        "description": "陌生人加好友"
+      }
+    }
+  },
+  "quickFilters": {
+    "title": "快速筛选",
+    "type": "诈骗类型",
+    "channel": "触达渠道",
+    "role": "涉众角色",
+    "confidence": "可信度",
+    "apply": "应用筛选",
+    "clear": "清除",
+    "chips": {
+      "investment": "投资理财",
+      "telecom": "电信网络",
+      "romance": "情感交友",
+      "official": "冒充公检法",
+      "sms": "短信/电话",
+      "social": "社交平台",
+      "app": "APP 下载",
+      "victim": "受害人",
+      "accomplice": "帮凶/车手",
+      "organization": "诈骗团伙"
+    }
+  },
+  "trending": {
+    "title": "最近高发",
+    "delta": "环比",
+    "items": {
+      "ai-avatar": {
+        "title": "AI 换脸荐股日增 36%",
+        "description": "短视频平台出现冒充财经主播的换脸直播，诱导用户加入外部群聊。"
+      },
+      "cross-border": {
+        "title": "境外话务井喷 1.8x",
+        "description": "近期柬埔寨线路密集指向华东、华中号码段，呼叫量环比激增。"
+      }
+    }
+  },
+  "pitfalls": {
+    "title": "常见误区",
+    "cta": "牢记这三步",
+    "items": {
+      "quick-profit": {
+        "title": "高收益 = 高风险",
+        "guidance": [
+          "先验证资质",
+          "拒绝下载陌生 APP",
+          "核查监管红名单"
+        ]
+      },
+      "official-number": {
+        "title": "“官方号码”也可能是陷阱",
+        "guidance": [
+          "拨打 110 回拨核实",
+          "关注是否索要银行卡",
+          "谨慎透露验证码"
+        ]
+      }
+    }
+  },
+  "graphStage": {
+    "toolbar": {
+      "zoomIn": "放大",
+      "zoomOut": "缩小",
+      "boxSelect": "框选",
+      "play": "播放时间线",
+      "pause": "暂停播放",
+      "reset": "重置视图",
+      "layout": {
+        "label": "布局",
+        "force": "力引导",
+        "hierarchy": "层级",
+        "timeline": "时间线"
+      },
+      "showMore": "展开更多"
+    },
+    "empty": {
+      "title": "还没有加载图谱",
+      "steps": ["选择或搜索一个场景", "应用筛选条件", "点击生成图谱"]
+    },
+    "error": {
+      "title": "加载失败",
+      "retry": "重试"
+    },
+    "loading": {
+      "title": "图谱加载中",
+      "tip": "正在为你计算关键节点与关系"
+    }
+  },
+  "riskBar": {
+    "title": "当前风险等级",
+    "cta": "三步防范",
+    "steps": ["核实身份", "延时转账", "拨打反诈专线 96110"]
+  },
+  "scenario": {
+    "baseline": {
+      "title": "高发：中老年投资荐股骗局",
+      "summary": "虚拟运营商短信配合 AI 语音冒充投资顾问，诱导下载虚假 APP 并集中转账。"
+    },
+    "base": {
+      "senior-investment": {
+        "title": "中老年虚假投资",
+        "summary": "以养老理财与补贴承诺套取积蓄，诱导多次转账。"
+      },
+      "senior-impersonation": {
+        "title": "中老年冒充公检法",
+        "summary": "假冒公检法恐吓涉案，诱导将资金转入“安全账户”。"
+      },
+      "senior-romance": {
+        "title": "中老年情感诈骗",
+        "summary": "以陪伴关怀建立信任，先小额试探再持续索要钱款。"
+      },
+      "youth-investment": {
+        "title": "青年虚假投资",
+        "summary": "打着“低门槛理财”旗号吸引首次投资，承诺短期翻倍收益。"
+      },
+      "youth-impersonation": {
+        "title": "青年冒充公检法",
+        "summary": "伪造警务文件威胁涉案，逼迫配合资金“审查”。"
+      },
+      "youth-romance": {
+        "title": "青年情感诈骗",
+        "summary": "结合求职或合作借口，逐步发展成情感与资金双重诈骗。"
+      },
+      "pro-investment": {
+        "title": "自由职业者投资陷阱",
+        "summary": "包装“内部项目”和高端资源，诱导自由职业者追加投入。"
+      },
+      "pro-impersonation": {
+        "title": "自由职业者冒充调查",
+        "summary": "冒充执法机构调查涉税或洗钱风险，索取保证金。"
+      },
+      "pro-romance": {
+        "title": "自由职业者情感诈骗",
+        "summary": "以合作计划与情感关系双重绑定，要求支付高额保证金。"
+      }
+    },
+    "channel": {
+      "telecom": "通过虚拟号和改号设备持续拨打。",
+      "shortVideo": "在短视频直播与私信中导流至私域操作。",
+      "socialApp": "利用社交应用多次加好友、推送链接。"
+    }
+  },
+  "rightPanel": {
+    "title": "智能洞察",
+    "tabs": {
+      "overview": "概览",
+      "aiExplain": "AI 解析",
+      "evidence": "证据"
+    },
+    "empty": "选择图谱中的节点或连线以查看详情",
+    "actions": {
+      "save": "收藏",
+      "share": "分享",
+      "help": "帮助链接"
+    },
+    "redaction": "脱敏等级"
+  },
+  "advancedDrawer": {
+    "title": "高级功能",
+    "filters": "高级筛选",
+    "analysis": "网络分析",
+    "analysisHint": "选择算法快速评估网络特征",
+    "subgraph": "子图提取",
+    "timeline": "时间切片与对比",
+    "importExport": "导入导出",
+    "redaction": "脱敏等级",
+    "nodes": "节点类型",
+    "edges": "连边类型",
+    "regions": "区域",
+    "sources": "数据来源",
+    "start": "开始日期",
+    "end": "结束日期",
+    "redactionWeak": "信息脱敏：轻度（展示关键实体、隐藏敏感字段）",
+    "redactionMedium": "信息脱敏：中度（模糊个人身份与联系方式）",
+    "redactionStrong": "信息脱敏：重度（仅展示公共安全提示）",
+    "apply": "一键应用",
+    "export": "导出",
+    "run": "运行分析"
+  },
+  "bottomBar": {
+    "feedback": "反馈/举报",
+    "privacy": "隐私说明",
+    "updatedAt": "数据更新于"
+  },
+  "aiExplain": {
+    "whyCommon": "为何常见",
+    "howSpot": "如何识别",
+    "whatNow": "下一步行动",
+    "bullets": {
+      "whyCommon": [
+        "跨境话务外包配合 AI 语音，全天候批量拨打。",
+        "短信、视频、私聊多渠道叠加，构建信任链路。",
+        "聚焦养老理财焦虑，承诺“低风险高收益”。"
+      ],
+      "howSpot": [
+        "警惕“国资背景”“央媒合作”等无法核验表述。",
+        "凡要求转账至个人账户或线下汇款，一律提高警惕。",
+        "留意 AI 生成语音/视频的嘴型、眨眼等不自然细节。"
+      ],
+      "whatNow": [
+        "在“国家反诈中心” APP 内标记可疑号码。",
+        "立即冻结银行/支付账户，联系银行申请止付。",
+        "整理聊天记录与转账凭证，向警方报案。"
+      ]
+    }
+  },
+  "evidence": {
+    "report-1": {
+      "title": "银行风控：异常连号转入",
+      "description": "同一时段内 12 笔 5 万元上下转入同一账户，符合既往诈骗模式。"
+    },
+    "report-2": {
+      "title": "AI 语音转写分析",
+      "description": "语音中出现“公安部专案组”关键字 18 次，疑似照读话术脚本。"
+    },
+    "report-3": {
+      "title": "受害者报案摘要",
+      "description": "受害者 3 小时内被迫完成三次跨行转账，累计损失 28 万元。"
+    }
+  },
+  "badges": {
+    "official": "官方",
+    "media": "媒体",
+    "report": "举报",
+    "multiSource": "多源",
+    "modelInfer": "模型推断"
+  },
+  "sources": {
+    "antiFraudBureau": "国家反诈中心",
+    "psbShanghai": "上海市公安局",
+    "cityHotline": "市民热线",
+    "newsAggregator": "媒体巡检",
+    "modelInfer": "模型推断",
+    "bankingMonitor": "银行风控数据",
+    "telecomAudit": "通信监管巡检",
+    "publicReports": "公众举报",
+    "nationalAntiFraudCenter": "国家反诈中心"
+  },
+  "states": {
+    "loading": "加载中",
+    "error": "出现错误",
+    "retry": "重试",
+    "enabled": "已启用",
+    "disabled": "未启用",
+    "close": "关闭"
+  },
+  "share": {
+    "title": "分享当前图谱",
+    "h5": "H5 页面",
+    "png": "PNG 快照"
+  }
+}

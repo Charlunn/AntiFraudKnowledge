@@ -397,7 +397,6 @@ export const useMessageQueue = () => {
         if (typeof item.message === 'function') {
           await item.message()
         } else {
-          console.log('Processing message:', item.message)
         }
       } catch (error) {
         console.error('Message processing error:', error)

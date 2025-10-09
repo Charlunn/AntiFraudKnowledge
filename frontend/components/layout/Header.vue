@@ -2,11 +2,8 @@
   <header class="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
     <div class="container-grid flex h-16 items-center justify-between gap-4">
       <div class="flex items-center gap-3">
-        <NuxtLink to="/" class="flex items-center gap-2 text-foreground transition-colors hover:text-primary">
-          <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <ShieldCheck class="h-5 w-5" />
-          </div>
-          <span class="hidden text-lg font-semibold sm:inline">澄源</span>
+        <NuxtLink to="/" class="text-lg font-semibold text-foreground transition-colors hover:text-primary">
+          澄源
         </NuxtLink>
 
         <nav class="hidden items-center gap-1 lg:flex">
@@ -258,14 +255,18 @@ const handleMobileNavigate = async (href: string) => {
 }
 
 const toggleDarkMode = (value?: boolean) => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return
+
   const target = typeof value === 'boolean' ? value : !isDark.value
   isDark.value = target
-  if (target) {
-    document.documentElement.classList.add('dark')
-    localStorage.setItem('theme', 'dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-    localStorage.setItem('theme', 'light')
+
+  const root = window.document.documentElement
+  root.classList.toggle('dark', target)
+
+  try {
+    window.localStorage.setItem('theme', target ? 'dark' : 'light')
+  } catch (error) {
+    console.warn('Failed to persist theme preference', error)
   }
 }
 
@@ -321,9 +322,23 @@ onMounted(async () => {
     )
   }
 
-  const storedTheme = localStorage.getItem('theme')
-  if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    toggleDarkMode(true)
+  if (typeof window !== 'undefined') {
+    const mediaQuery = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-color-scheme: dark)') : null
+    const prefersDark = mediaQuery ? mediaQuery.matches : false
+
+    try {
+      const storedTheme = window.localStorage.getItem('theme')
+      if (storedTheme === 'dark') {
+        toggleDarkMode(true)
+      } else if (storedTheme === 'light') {
+        toggleDarkMode(false)
+      } else {
+        toggleDarkMode(prefersDark)
+      }
+    } catch (error) {
+      console.warn('Failed to read theme preference', error)
+      toggleDarkMode(prefersDark)
+    }
   }
 })
 </script>

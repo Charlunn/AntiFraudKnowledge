@@ -114,7 +114,6 @@ export async function refreshToken(refreshData: { refresh: string }): Promise<Ap
  * @example
  * ```typescript
  * const profile = await fetchProfile();
- * console.log('用户资料', profile.data);
  * ```
  */
 export async function fetchProfile(): Promise<ApiResponse<User>> {
@@ -133,7 +132,6 @@ export async function fetchProfile(): Promise<ApiResponse<User>> {
  *   username: 'newusername',
  *   email: 'newemail@example.com'
  * });
- * console.log('更新后的用户资料', updatedProfile.data);
  * ```
  */
 export async function updateProfile(data: Partial<User>): Promise<ApiResponse<User>> {
@@ -152,7 +150,6 @@ export async function updateProfile(data: Partial<User>): Promise<ApiResponse<Us
  * 
  * @example
  * changePassword({ current_password: 'oldpass', new_password: 'newpass' })
- *   .then(() => console.log('密码修改成功'))
  *   .catch(error => console.error('密码修改失败', error));
  */
 export async function changePassword(data: {current_password: string, new_password: string}): Promise<ApiResponse<void>> {
@@ -179,7 +176,6 @@ export async function changePassword(data: {current_password: string, new_passwo
  * deleteAccount()
  *   .then(() => {
  *     useAuthStore().clear();
- *     console.log('账号删除成功');
  *   })
  *   .catch(error => console.error('账号删除失败', error));
  */
@@ -195,7 +191,6 @@ export async function deleteAccount(): Promise<ApiResponse<void>> {
  * 
  * @example
  * bindEmail('user@example.com', '123456')
- *   .then(() => console.log('邮箱绑定成功'))
  *   .catch(error => console.error('邮箱绑定失败', error));
  */
 export async function bindEmail(email: string, code: string): Promise<ApiResponse<void>> {
@@ -213,7 +208,6 @@ export async function bindEmail(email: string, code: string): Promise<ApiRespons
  * 
  * @example
  * bindPhone('13800138000', '123456')
- *   .then(() => console.log('手机号绑定成功'))
  *   .catch(error => console.error('手机号绑定失败', error));
  */
 export async function bindPhone(phone_number: string, code: string): Promise<ApiResponse<void>> {
@@ -229,7 +223,6 @@ export async function bindPhone(phone_number: string, code: string): Promise<Api
  * 
  * @example
  * unbindEmail()
- *   .then(() => console.log('邮箱解绑成功'))
  *   .catch(error => console.error('邮箱解绑失败', error));
  */
 export async function unbindEmail(): Promise<ApiResponse<void>> {
@@ -242,7 +235,6 @@ export async function unbindEmail(): Promise<ApiResponse<void>> {
  * 
  * @example
  * unbindPhone()
- *   .then(() => console.log('手机号解绑成功'))
  *   .catch(error => console.error('手机号解绑失败', error));
  */
 export async function unbindPhone(): Promise<ApiResponse<void>> {
@@ -255,7 +247,6 @@ export async function unbindPhone(): Promise<ApiResponse<void>> {
  * 
  * @example
  * getSettings()
- *   .then(settings => console.log('用户设置', settings.data))
  *   .catch(error => console.error('获取设置失败', error));
  */
 export async function getSettings(): Promise<ApiResponse<{language: string, theme: string}>> {
@@ -271,7 +262,6 @@ export async function getSettings(): Promise<ApiResponse<{language: string, them
  * 
  * @example
  * updateSettings({ language: 'zh-CN', theme: 'dark' })
- *   .then(settings => console.log('设置更新成功', settings.data))
  *   .catch(error => console.error('设置更新失败', error));
  */
 export async function updateSettings(data: {language?: string, theme?: string}): Promise<ApiResponse<{language: string, theme: string}>> {

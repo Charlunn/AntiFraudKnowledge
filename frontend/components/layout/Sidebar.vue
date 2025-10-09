@@ -1,24 +1,24 @@
 <template>
   <aside 
-    class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-dark-surface border-r border-neutral-200 dark:border-dark-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 slideInLeft"
+    class="fixed inset-y-0 left-0 z-50 w-64 bg-card dark:bg-card border-r border-border dark:border-border transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 slideInLeft"
     :class="{
       'translate-x-0': isOpen,
       '-translate-x-full': !isOpen
     }"
   >
     <!-- 侧边栏头部 -->
-    <div class="flex items-center justify-between h-16 px-4 border-b border-neutral-200 dark:border-dark-border fadeInDown">
+    <div class="flex items-center justify-between h-16 px-4 border-b border-border dark:border-border fadeInDown">
       <div class="flex items-center space-x-2">
-        <div class="w-8 h-8 bg-primary-500 rounded-lg flex items-center justify-center hover-lift">
+        <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center hover-lift">
           <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
           </svg>
         </div>
-        <span class="text-lg font-semibold text-neutral-500 dark:text-dark-text">管理后台</span>
+        <span class="text-lg font-semibold text-muted-foreground dark:text-foreground">管理后台</span>
       </div>
       <button 
         @click="$emit('close')"
-        class="lg:hidden p-2 text-neutral-400 hover:text-neutral-500 dark:text-dark-text-secondary dark:hover:text-dark-text transition-colors duration-200"
+        class="lg:hidden p-2 text-muted-foreground hover:text-muted-foreground dark:text-muted-foreground dark:hover:text-dark-text transition-colors duration-200"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -30,7 +30,7 @@
     <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto fadeInUp">
       <!-- 主要功能 -->
       <div class="mb-6">
-        <h3 class="px-3 text-xs font-semibold text-neutral-400 dark:text-dark-text-secondary uppercase tracking-wider mb-3 fadeInLeft">
+        <h3 class="px-3 text-xs font-semibold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider mb-3 fadeInLeft">
           主要功能
         </h3>
         <ul class="space-y-1">
@@ -39,8 +39,8 @@
               :to="item.href"
               class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 hover-lift"
               :class="{
-                'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': isActiveRoute(item.href),
-                'text-neutral-500 dark:text-dark-text hover:bg-neutral-50 dark:hover:bg-dark-bg hover:text-primary-600 dark:hover:text-primary-400': !isActiveRoute(item.href)
+                'bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary': isActiveRoute(item.href),
+                'text-muted-foreground dark:text-foreground hover:bg-muted/40 dark:hover:bg-muted/30 hover:text-primary dark:hover:text-primary': !isActiveRoute(item.href)
               }"
               @click="handleMenuClick"
             >
@@ -48,8 +48,8 @@
                 :is="item.icon" 
                 class="mr-3 h-5 w-5 transition-colors duration-200"
                 :class="{
-                  'text-primary-500 dark:text-primary-400': isActiveRoute(item.href),
-                  'text-neutral-400 dark:text-dark-text-secondary group-hover:text-primary-500 dark:group-hover:text-primary-400': !isActiveRoute(item.href)
+                  'text-primary dark:text-primary': isActiveRoute(item.href),
+                  'text-muted-foreground dark:text-muted-foreground group-hover:text-primary dark:group-hover:text-primary': !isActiveRoute(item.href)
                 }"
               />
               {{ item.name }}
@@ -67,7 +67,7 @@
 
       <!-- 管理功能 -->
       <div class="mb-6">
-        <h3 class="px-3 text-xs font-semibold text-neutral-400 dark:text-dark-text-secondary uppercase tracking-wider mb-3">
+        <h3 class="px-3 text-xs font-semibold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider mb-3">
           管理功能
         </h3>
         <ul class="space-y-1">
@@ -76,8 +76,8 @@
               :to="item.href"
               class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200"
               :class="{
-                'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': isActiveRoute(item.href),
-                'text-neutral-500 dark:text-dark-text hover:bg-neutral-50 dark:hover:bg-dark-bg hover:text-primary-600 dark:hover:text-primary-400': !isActiveRoute(item.href)
+                'bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary': isActiveRoute(item.href),
+                'text-muted-foreground dark:text-foreground hover:bg-muted/40 dark:hover:bg-muted/30 hover:text-primary dark:hover:text-primary': !isActiveRoute(item.href)
               }"
               @click="handleMenuClick"
             >
@@ -85,8 +85,8 @@
                 :is="item.icon" 
                 class="mr-3 h-5 w-5 transition-colors duration-200"
                 :class="{
-                  'text-primary-500 dark:text-primary-400': isActiveRoute(item.href),
-                  'text-neutral-400 dark:text-dark-text-secondary group-hover:text-primary-500 dark:group-hover:text-primary-400': !isActiveRoute(item.href)
+                  'text-primary dark:text-primary': isActiveRoute(item.href),
+                  'text-muted-foreground dark:text-muted-foreground group-hover:text-primary dark:group-hover:text-primary': !isActiveRoute(item.href)
                 }"
               />
               {{ item.name }}
@@ -104,7 +104,7 @@
 
       <!-- 系统设置 -->
       <div>
-        <h3 class="px-3 text-xs font-semibold text-neutral-400 dark:text-dark-text-secondary uppercase tracking-wider mb-3">
+        <h3 class="px-3 text-xs font-semibold text-muted-foreground dark:text-muted-foreground uppercase tracking-wider mb-3">
           系统设置
         </h3>
         <ul class="space-y-1">
@@ -113,8 +113,8 @@
               :to="item.href"
               class="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200"
               :class="{
-                'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400': isActiveRoute(item.href),
-                'text-neutral-500 dark:text-dark-text hover:bg-neutral-50 dark:hover:bg-dark-bg hover:text-primary-600 dark:hover:text-primary-400': !isActiveRoute(item.href)
+                'bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary': isActiveRoute(item.href),
+                'text-muted-foreground dark:text-foreground hover:bg-muted/40 dark:hover:bg-muted/30 hover:text-primary dark:hover:text-primary': !isActiveRoute(item.href)
               }"
               @click="handleMenuClick"
             >
@@ -122,8 +122,8 @@
                 :is="item.icon" 
                 class="mr-3 h-5 w-5 transition-colors duration-200"
                 :class="{
-                  'text-primary-500 dark:text-primary-400': isActiveRoute(item.href),
-                  'text-neutral-400 dark:text-dark-text-secondary group-hover:text-primary-500 dark:group-hover:text-primary-400': !isActiveRoute(item.href)
+                  'text-primary dark:text-primary': isActiveRoute(item.href),
+                  'text-muted-foreground dark:text-muted-foreground group-hover:text-primary dark:group-hover:text-primary': !isActiveRoute(item.href)
                 }"
               />
               {{ item.name }}
@@ -134,7 +134,7 @@
     </nav>
 
     <!-- 侧边栏底部 -->
-    <div class="p-4 border-t border-neutral-200 dark:border-dark-border">
+    <div class="p-4 border-t border-border dark:border-border">
       <!-- 用户信息 -->
       <div class="flex items-center space-x-3 mb-4">
         <img 
@@ -143,10 +143,10 @@
           class="w-10 h-10 rounded-full object-cover"
         >
         <div class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-neutral-500 dark:text-dark-text truncate">
+          <p class="text-sm font-medium text-muted-foreground dark:text-foreground truncate">
             {{ user?.name || '管理员' }}
           </p>
-          <p class="text-xs text-neutral-400 dark:text-dark-text-secondary truncate">
+          <p class="text-xs text-muted-foreground dark:text-muted-foreground truncate">
             {{ user?.role || '系统管理员' }}
           </p>
         </div>
@@ -156,7 +156,7 @@
       <div class="flex space-x-2">
         <button 
           @click="toggleTheme"
-          class="flex-1 flex items-center justify-center px-3 py-2 text-xs font-medium text-neutral-500 dark:text-dark-text bg-neutral-100 dark:bg-dark-bg hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-colors duration-200"
+          class="flex-1 flex items-center justify-center px-3 py-2 text-xs font-medium text-muted-foreground dark:text-foreground bg-neutral-100 dark:bg-muted/40 hover:bg-muted/60 dark:hover:bg-neutral-700 rounded-lg transition-colors duration-200"
           :title="isDark ? '切换到浅色模式' : '切换到深色模式'"
         >
           <svg v-if="!isDark" class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -235,7 +235,7 @@ const mainMenuItems = [
     href: '/admin/quiz',
     icon: 'AcademicCapIcon',
     badge: '12',
-    badgeClass: 'bg-primary-100 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400'
+    badgeClass: 'bg-primary/20 text-primary dark:bg-primary/20 dark:text-primary'
   },
   {
     name: '社区管理',
@@ -309,13 +309,18 @@ const handleMenuClick = () => {
 }
 
 const toggleTheme = () => {
-  isDark.value = !isDark.value
-  if (isDark.value) {
-    document.documentElement.classList.add('dark')
-    window.localStorage.setItem('theme', 'dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-    window.localStorage.setItem('theme', 'light')
+  if (typeof window === 'undefined' || typeof document === 'undefined') return
+
+  const target = !isDark.value
+  isDark.value = target
+
+  const root = window.document.documentElement
+  root.classList.toggle('dark', target)
+
+  try {
+    window.localStorage.setItem('theme', target ? 'dark' : 'light')
+  } catch (error) {
+    console.warn('Failed to persist theme preference', error)
   }
 }
 
@@ -335,10 +340,30 @@ const handleResize = () => {
 // 生命周期
 onMounted(() => {
   // 初始化主题
-  const savedTheme = window.localStorage.getItem('theme')
-  if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-    isDark.value = true
-    document.documentElement.classList.add('dark')
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    const root = document.documentElement
+    const mediaQuery = typeof window.matchMedia === 'function' ? window.matchMedia('(prefers-color-scheme: dark)') : null
+    const prefersDark = mediaQuery ? mediaQuery.matches : false
+
+    try {
+      const savedTheme = window.localStorage.getItem('theme')
+      if (savedTheme === 'dark') {
+        isDark.value = true
+        root.classList.add('dark')
+      } else if (savedTheme === 'light') {
+        isDark.value = false
+        root.classList.remove('dark')
+      } else if (prefersDark) {
+        isDark.value = true
+        root.classList.add('dark')
+      }
+    } catch (error) {
+      console.warn('Failed to read theme preference', error)
+      if (prefersDark) {
+        isDark.value = true
+        root.classList.add('dark')
+      }
+    }
   }
   
   // 初始化响应式

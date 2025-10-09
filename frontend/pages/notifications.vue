@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen bg-neutral-50 dark:bg-dark-bg">
+  <div class="min-h-screen bg-muted/40 dark:bg-muted/40">
     <div class="container mx-auto px-4 py-8">
       <!-- 页面标题 -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-neutral-900 dark:text-dark-text mb-2">
+        <h1 class="text-3xl font-bold text-foreground dark:text-foreground mb-2">
           通知中心
         </h1>
-        <p class="text-neutral-600 dark:text-dark-text-secondary">
+        <p class="text-muted-foreground dark:text-muted-foreground">
           查看系统通知、学习提醒和社区消息
         </p>
       </div>
@@ -17,7 +17,7 @@
           <button
             @click="markAllAsRead"
             :disabled="unreadCount === 0"
-            class="px-4 py-2 text-sm bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            class="px-4 py-2 text-sm bg-primary text-white rounded-lg hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             全部标记为已读
           </button>
@@ -30,7 +30,7 @@
           </button>
         </div>
         
-        <div class="flex items-center space-x-2 text-sm text-neutral-600 dark:text-dark-text-secondary">
+        <div class="flex items-center space-x-2 text-sm text-muted-foreground dark:text-muted-foreground">
           <span>未读: {{ unreadCount }}</span>
           <span>|</span>
           <span>总计: {{ notifications.length }}</span>
@@ -46,8 +46,8 @@
             @click="activeFilter = filter.key"
             class="px-3 py-1 text-sm rounded-full border transition-colors duration-200"
             :class="activeFilter === filter.key 
-              ? 'bg-primary-500 text-white border-primary-500' 
-              : 'bg-white dark:bg-dark-surface text-neutral-700 dark:text-dark-text border-neutral-300 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-dark-bg'"
+              ? 'bg-primary text-white border-primary' 
+              : 'bg-card dark:bg-card text-muted-foreground dark:text-foreground border-border dark:border-border hover:bg-muted/40 dark:hover:bg-muted/30'"
           >
             {{ filter.label }}
             <span v-if="filter.count > 0" class="ml-1 text-xs">({{ filter.count }})</span>
@@ -60,9 +60,9 @@
         <div
           v-for="notification in filteredNotifications"
           :key="notification.id"
-          class="bg-white dark:bg-dark-surface rounded-lg shadow-sm border border-neutral-200 dark:border-dark-border overflow-hidden transition-all duration-200 hover:shadow-md"
+          class="bg-card dark:bg-card rounded-lg shadow-sm border border-border dark:border-border overflow-hidden transition-all duration-200 hover:shadow-md"
           :class="{
-            'border-l-4 border-l-primary-500': !notification.read,
+            'border-l-4 border-l-primary': !notification.read,
             'opacity-75': notification.read
           }"
         >
@@ -90,19 +90,19 @@
                       :class="getNotificationTypeClass(notification.type)">
                       {{ getNotificationTypeLabel(notification.type) }}
                     </span>
-                    <span v-if="!notification.read" class="w-2 h-2 bg-primary-500 rounded-full"></span>
+                    <span v-if="!notification.read" class="w-2 h-2 bg-primary rounded-full"></span>
                   </div>
                   
-                  <h3 class="text-sm font-medium text-neutral-900 dark:text-dark-text mb-1">
+                  <h3 class="text-sm font-medium text-foreground dark:text-foreground mb-1">
                     {{ notification.title }}
                   </h3>
                   
-                  <p class="text-sm text-neutral-600 dark:text-dark-text-secondary mb-2">
+                  <p class="text-sm text-muted-foreground dark:text-muted-foreground mb-2">
                     {{ notification.message }}
                   </p>
                   
                   <div class="flex items-center justify-between">
-                    <span class="text-xs text-neutral-500 dark:text-dark-text-secondary">
+                    <span class="text-xs text-muted-foreground dark:text-muted-foreground">
                       {{ formatTime(notification.createdAt) }}
                     </span>
                     
@@ -110,7 +110,7 @@
                       <button
                         v-if="notification.actionUrl"
                         @click="handleNotificationAction(notification)"
-                        class="text-xs text-primary-500 hover:text-primary-600 font-medium"
+                        class="text-xs text-primary hover:text-primary font-medium"
                       >
                         查看详情
                       </button>
@@ -118,14 +118,14 @@
                       <button
                         v-if="!notification.read"
                         @click="markAsRead(notification.id)"
-                        class="text-xs text-neutral-500 hover:text-neutral-700 dark:text-dark-text-secondary dark:hover:text-dark-text"
+                        class="text-xs text-muted-foreground hover:text-muted-foreground dark:text-muted-foreground dark:hover:text-dark-text"
                       >
                         标记已读
                       </button>
                       
                       <button
                         @click="deleteNotification(notification.id)"
-                        class="text-xs text-red-500 hover:text-red-600"
+                        class="text-xs text-destructive hover:text-destructive"
                       >
                         删除
                       </button>
@@ -140,13 +140,13 @@
 
       <!-- 空状态 -->
       <div v-else class="text-center py-12">
-        <svg class="mx-auto h-12 w-12 text-neutral-400 dark:text-dark-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="mx-auto h-12 w-12 text-muted-foreground dark:text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM11 19H6a2 2 0 01-2-2V7a2 2 0 012-2h5m5 0v5a2 2 0 002 2h5M9 7h6m-6 4h6m-6 4h4" />
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-neutral-900 dark:text-dark-text">
+        <h3 class="mt-2 text-sm font-medium text-foreground dark:text-foreground">
           {{ activeFilter === 'all' ? '暂无通知' : '暂无此类型通知' }}
         </h3>
-        <p class="mt-1 text-sm text-neutral-500 dark:text-dark-text-secondary">
+        <p class="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">
           {{ activeFilter === 'all' ? '您目前没有任何通知消息' : '请尝试查看其他类型的通知' }}
         </p>
       </div>
@@ -208,25 +208,32 @@ const unreadCount = computed(() => {
 
 // 方法
 const loadNotifications = async () => {
+  loading.value = true
   try {
-    loading.value = true
     const response = await dashboardApi.getNotifications({
       ordering: '-created_at'
     })
-    
-    // 转换后端数据格式为前端期望的格式
-    notifications.value = response.data.results.map(notification => ({
+
+    const payload = response?.data ?? response
+    const rawList = Array.isArray(payload?.results)
+      ? payload.results
+      : Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+          ? payload.data
+          : []
+
+    notifications.value = rawList.map((notification) => ({
       id: notification.id,
       type: notification.type,
       title: notification.title,
       message: notification.message,
       read: notification.is_read,
-      createdAt: new Date(notification.created_at),
+      createdAt: notification?.created_at ? new Date(notification.created_at) : new Date(),
       actionUrl: notification.action_url
     }))
   } catch (error) {
-    console.error('加载通知失败:', error)
-    // 如果API调用失败，显示空列表
+    console.error('Failed to load notifications:', error)
     notifications.value = []
   } finally {
     loading.value = false
@@ -291,22 +298,22 @@ const handleNotificationAction = async (notification) => {
 
 const getNotificationIconClass = (type) => {
   const classes = {
-    system: 'bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400',
-    achievement: 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400',
-    reminder: 'bg-green-100 text-green-600 dark:bg-green-900/20 dark:text-green-400',
-    social: 'bg-purple-100 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400'
+    system: 'bg-primary/20 text-primary dark:bg-primary/20 dark:text-primary',
+    achievement: 'bg-primary/20 text-primary dark:bg-yellow-900/20 dark:text-primary',
+    reminder: 'bg-primary/20 text-primary dark:bg-success-900/20 dark:text-success-400',
+    social: 'bg-purple-100 text-primary dark:bg-purple-900/20 dark:text-purple-400'
   }
-  return classes[type] || 'bg-gray-100 text-gray-600 dark:bg-gray-900/20 dark:text-gray-400'
+  return classes[type] || 'bg-muted/60 text-muted-foreground dark:bg-background/20 dark:text-muted-foreground'
 }
 
 const getNotificationTypeClass = (type) => {
   const classes = {
-    system: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-    achievement: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-    reminder: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+    system: 'bg-primary/20 text-primary dark:bg-primary/20 dark:text-primary',
+    achievement: 'bg-primary/20 text-yellow-800 dark:bg-yellow-900/20 dark:text-primary',
+    reminder: 'bg-primary/20 text-success-700 dark:bg-success-900/20 dark:text-success-400',
     social: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400'
   }
-  return classes[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+  return classes[type] || 'bg-muted/60 text-foreground dark:bg-background/20 dark:text-muted-foreground'
 }
 
 const getNotificationTypeLabel = (type) => {

@@ -1,52 +1,52 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-dark-bg dark:to-dark-surface">
+  <div class="min-h-screen bg-gradient-to-br from-primary/10 to-primary/20 dark:from-dark-bg dark:to-dark-surface">
     <div class="container mx-auto px-4 py-8">
       <!-- 页面标题 -->
       <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-dark-text mb-4">
+        <h1 class="text-3xl font-bold text-foreground dark:text-foreground mb-4">
           AI 智能问答
         </h1>
-        <p class="text-lg text-gray-600 dark:text-dark-text-secondary">
+        <p class="text-lg text-muted-foreground dark:text-muted-foreground">
           与AI助手对话，获取个性化的反欺诈知识解答
         </p>
       </div>
 
       <!-- 聊天界面 -->
       <div class="max-w-4xl mx-auto">
-        <div class="bg-white dark:bg-dark-surface rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-card dark:bg-card rounded-xl shadow-lg overflow-hidden">
           <!-- 聊天消息区域 -->
           <div class="h-96 overflow-y-auto p-6 space-y-4" ref="chatContainer">
             <div v-for="message in messages" :key="message.id" class="flex" :class="message.sender === 'user' ? 'justify-end' : 'justify-start'">
-              <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg" :class="message.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-dark-bg text-gray-900 dark:text-dark-text'">
+              <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg" :class="message.sender === 'user' ? 'bg-primary/100 text-white' : 'bg-muted/60 dark:bg-muted/40 text-foreground dark:text-foreground'">
                 {{ message.content }}
               </div>
             </div>
             <div v-if="isTyping" class="flex justify-start">
-              <div class="bg-gray-200 dark:bg-dark-bg px-4 py-2 rounded-lg">
+              <div class="bg-muted/60 dark:bg-muted/40 px-4 py-2 rounded-lg">
                 <div class="flex space-x-1">
-                  <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                  <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                  <div class="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                  <div class="w-2 h-2 bg-muted/400 rounded-full animate-bounce"></div>
+                  <div class="w-2 h-2 bg-muted/400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                  <div class="w-2 h-2 bg-muted/400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
                 </div>
               </div>
             </div>
           </div>
 
           <!-- 输入区域 -->
-          <div class="border-t border-gray-200 dark:border-dark-border p-4">
+          <div class="border-t border-border dark:border-border p-4">
             <div class="flex space-x-4">
               <input
                 v-model="currentMessage"
                 @keyup.enter="sendMessage"
                 type="text"
                 placeholder="输入您的问题..."
-                class="flex-1 px-4 py-2 border border-gray-300 dark:border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-dark-bg dark:text-dark-text"
+                class="flex-1 px-4 py-2 border border-border dark:border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-muted/40 dark:text-foreground"
                 :disabled="isTyping"
               >
               <button
                 @click="sendMessage"
                 :disabled="!currentMessage.trim() || isTyping"
-                class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                class="px-6 py-2 bg-primary/100 text-white rounded-lg hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 发送
               </button>
@@ -56,13 +56,13 @@
 
         <!-- 快捷问题 -->
         <div class="mt-6">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-dark-text mb-4">常见问题</h3>
+          <h3 class="text-lg font-semibold text-foreground dark:text-foreground mb-4">常见问题</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
               v-for="question in quickQuestions"
               :key="question"
               @click="askQuickQuestion(question)"
-              class="p-3 text-left bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-lg hover:bg-gray-50 dark:hover:bg-dark-bg transition-colors duration-200"
+              class="p-3 text-left bg-card dark:bg-card border border-border dark:border-border rounded-lg hover:bg-muted/40 dark:hover:bg-muted/30 transition-colors duration-200"
             >
               {{ question }}
             </button>
@@ -136,8 +136,6 @@ const sendMessage = async () => {
     const response = await apiSendMessage(question)
     
     // 处理API响应 - 修复数据解析问题
-    console.log('API完整响应:', response)
-    console.log('API响应数据:', response)
     
     let aiResponse
     if (response && response.success) {

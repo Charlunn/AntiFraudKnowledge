@@ -1,0 +1,329 @@
+{
+  "pageTitle": "Fraud Knowledge Graph",
+  "pageSubtitle": "Understand scam rings in three steps · Spot high-risk nodes fast",
+  "appBar": {
+    "searchPlaceholder": "Type to search or press / to open the command palette",
+    "advanced": "Advanced",
+    "timeRange": "Time Range",
+    "locale": "Locale",
+    "help": "Help",
+    "readAloud": "Read aloud"
+  },
+  "controls": {
+    "collapseSidebar": "Hide sidebar",
+    "expandSidebar": "Show sidebar"
+  },
+  "sidebar": {
+    "scenario": "Scenarios",
+    "filters": "Filters",
+    "trending": "Trending",
+    "pitfalls": "Pitfalls",
+    "insight": "Insights"
+  },
+  "timeRanges": {
+    "24h": "Last 24h",
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+    "custom": "Custom"
+  },
+  "sceneWizard": {
+    "title": "Scene Wizard",
+    "subtitle": "Configure a risk scenario in three steps",
+    "next": "Next",
+    "prev": "Previous",
+    "submit": "Generate",
+    "reset": "Reset",
+    "steps": {
+      "who": "Who is targeted?",
+      "ask": "What happens?",
+      "where": "Where does it start?"
+    },
+    "options": {
+      "senior": {
+        "label": "Seniors",
+        "description": "55+, retired or living alone"
+      },
+      "youth": {
+        "label": "Graduates",
+        "description": "Job seeking, part-time, loans"
+      },
+      "pro": {
+        "label": "Freelancers",
+        "description": "Creators, consultants, designers"
+      },
+      "investment": {
+        "label": "Investment scam",
+        "description": "Stock tips, crypto, AI wealth"
+      },
+      "impersonation": {
+        "label": "Impersonation",
+        "description": "Fake police, bank, government"
+      },
+      "romance": {
+        "label": "Romance scam",
+        "description": "Pig-butchering, loan requests"
+      },
+      "shortVideo": {
+        "label": "Short video DMs",
+        "description": "Livestream, fan groups"
+      },
+      "telecom": {
+        "label": "Telecom",
+        "description": "Robocalls, spoofed SMS"
+      },
+      "socialApp": {
+        "label": "Social apps",
+        "description": "Stranger friend requests"
+      }
+    }
+  },
+  "quickFilters": {
+    "title": "Quick Filters",
+    "type": "Scam Types",
+    "channel": "Channels",
+    "role": "Roles",
+    "confidence": "Confidence",
+    "apply": "Apply",
+    "clear": "Clear",
+    "chips": {
+      "investment": "Investment",
+      "telecom": "Telecom",
+      "romance": "Romance",
+      "official": "Impersonation",
+      "sms": "SMS/Phone",
+      "social": "Social",
+      "app": "Download",
+      "victim": "Victim",
+      "accomplice": "Accomplice",
+      "organization": "Ring"
+    }
+  },
+  "trending": {
+    "title": "Trending Risks",
+    "delta": "WoW",
+    "items": {
+      "ai-avatar": {
+        "title": "AI deepfake stock tips +36%",
+        "description": "Deepfake livestreams impersonating TV hosts lure viewers into private groups."
+      },
+      "cross-border": {
+        "title": "Cross-border call surge ×1.8",
+        "description": "Cambodia call centers now target East & Central China segments with spoofed lines."
+      }
+    }
+  },
+  "pitfalls": {
+    "title": "Common Pitfalls",
+    "cta": "Remember the three checks",
+    "items": {
+      "quick-profit": {
+        "title": "High returns = high risk",
+        "guidance": [
+          "Verify licenses first",
+          "Never install unknown apps",
+          "Check regulator warning lists"
+        ]
+      },
+      "official-number": {
+        "title": "\"Official numbers\" can be faked",
+        "guidance": [
+          "Call 110 to confirm",
+          "Watch for bank card requests",
+          "Guard your verification codes"
+        ]
+      }
+    }
+  },
+  "graphStage": {
+    "toolbar": {
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out",
+      "boxSelect": "Box select",
+      "play": "Play timeline",
+      "pause": "Pause",
+      "reset": "Reset view",
+      "layout": {
+        "label": "Layout",
+        "force": "Force",
+        "hierarchy": "Hierarchy",
+        "timeline": "Timeline"
+      },
+      "showMore": "Reveal more"
+    },
+    "empty": {
+      "title": "No graph yet",
+      "steps": ["Pick or search a scenario", "Apply filters if needed", "Click generate to load"]
+    },
+    "error": {
+      "title": "Something went wrong",
+      "retry": "Retry"
+    },
+    "loading": {
+      "title": "Loading graph",
+      "tip": "We are crunching key nodes and relationships for you"
+    }
+  },
+  "riskBar": {
+    "title": "Current Risk Level",
+    "cta": "3-Step Defense",
+    "steps": ["Verify identity", "Delay transfers", "Call 96110"]
+  },
+  "scenario": {
+    "baseline": {
+      "title": "High-risk: senior investment scam",
+      "summary": "Spoofed telecom SMS plus AI voices pose as advisers, steering victims into fake apps."
+    },
+    "base": {
+      "senior-investment": {
+        "title": "Senior investment scam",
+        "summary": "Promises of retirement gains drain life savings with repeated transfers."
+      },
+      "senior-impersonation": {
+        "title": "Senior impersonation case",
+        "summary": "Fake law enforcement threatens victims and pushes them into “safe” accounts."
+      },
+      "senior-romance": {
+        "title": "Senior romance scam",
+        "summary": "Care and companionship evolve into escalating money requests."
+      },
+      "youth-investment": {
+        "title": "Graduate investment scheme",
+        "summary": "“Low-barrier investing” hooks first-time earners with quick-return claims."
+      },
+      "youth-impersonation": {
+        "title": "Graduate impersonation threat",
+        "summary": "Forged police notices force compliance with account “inspections”."
+      },
+      "youth-romance": {
+        "title": "Graduate romance con",
+        "summary": "Job leads blend with romance to justify continuous cash demands."
+      },
+      "pro-investment": {
+        "title": "Freelancer insider investment",
+        "summary": "Packaged insider deals target flexible-income workers for bigger stakes."
+      },
+      "pro-impersonation": {
+        "title": "Freelancer impersonation probe",
+        "summary": "Bogus investigators cite tax or laundering risks to obtain deposits."
+      },
+      "pro-romance": {
+        "title": "Freelancer romance trap",
+        "summary": "Partnership plus romance narrative pressures for hefty guarantee fees."
+      }
+    },
+    "channel": {
+      "telecom": "Delivered via spoofed telecom calls and SMS bursts.",
+      "shortVideo": "Spread through short-video livestreams and private messages.",
+      "socialApp": "Pushed by persistent friend requests on social platforms."
+    }
+  },
+  "rightPanel": {
+    "title": "Insight Center",
+    "tabs": {
+      "overview": "Overview",
+      "aiExplain": "AI Explain",
+      "evidence": "Evidence"
+    },
+    "empty": "Select a node or edge to view context",
+    "actions": {
+      "save": "Save",
+      "share": "Share",
+      "help": "Helpful links"
+    },
+    "redaction": "Redaction"
+  },
+  "advancedDrawer": {
+    "title": "Advanced Tools",
+    "filters": "Advanced Filters",
+    "analysis": "Network Analysis",
+    "analysisHint": "Pick an algorithm to inspect structure",
+    "subgraph": "Subgraph",
+    "timeline": "Time Slices",
+    "importExport": "Import / Export",
+    "redaction": "Redaction",
+    "nodes": "Node types",
+    "edges": "Edge types",
+    "regions": "Regions",
+    "sources": "Sources",
+    "start": "Start date",
+    "end": "End date",
+    "redactionWeak": "Redaction: weak (key entities with light masking)",
+    "redactionMedium": "Redaction: medium (blur personal identifiers)",
+    "redactionStrong": "Redaction: strong (public alerts only)",
+    "apply": "Apply",
+    "export": "Export",
+    "run": "Run analysis"
+  },
+  "bottomBar": {
+    "feedback": "Feedback / Report",
+    "privacy": "Privacy notice",
+    "updatedAt": "Updated at"
+  },
+  "aiExplain": {
+    "whyCommon": "Why it is common",
+    "howSpot": "How to spot",
+    "whatNow": "What to do next",
+    "bullets": {
+      "whyCommon": [
+        "Cross-border call centers plus AI voices dial 24/7 at scale.",
+        "SMS, livestreams, and private chats stack to forge a trust chain.",
+        "Targets retirement anxiety with promises of low-risk high returns."
+      ],
+      "howSpot": [
+        "Question phrases like “state-backed” or “media partnership” you can't verify.",
+        "Treat any request to transfer into personal accounts as a red flag.",
+        "Watch for uncanny lip-sync or blinking artifacts in AI-generated media."
+      ],
+      "whatNow": [
+        "Flag suspicious numbers in the National Anti-Fraud app.",
+        "Freeze bank/payment accounts and ask banks to halt transfers.",
+        "Archive chats and receipts, then report to the police."
+      ]
+    }
+  },
+  "evidence": {
+    "report-1": {
+      "title": "Bank risk control: sequential transfers",
+      "description": "Twelve transfers around ¥50k hit the same account in one window, matching past scam patterns."
+    },
+    "report-2": {
+      "title": "AI voice transcription",
+      "description": "“Special police task force” appears 18 times, mirroring scripted lines."
+    },
+    "report-3": {
+      "title": "Victim report summary",
+      "description": "Victim was forced into three cross-bank transfers within three hours, losing ¥280k."
+    }
+  },
+  "badges": {
+    "official": "Official",
+    "media": "Media",
+    "report": "Report",
+    "multiSource": "Multi-source",
+    "modelInfer": "Model infer"
+  },
+  "sources": {
+    "antiFraudBureau": "National Anti-Fraud Center",
+    "psbShanghai": "Shanghai Public Security Bureau",
+    "cityHotline": "City hotline",
+    "newsAggregator": "Media monitoring",
+    "modelInfer": "Model inference",
+    "bankingMonitor": "Bank risk control",
+    "telecomAudit": "Telecom audit",
+    "publicReports": "Public reports",
+    "nationalAntiFraudCenter": "National Anti-Fraud Center"
+  },
+  "states": {
+    "loading": "Loading",
+    "error": "Error",
+    "retry": "Retry",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "close": "Close"
+  },
+  "share": {
+    "title": "Share current graph",
+    "h5": "Mini-app share",
+    "png": "PNG snapshot"
+  }
+}

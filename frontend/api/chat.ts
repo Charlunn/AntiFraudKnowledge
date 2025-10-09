@@ -21,7 +21,6 @@ import type {
  * ```typescript
  * // 发送新消息（创建新会话）
  * const result = await sendMessage('你好，我想了解反欺诈知识');
- * console.log('AI回复:', result.data.response);
  * 
  * // 在现有会话中发送消息
  * const result = await sendMessage('继续解释', 'session-123');
@@ -57,7 +56,6 @@ export async function sendMessage(
  * @example
  * ```typescript
  * const sessions = await fetchChatSessions();
- * console.log('聊天会话:', sessions.data);
  * ```
  */
 export async function fetchChatSessions(
@@ -86,7 +84,6 @@ export async function fetchChatSessions(
  * @example
  * ```typescript
  * const messages = await fetchChatHistory();
- * console.log('聊天记录:', messages.data);
  * ```
  */
 export async function fetchChatHistory(
@@ -118,7 +115,6 @@ export async function fetchChatHistory(
  * @example
  * ```typescript
  * const session = await createChatSession('反欺诈咨询');
- * console.log('新会话ID:', session.data.id);
  * ```
  */
 export async function createChatSession(
@@ -142,7 +138,6 @@ export async function createChatSession(
  * @example
  * ```typescript
  * await deleteChatSession('session-123');
- * console.log('会话删除成功');
  * ```
  */
 export async function deleteChatSession(
@@ -165,7 +160,6 @@ export async function deleteChatSession(
  * @example
  * ```typescript
  * const updatedSession = await updateSessionTitle('session-123', '新的标题');
- * console.log('标题更新成功:', updatedSession.data.title);
  * ```
  */
 export async function updateSessionTitle(
@@ -192,7 +186,6 @@ export async function updateSessionTitle(
  * @example
  * ```typescript
  * const stats = await fetchChatStats();
- * console.log('聊天统计:', stats.data);
  * ```
  */
 export async function fetchChatStats(): Promise<ApiResponse<{
@@ -213,7 +206,6 @@ export async function fetchChatStats(): Promise<ApiResponse<{
  * @example
  * ```typescript
  * await clearChatHistory('session-123');
- * console.log('聊天记录已清空');
  * ```
  */
 export async function clearChatHistory(

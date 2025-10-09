@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen bg-neutral-50 dark:bg-dark-bg">
+  <div class="min-h-screen bg-muted/40 dark:bg-muted/40">
     <div class="container mx-auto px-4 py-8">
       <!-- 页面标题 -->
       <div class="mb-8">
-        <h1 class="text-3xl font-bold text-neutral-900 dark:text-dark-text mb-2">
+        <h1 class="text-3xl font-bold text-foreground dark:text-foreground mb-2">
           搜索
         </h1>
-        <p class="text-neutral-600 dark:text-dark-text-secondary">
+        <p class="text-muted-foreground dark:text-muted-foreground">
           搜索知识图谱、测验、社区内容和学习资源
         </p>
       </div>
@@ -15,7 +15,7 @@
       <div class="mb-8">
         <div class="relative max-w-2xl mx-auto">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <svg class="h-5 w-5 text-neutral-400 dark:text-dark-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="h-5 w-5 text-muted-foreground dark:text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
@@ -23,7 +23,7 @@
             v-model="searchQuery"
             type="text"
             placeholder="输入搜索关键词..."
-            class="block w-full pl-10 pr-3 py-3 border border-neutral-300 dark:border-dark-border rounded-lg bg-white dark:bg-dark-surface text-neutral-900 dark:text-dark-text placeholder-neutral-500 dark:placeholder-dark-text-secondary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            class="block w-full pl-10 pr-3 py-3 border border-border dark:border-border rounded-lg bg-card dark:bg-card text-foreground dark:text-foreground placeholder:text-muted-foreground dark:placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             @keyup.enter="performSearch"
           >
         </div>
@@ -31,7 +31,7 @@
           <button
             @click="performSearch"
             :disabled="!searchQuery.trim() || loading"
-            class="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             <span v-if="loading" class="flex items-center">
               <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -54,8 +54,8 @@
             @click="toggleFilter(filter.key)"
             class="px-3 py-1 text-sm rounded-full border transition-colors duration-200"
             :class="activeFilters.includes(filter.key) 
-              ? 'bg-primary-500 text-white border-primary-500' 
-              : 'bg-white dark:bg-dark-surface text-neutral-700 dark:text-dark-text border-neutral-300 dark:border-dark-border hover:bg-neutral-50 dark:hover:bg-dark-bg'"
+              ? 'bg-primary text-white border-primary' 
+              : 'bg-card dark:bg-card text-muted-foreground dark:text-foreground border-border dark:border-border hover:bg-muted/40 dark:hover:bg-muted/30'"
           >
             {{ filter.label }}
           </button>
@@ -64,7 +64,7 @@
 
       <!-- 搜索结果 -->
       <div v-if="searchResults.length > 0" class="space-y-6">
-        <div class="text-sm text-neutral-600 dark:text-dark-text-secondary">
+        <div class="text-sm text-muted-foreground dark:text-muted-foreground">
           找到 {{ searchResults.length }} 个结果
         </div>
         
@@ -72,7 +72,7 @@
           <div
             v-for="result in filteredResults"
             :key="result.id"
-            class="bg-white dark:bg-dark-surface rounded-lg shadow-sm border border-neutral-200 dark:border-dark-border p-6 hover:shadow-md transition-shadow duration-200"
+            class="bg-card dark:bg-card rounded-lg shadow-sm border border-border dark:border-border p-6 hover:shadow-md transition-shadow duration-200"
           >
             <div class="flex items-start justify-between">
               <div class="flex-1">
@@ -82,15 +82,15 @@
                     {{ getTypeLabel(result.type) }}
                   </span>
                 </div>
-                <h3 class="text-lg font-semibold text-neutral-900 dark:text-dark-text mb-2">
-                  <NuxtLink :to="result.url" class="hover:text-primary-500 transition-colors duration-200">
+                <h3 class="text-lg font-semibold text-foreground dark:text-foreground mb-2">
+                  <NuxtLink :to="result.url" class="hover:text-primary transition-colors duration-200">
                     {{ result.title }}
                   </NuxtLink>
                 </h3>
-                <p class="text-neutral-600 dark:text-dark-text-secondary mb-3">
+                <p class="text-muted-foreground dark:text-muted-foreground mb-3">
                   {{ result.description }}
                 </p>
-                <div class="flex items-center space-x-4 text-sm text-neutral-500 dark:text-dark-text-secondary">
+                <div class="flex items-center space-x-4 text-sm text-muted-foreground dark:text-muted-foreground">
                   <span v-if="result.author">作者: {{ result.author }}</span>
                   <span v-if="result.date">{{ formatDate(result.date) }}</span>
                   <span v-if="result.views">{{ result.views }} 次查看</span>
@@ -103,29 +103,29 @@
 
       <!-- 无搜索结果 -->
       <div v-else-if="searchQuery && !loading" class="text-center py-12">
-        <svg class="mx-auto h-12 w-12 text-neutral-400 dark:text-dark-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="mx-auto h-12 w-12 text-muted-foreground dark:text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-neutral-900 dark:text-dark-text">未找到搜索结果</h3>
-        <p class="mt-1 text-sm text-neutral-500 dark:text-dark-text-secondary">请尝试使用不同的关键词或调整搜索过滤器</p>
+        <h3 class="mt-2 text-sm font-medium text-foreground dark:text-foreground">未找到搜索结果</h3>
+        <p class="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">请尝试使用不同的关键词或调整搜索过滤器</p>
       </div>
 
       <!-- 搜索建议 -->
       <div v-else class="text-center py-12">
-        <svg class="mx-auto h-12 w-12 text-neutral-400 dark:text-dark-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="mx-auto h-12 w-12 text-muted-foreground dark:text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-neutral-900 dark:text-dark-text">开始搜索</h3>
-        <p class="mt-1 text-sm text-neutral-500 dark:text-dark-text-secondary">输入关键词搜索知识图谱、测验、社区内容和学习资源</p>
+        <h3 class="mt-2 text-sm font-medium text-foreground dark:text-foreground">开始搜索</h3>
+        <p class="mt-1 text-sm text-muted-foreground dark:text-muted-foreground">输入关键词搜索知识图谱、测验、社区内容和学习资源</p>
         
         <div class="mt-6">
-          <h4 class="text-sm font-medium text-neutral-900 dark:text-dark-text mb-3">热门搜索</h4>
+          <h4 class="text-sm font-medium text-foreground dark:text-foreground mb-3">热门搜索</h4>
           <div class="flex flex-wrap justify-center gap-2">
             <button
               v-for="suggestion in searchSuggestions"
               :key="suggestion"
               @click="searchQuery = suggestion; performSearch()"
-              class="px-3 py-1 text-sm bg-neutral-100 dark:bg-dark-bg text-neutral-700 dark:text-dark-text rounded-full hover:bg-neutral-200 dark:hover:bg-dark-surface transition-colors duration-200"
+              class="px-3 py-1 text-sm bg-muted/50 dark:bg-muted/40 text-muted-foreground dark:text-foreground rounded-full hover:bg-muted/60 dark:hover:bg-muted/30 transition-colors duration-200"
             >
               {{ suggestion }}
             </button>
@@ -271,12 +271,12 @@ const toggleFilter = (filterKey) => {
 
 const getTypeClass = (type) => {
   const classes = {
-    knowledge: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-    quiz: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+    knowledge: 'bg-primary/20 text-primary dark:bg-primary/20 dark:text-primary',
+    quiz: 'bg-primary/20 text-success-700 dark:bg-success-900/20 dark:text-success-400',
     community: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
     resources: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'
   }
-  return classes[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+  return classes[type] || 'bg-muted/60 text-foreground dark:bg-background/20 dark:text-muted-foreground'
 }
 
 const getTypeLabel = (type) => {

@@ -8,7 +8,7 @@
     
     <!-- 错误状态 -->
     <div v-else-if="error" class="error-state fadeInDown">
-      <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-red-500" />
+      <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-destructive" />
       <h3>加载失败</h3>
       <p>{{ error }}</p>
       <button @click="initializeQuiz" class="btn btn-primary hover-lift">重试</button>
@@ -242,7 +242,7 @@
     <div v-else-if="quizCompleted" class="quiz-completed">
       <div class="completion-card">
         <div class="completion-icon">
-          <Icon name="heroicons:check-circle" class="w-16 h-16 text-green-500" />
+          <Icon name="heroicons:check-circle" class="w-16 h-16 text-success-500" />
         </div>
         <h2>测验已提交</h2>
         <p>您的答案已成功提交，正在计算成绩...</p>
@@ -620,7 +620,7 @@ onUnmounted(() => {
 
 <style scoped>
 .quiz-start-page {
-  @apply min-h-screen bg-gray-50 dark:bg-gray-900;
+  @apply min-h-screen bg-muted/40 dark:bg-background;
 }
 
 .loading-state,
@@ -629,7 +629,7 @@ onUnmounted(() => {
 }
 
 .loading-spinner {
-  @apply w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin mb-4;
+  @apply w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mb-4;
 }
 
 .quiz-interface {
@@ -637,7 +637,7 @@ onUnmounted(() => {
 }
 
 .quiz-header {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700
+  @apply bg-card dark:bg-card rounded-lg p-6 shadow-sm border border-border dark:border-border
          flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6;
 }
 
@@ -646,7 +646,7 @@ onUnmounted(() => {
 }
 
 .quiz-title {
-  @apply text-2xl font-bold text-gray-900 dark:text-white mb-3;
+  @apply text-2xl font-bold text-foreground dark:text-white mb-3;
 }
 
 .quiz-progress {
@@ -654,15 +654,15 @@ onUnmounted(() => {
 }
 
 .progress-text {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .progress-bar {
-  @apply w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2;
+  @apply w-full bg-muted/60 dark:bg-muted/40 rounded-full h-2;
 }
 
 .progress-fill {
-  @apply bg-primary-600 h-2 rounded-full transition-all duration-300;
+  @apply bg-primary h-2 rounded-full transition-all duration-300;
 }
 
 .quiz-controls {
@@ -670,12 +670,12 @@ onUnmounted(() => {
 }
 
 .timer {
-  @apply flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-lg
-         text-gray-700 dark:text-gray-300;
+  @apply flex items-center gap-2 px-4 py-2 bg-muted/60 dark:bg-muted/40 rounded-lg
+         text-muted-foreground dark:text-muted-foreground;
 }
 
 .timer-warning {
-  @apply bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300;
+  @apply bg-destructive/10 dark:bg-destructive/30 text-destructive dark:text-destructive;
 }
 
 .timer-text {
@@ -687,21 +687,21 @@ onUnmounted(() => {
 }
 
 .question-card {
-  @apply lg:col-span-2 bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm 
-         border border-gray-200 dark:border-gray-700;
+  @apply lg:col-span-2 bg-card dark:bg-card rounded-lg p-8 shadow-sm 
+         border border-border dark:border-border;
 }
 
 .question-header {
-  @apply flex justify-between items-center mb-6 pb-4 border-b border-gray-200 dark:border-gray-700;
+  @apply flex justify-between items-center mb-6 pb-4 border-b border-border dark:border-border;
 }
 
 .question-type {
-  @apply text-sm font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900
+  @apply text-sm font-medium text-primary dark:text-primary bg-primary/10 dark:bg-primary/30
          px-3 py-1 rounded-full;
 }
 
 .question-points {
-  @apply text-sm font-medium text-gray-600 dark:text-gray-400;
+  @apply text-sm font-medium text-muted-foreground dark:text-muted-foreground;
 }
 
 .question-content {
@@ -709,11 +709,11 @@ onUnmounted(() => {
 }
 
 .question-text {
-  @apply text-xl font-semibold text-gray-900 dark:text-white mb-4 leading-relaxed;
+  @apply text-xl font-semibold text-foreground dark:text-white mb-4 leading-relaxed;
 }
 
 .question-description {
-  @apply text-gray-600 dark:text-gray-400 mb-4;
+  @apply text-muted-foreground dark:text-muted-foreground mb-4;
 }
 
 .question-image {
@@ -733,34 +733,34 @@ onUnmounted(() => {
 }
 
 .option-item {
-  @apply flex items-start gap-4 p-4 border border-gray-200 dark:border-gray-600 rounded-lg
-         cursor-pointer transition-all hover:bg-gray-50 dark:hover:bg-gray-700;
+  @apply flex items-start gap-4 p-4 border border-border dark:border-border rounded-lg
+         cursor-pointer transition-all hover:bg-muted/40 dark:hover:bg-muted/40;
 }
 
 .option-item.selected {
-  @apply border-primary-500 bg-primary-50 dark:bg-primary-900;
+  @apply border-primary bg-primary/10 dark:bg-primary/30;
 }
 
 .option-radio {
-  @apply w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded-full
+  @apply w-5 h-5 border-2 border-border dark:border-border rounded-full
          flex items-center justify-center flex-shrink-0 mt-0.5;
 }
 
 .option-item.selected .option-radio {
-  @apply border-primary-500;
+  @apply border-primary;
 }
 
 .radio-dot {
-  @apply w-2.5 h-2.5 bg-primary-500 rounded-full;
+  @apply w-2.5 h-2.5 bg-primary rounded-full;
 }
 
 .option-checkbox {
-  @apply w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded
+  @apply w-5 h-5 border-2 border-border dark:border-border rounded
          flex items-center justify-center flex-shrink-0 mt-0.5;
 }
 
 .option-item.selected .option-checkbox {
-  @apply border-primary-500 bg-primary-500;
+  @apply border-primary bg-primary;
 }
 
 .option-content {
@@ -768,16 +768,16 @@ onUnmounted(() => {
 }
 
 .option-label {
-  @apply inline-block w-6 h-6 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300
+  @apply inline-block w-6 h-6 bg-muted/60 dark:bg-muted/20 text-muted-foreground dark:text-muted-foreground
          rounded-full text-sm font-medium text-center leading-6 mr-3;
 }
 
 .option-item.selected .option-label {
-  @apply bg-primary-500 text-white;
+  @apply bg-primary text-white;
 }
 
 .option-text {
-  @apply text-gray-900 dark:text-white leading-relaxed;
+  @apply text-foreground dark:text-white leading-relaxed;
 }
 
 .true-false-options {
@@ -789,14 +789,14 @@ onUnmounted(() => {
 }
 
 .answer-textarea {
-  @apply w-full p-4 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-transparent
+  @apply w-full p-4 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-transparent
          resize-none;
 }
 
 .question-navigation {
-  @apply flex items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700;
+  @apply flex items-center justify-between mt-8 pt-6 border-t border-border dark:border-border;
 }
 
 .nav-info {
@@ -804,24 +804,24 @@ onUnmounted(() => {
 }
 
 .answered-count {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .question-panel {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700
+  @apply bg-card dark:bg-card rounded-lg p-6 shadow-sm border border-border dark:border-border
          h-fit;
 }
 
 .panel-header {
-  @apply flex items-center justify-between mb-4 pb-3 border-b border-gray-200 dark:border-gray-700;
+  @apply flex items-center justify-between mb-4 pb-3 border-b border-border dark:border-border;
 }
 
 .panel-header h3 {
-  @apply text-lg font-semibold text-gray-900 dark:text-white;
+  @apply text-lg font-semibold text-foreground dark:text-white;
 }
 
 .panel-toggle {
-  @apply p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200;
+  @apply p-1 text-muted-foreground hover:text-muted-foreground dark:text-muted-foreground dark:hover:text-muted-foreground;
 }
 
 .question-grid {
@@ -834,20 +834,20 @@ onUnmounted(() => {
 }
 
 .question-nav-btn.current {
-  @apply border-primary-500 bg-primary-500 text-white;
+  @apply border-primary bg-primary text-white;
 }
 
 .question-nav-btn.answered {
-  @apply border-green-500 bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300;
+  @apply border-success-500 bg-primary/20 dark:bg-success-900 text-success-700 dark:text-success-300;
 }
 
 .question-nav-btn.unanswered {
-  @apply border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300
-         hover:border-gray-400 dark:hover:border-gray-500;
+  @apply border-border dark:border-border bg-card dark:bg-muted/40 text-muted-foreground dark:text-muted-foreground
+         hover:border-primary dark:hover:border-primary;
 }
 
 .panel-legend {
-  @apply flex flex-wrap gap-4 text-xs text-gray-600 dark:text-gray-400;
+  @apply flex flex-wrap gap-4 text-xs text-muted-foreground dark:text-muted-foreground;
 }
 
 .legend-item {
@@ -859,15 +859,15 @@ onUnmounted(() => {
 }
 
 .legend-dot.current {
-  @apply bg-primary-500;
+  @apply bg-primary;
 }
 
 .legend-dot.answered {
-  @apply bg-green-500;
+  @apply bg-primary/100;
 }
 
 .legend-dot.unanswered {
-  @apply bg-gray-300 dark:bg-gray-600;
+  @apply bg-muted/70 dark:bg-muted/20;
 }
 
 .quiz-completed {
@@ -875,7 +875,7 @@ onUnmounted(() => {
 }
 
 .completion-card {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg text-center max-w-md;
+  @apply bg-card dark:bg-card rounded-lg p-8 shadow-lg text-center max-w-md;
 }
 
 .completion-icon {
@@ -883,11 +883,11 @@ onUnmounted(() => {
 }
 
 .completion-card h2 {
-  @apply text-2xl font-bold text-gray-900 dark:text-white mb-4;
+  @apply text-2xl font-bold text-foreground dark:text-white mb-4;
 }
 
 .completion-card p {
-  @apply text-gray-600 dark:text-gray-400 mb-8;
+  @apply text-muted-foreground dark:text-muted-foreground mb-8;
 }
 
 .completion-actions {
@@ -899,19 +899,19 @@ onUnmounted(() => {
 }
 
 .modal-content {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full;
+  @apply bg-card dark:bg-card rounded-lg shadow-xl max-w-md w-full;
 }
 
 .modal-header {
-  @apply flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700;
+  @apply flex items-center justify-between p-6 border-b border-border dark:border-border;
 }
 
 .modal-header h3 {
-  @apply text-lg font-semibold text-gray-900 dark:text-white;
+  @apply text-lg font-semibold text-foreground dark:text-white;
 }
 
 .modal-close {
-  @apply p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200;
+  @apply p-1 text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground;
 }
 
 .modal-body {
@@ -919,11 +919,11 @@ onUnmounted(() => {
 }
 
 .modal-body p {
-  @apply text-gray-700 dark:text-gray-300 mb-4;
+  @apply text-muted-foreground dark:text-muted-foreground mb-4;
 }
 
 .submit-summary {
-  @apply bg-gray-50 dark:bg-gray-700 rounded-lg p-4 space-y-2;
+  @apply bg-muted/40 dark:bg-muted/40 rounded-lg p-4 space-y-2;
 }
 
 .summary-item {
@@ -931,7 +931,7 @@ onUnmounted(() => {
 }
 
 .modal-actions {
-  @apply flex gap-3 justify-end p-6 border-t border-gray-200 dark:border-gray-700;
+  @apply flex gap-3 justify-end p-6 border-t border-border dark:border-border;
 }
 
 .btn {
@@ -944,15 +944,15 @@ onUnmounted(() => {
 }
 
 .btn-primary {
-  @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  @apply bg-primary text-white hover:bg-primary/90 focus:ring-primary;
 }
 
 .btn-secondary {
-  @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+  @apply bg-muted/80 text-white hover:bg-muted/40 focus:ring-primary;
 }
 
 .btn-success {
-  @apply bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
+  @apply bg-green-600 text-white hover:bg-success-700 focus:ring-green-500;
 }
 
 .btn:disabled {

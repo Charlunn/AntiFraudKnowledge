@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-muted/40">
     <div class="max-w-6xl mx-auto px-4 py-8">
-      <div class="bg-white rounded-lg shadow-sm p-8">
-        <h1 class="text-3xl font-bold text-gray-900 mb-8">帮助与支持</h1>
+      <div class="bg-card rounded-lg shadow-sm p-8">
+        <h1 class="text-3xl font-bold text-foreground mb-8">帮助与支持</h1>
         
         <!-- 搜索框 -->
         <div class="mb-8">
@@ -11,10 +11,10 @@
               v-model="searchQuery"
               type="text" 
               placeholder="搜索帮助内容..."
-              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full pl-10 pr-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
             >
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
               </svg>
             </div>
@@ -24,7 +24,7 @@
         <div class="grid lg:grid-cols-3 gap-8">
           <!-- 左侧分类导航 -->
           <div class="lg:col-span-1">
-            <h2 class="text-lg font-semibold text-gray-800 mb-4">帮助分类</h2>
+            <h2 class="text-lg font-semibold text-foreground mb-4">帮助分类</h2>
             <nav class="space-y-2">
               <button 
                 v-for="category in categories"
@@ -33,14 +33,14 @@
                 :class="[
                   'w-full text-left px-4 py-2 rounded-lg transition-colors',
                   selectedCategory === category.id 
-                    ? 'bg-blue-100 text-blue-700 border border-blue-200' 
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-primary/20 text-primary border border-primary/50' 
+                    : 'text-muted-foreground hover:bg-muted/60'
                 ]"
               >
                 <div class="flex items-center space-x-3">
                   <span v-html="category.icon" class="w-5 h-5"></span>
                   <span>{{ category.name }}</span>
-                  <span class="ml-auto text-sm text-gray-400">({{ category.count }})</span>
+                  <span class="ml-auto text-sm text-muted-foreground">({{ category.count }})</span>
                 </div>
               </button>
             </nav>
@@ -52,34 +52,34 @@
               <div 
                 v-for="item in filteredItems"
                 :key="item.id"
-                class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+                class="border border-border rounded-lg p-6 hover:shadow-md transition-shadow"
               >
                 <div class="flex items-start justify-between mb-3">
-                  <h3 class="text-lg font-semibold text-gray-900">{{ item.title }}</h3>
+                  <h3 class="text-lg font-semibold text-foreground">{{ item.title }}</h3>
                   <span :class="[
                     'px-2 py-1 text-xs rounded-full',
-                    item.priority === 'high' ? 'bg-red-100 text-red-700' :
-                    item.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-green-100 text-green-700'
+                    item.priority === 'high' ? 'bg-destructive/10 text-destructive' :
+                    item.priority === 'medium' ? 'bg-primary/20 text-yellow-700' :
+                    'bg-primary/20 text-success-700'
                   ]">
                     {{ item.priority === 'high' ? '重要' : item.priority === 'medium' ? '一般' : '基础' }}
                   </span>
                 </div>
                 
-                <p class="text-gray-600 mb-4">{{ item.description }}</p>
+                <p class="text-muted-foreground mb-4">{{ item.description }}</p>
                 
-                <div class="flex items-center justify-between text-sm text-gray-500">
+                <div class="flex items-center justify-between text-sm text-muted-foreground">
                   <span>更新时间：{{ item.updatedAt }}</span>
                   <button 
                     @click="toggleExpand(item.id)"
-                    class="text-blue-600 hover:text-blue-700 font-medium"
+                    class="text-primary hover:text-primary font-medium"
                   >
                     {{ expandedItems.includes(item.id) ? '收起' : '查看详情' }}
                   </button>
                 </div>
                 
                 <!-- 展开的详细内容 -->
-                <div v-if="expandedItems.includes(item.id)" class="mt-4 pt-4 border-t border-gray-200">
+                <div v-if="expandedItems.includes(item.id)" class="mt-4 pt-4 border-t border-border">
                   <div class="prose prose-sm max-w-none">
                     <div v-html="item.content"></div>
                   </div>
@@ -89,7 +89,7 @@
                       @click="likeItem(item.id)"
                       :class="[
                         'flex items-center space-x-1 text-sm',
-                        likedItems.includes(item.id) ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600'
+                        likedItems.includes(item.id) ? 'text-primary' : 'text-muted-foreground hover:text-primary'
                       ]"
                     >
                       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -98,7 +98,7 @@
                       <span>有用 ({{ item.likes }})</span>
                     </button>
                     
-                    <button class="text-sm text-gray-500 hover:text-gray-700">
+                    <button class="text-sm text-muted-foreground hover:text-muted-foreground">
                       分享
                     </button>
                   </div>
@@ -108,30 +108,30 @@
             
             <!-- 没有找到内容 -->
             <div v-if="filteredItems.length === 0" class="text-center py-12">
-              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="mx-auto h-12 w-12 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.47-.881-6.08-2.33"></path>
               </svg>
-              <h3 class="mt-2 text-sm font-medium text-gray-900">没有找到相关内容</h3>
-              <p class="mt-1 text-sm text-gray-500">尝试调整搜索关键词或选择其他分类</p>
+              <h3 class="mt-2 text-sm font-medium text-foreground">没有找到相关内容</h3>
+              <p class="mt-1 text-sm text-muted-foreground">尝试调整搜索关键词或选择其他分类</p>
             </div>
           </div>
         </div>
         
         <!-- 底部联系信息 -->
-        <div class="mt-12 pt-8 border-t border-gray-200">
-          <div class="bg-blue-50 rounded-lg p-6">
-            <h3 class="text-lg font-semibold text-blue-900 mb-2">还没找到答案？</h3>
-            <p class="text-blue-700 mb-4">我们的客服团队随时为您提供帮助</p>
+        <div class="mt-12 pt-8 border-t border-border">
+          <div class="bg-primary/10 rounded-lg p-6">
+            <h3 class="text-lg font-semibold text-primary mb-2">还没找到答案？</h3>
+            <p class="text-primary mb-4">我们的客服团队随时为您提供帮助</p>
             <div class="flex flex-wrap gap-4">
               <NuxtLink 
                 to="/contact"
-                class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+                class="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
               >
                 联系客服
               </NuxtLink>
               <NuxtLink 
                 to="/feedback"
-                class="bg-white text-blue-600 border border-blue-600 px-4 py-2 rounded-md hover:bg-blue-50 transition-colors"
+                class="bg-card text-primary border border-primary px-4 py-2 rounded-md hover:bg-primary/10 transition-colors"
               >
                 提交反馈
               </NuxtLink>

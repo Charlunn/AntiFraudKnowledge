@@ -1,14 +1,14 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen flex items-center justify-center bg-muted/40 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
       <div>
         <div class="flex justify-center">
           <img class="h-12 w-auto" src="/logo.svg" alt="Logo" />
         </div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-foreground">
           完善注册信息
         </h2>
-        <p class="mt-2 text-center text-sm text-gray-600">
+        <p class="mt-2 text-center text-sm text-muted-foreground">
           使用 {{ providerName }} 登录，请补全以下信息
         </p>
       </div>
@@ -24,7 +24,7 @@
               name="username"
               type="text"
               required
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-border placeholder:text-muted-foreground text-foreground rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
               :class="{
                 'border-red-300': usernameError,
                 'border-green-300': usernameValid
@@ -33,27 +33,27 @@
               @input="checkUsername"
             />
             <div v-if="usernameError" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <ExclamationCircleIcon class="h-5 w-5 text-red-500" />
+              <ExclamationCircleIcon class="h-5 w-5 text-destructive" />
             </div>
             <div v-if="usernameValid" class="absolute inset-y-0 right-0 pr-3 flex items-center">
-              <CheckCircleIcon class="h-5 w-5 text-green-500" />
+              <CheckCircleIcon class="h-5 w-5 text-success-500" />
             </div>
           </div>
           
           <!-- 用户名错误提示 -->
-          <div v-if="usernameError" class="text-red-600 text-sm mt-1 px-3">
+          <div v-if="usernameError" class="text-destructive text-sm mt-1 px-3">
             {{ usernameError }}
           </div>
           
           <!-- 用户名推荐 -->
           <div v-if="usernameRecommendations.length > 0" class="mt-2 px-3">
-            <p class="text-sm text-gray-600 mb-2">推荐用户名：</p>
+            <p class="text-sm text-muted-foreground mb-2">推荐用户名：</p>
             <div class="flex flex-wrap gap-2">
               <button
                 v-for="recommendation in usernameRecommendations"
                 :key="recommendation"
                 type="button"
-                class="px-3 py-1 text-sm bg-indigo-100 text-indigo-700 rounded-full hover:bg-indigo-200 transition-colors"
+                class="px-3 py-1 text-sm bg-primary/20 text-primary rounded-full hover:bg-primary/20 transition-colors"
                 @click="selectRecommendation(recommendation)"
               >
                 {{ recommendation }}
@@ -70,7 +70,7 @@
               name="email"
               type="email"
               required
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-border placeholder:text-muted-foreground text-foreground focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
               placeholder="邮箱地址"
             />
           </div>
@@ -84,7 +84,7 @@
               name="password"
               type="password"
               required
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-border placeholder:text-muted-foreground text-foreground focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
               placeholder="密码"
             />
           </div>
@@ -98,14 +98,14 @@
               name="confirm-password"
               type="password"
               required
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-border placeholder:text-muted-foreground text-foreground rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
               placeholder="确认密码"
             />
           </div>
         </div>
         
         <!-- 第三方账户信息显示 -->
-        <div v-if="userInfo" class="bg-blue-50 border border-blue-200 rounded-md p-4">
+        <div v-if="userInfo" class="bg-primary/10 border border-primary/50 rounded-md p-4">
           <div class="flex items-center">
             <div class="flex-shrink-0">
               <img
@@ -114,15 +114,15 @@
                 :alt="userInfo.nickname"
                 class="h-10 w-10 rounded-full"
               />
-              <div v-else class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                <UserIcon class="h-6 w-6 text-gray-600" />
+              <div v-else class="h-10 w-10 rounded-full bg-muted/70 flex items-center justify-center">
+                <UserIcon class="h-6 w-6 text-muted-foreground" />
               </div>
             </div>
             <div class="ml-3">
-              <p class="text-sm font-medium text-blue-900">
+              <p class="text-sm font-medium text-primary">
                 {{ userInfo.nickname || '未知用户' }}
               </p>
-              <p class="text-sm text-blue-700">
+              <p class="text-sm text-primary">
                 来自 {{ providerName }}
               </p>
             </div>
@@ -130,13 +130,13 @@
         </div>
         
         <!-- 错误提示 -->
-        <div v-if="error" class="bg-red-50 border border-red-200 rounded-md p-4">
+        <div v-if="error" class="bg-red-50 border border-destructive/40 rounded-md p-4">
           <div class="flex">
             <div class="flex-shrink-0">
-              <ExclamationCircleIcon class="h-5 w-5 text-red-400" />
+              <ExclamationCircleIcon class="h-5 w-5 text-destructive" />
             </div>
             <div class="ml-3">
-              <p class="text-sm text-red-800">{{ error }}</p>
+              <p class="text-sm text-destructive">{{ error }}</p>
             </div>
           </div>
         </div>
@@ -145,7 +145,7 @@
           <button
             type="submit"
             :disabled="loading || !isFormValid"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span v-if="loading" class="absolute left-0 inset-y-0 flex items-center pl-3">
               <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
@@ -157,7 +157,7 @@
         <div class="text-center">
           <button
             type="button"
-            class="text-indigo-600 hover:text-indigo-500 text-sm"
+            class="text-primary hover:text-primary text-sm"
             @click="goBack"
           >
             返回登录页面

@@ -494,7 +494,6 @@ const forceUpdateLabels = () => {
   const option = chartInstance.getOption()
   if (!option || !option.series || !option.series[0]) return
   
-  console.log('Force updating labels, zoom level:', currentZoomLevel.value)
   
   // 只更新节点数据，不重置图表状态
   const updatedData = option.series[0].data.map(node => ({
@@ -557,7 +556,6 @@ const initChart = () => {
     const newZoomLevel = params.zoom || 1
     if (Math.abs(newZoomLevel - currentZoomLevel.value) > 0.05) {
       currentZoomLevel.value = newZoomLevel
-      console.log('Zoom changed to:', newZoomLevel)
       forceUpdateLabels()
     }
   })
@@ -576,7 +574,6 @@ const initChart = () => {
             const newZoomLevel = Math.sqrt(transform[0] * transform[0] + transform[1] * transform[1])
             if (Math.abs(newZoomLevel - currentZoomLevel.value) > 0.05) {
               currentZoomLevel.value = newZoomLevel
-              console.log('Zoom detected via interval:', newZoomLevel)
               forceUpdateLabels()
             }
           }

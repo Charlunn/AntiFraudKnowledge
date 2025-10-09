@@ -107,14 +107,14 @@
       </div>
       
       <div v-else-if="error" class="error-state">
-        <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-red-500" />
+        <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-destructive" />
         <h3>加载失败</h3>
         <p>{{ error }}</p>
         <button @click="refreshQuizzes" class="btn btn-primary">重试</button>
       </div>
       
       <div v-else-if="filteredQuizzes.length === 0" class="empty-state">
-        <Icon name="heroicons:document-text" class="w-12 h-12 text-gray-400" />
+        <Icon name="heroicons:document-text" class="w-12 h-12 text-muted-foreground" />
         <h3>暂无测验</h3>
         <p>{{ searchQuery ? '没有找到匹配的测验' : '还没有创建任何测验' }}</p>
         <NuxtLink to="/quiz/create" class="btn btn-primary">创建第一个测验</NuxtLink>
@@ -487,11 +487,11 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 
 <style scoped>
 .quiz-list-page {
-  @apply min-h-screen bg-gray-50 dark:bg-gray-900;
+  @apply min-h-screen bg-muted/40 dark:bg-background;
 }
 
 .page-header {
-  @apply bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-8;
+  @apply bg-card dark:bg-card border-b border-border dark:border-border px-6 py-8;
 }
 
 .header-content {
@@ -499,11 +499,11 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .page-title {
-  @apply text-3xl font-bold text-gray-900 dark:text-white mb-2;
+  @apply text-3xl font-bold text-foreground dark:text-white mb-2;
 }
 
 .page-description {
-  @apply text-lg text-gray-600 dark:text-gray-300;
+  @apply text-lg text-muted-foreground dark:text-muted-foreground;
 }
 
 .header-actions {
@@ -511,7 +511,7 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .filters-section {
-  @apply bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4;
+  @apply bg-card dark:bg-card border-b border-border dark:border-border px-6 py-4;
 }
 
 .search-box {
@@ -519,13 +519,13 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .search-icon {
-  @apply absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5;
+  @apply absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5;
 }
 
 .search-input {
-  @apply w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+  @apply w-full pl-10 pr-4 py-2 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-transparent;
 }
 
 .filter-controls {
@@ -533,9 +533,9 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .filter-select {
-  @apply px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-transparent;
+  @apply px-3 py-2 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-transparent;
 }
 
 .stats-section {
@@ -543,13 +543,13 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .stat-card {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700
+  @apply bg-card dark:bg-card rounded-lg p-6 shadow-sm border border-border dark:border-border
          flex items-center gap-4;
 }
 
 .stat-icon {
-  @apply w-12 h-12 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center
-         text-primary-600 dark:text-primary-400;
+  @apply w-12 h-12 bg-primary/20 dark:bg-primary/30 rounded-lg flex items-center justify-center
+         text-primary dark:text-primary;
 }
 
 .stat-content {
@@ -557,11 +557,11 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .stat-value {
-  @apply text-2xl font-bold text-gray-900 dark:text-white;
+  @apply text-2xl font-bold text-foreground dark:text-white;
 }
 
 .stat-label {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .quiz-list-section {
@@ -575,7 +575,7 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .loading-spinner {
-  @apply w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin mb-4;
+  @apply w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mb-4;
 }
 
 .quiz-grid {
@@ -583,7 +583,7 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .quiz-card {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700
+  @apply bg-card dark:bg-card rounded-lg shadow-sm border border-border dark:border-border
          hover:shadow-md transition-shadow cursor-pointer relative overflow-hidden;
 }
 
@@ -592,7 +592,7 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .quiz-category {
-  @apply text-sm font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900
+  @apply text-sm font-medium text-primary dark:text-primary bg-primary/10 dark:bg-primary/30
          px-2 py-1 rounded;
 }
 
@@ -601,15 +601,15 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .difficulty-beginner {
-  @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+  @apply bg-primary/20 text-success-700 dark:bg-success-900 dark:text-success-200;
 }
 
 .difficulty-intermediate {
-  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
+  @apply bg-primary/20 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
 }
 
 .difficulty-advanced {
-  @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+  @apply bg-destructive/10 text-destructive dark:bg-destructive/30 dark:text-destructive/80;
 }
 
 .quiz-card-content {
@@ -617,15 +617,15 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .quiz-title {
-  @apply text-lg font-semibold text-gray-900 dark:text-white mb-2;
+  @apply text-lg font-semibold text-foreground dark:text-white mb-2;
 }
 
 .quiz-description {
-  @apply text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground mb-4 line-clamp-2;
 }
 
 .quiz-meta {
-  @apply flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400;
+  @apply flex flex-wrap gap-4 text-xs text-muted-foreground dark:text-muted-foreground;
 }
 
 .meta-item {
@@ -645,11 +645,11 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .stat-label {
-  @apply text-gray-500 dark:text-gray-400;
+  @apply text-muted-foreground dark:text-muted-foreground;
 }
 
 .stat-value {
-  @apply font-medium text-gray-900 dark:text-white;
+  @apply font-medium text-foreground dark:text-white;
 }
 
 .quiz-actions {
@@ -657,7 +657,7 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .user-score-badge {
-  @apply absolute top-2 right-2 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200
+  @apply absolute top-2 right-2 bg-primary/20 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200
          px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1;
 }
 
@@ -670,13 +670,13 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .page-btn {
-  @apply px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded
-         bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300
-         hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors;
+  @apply px-3 py-2 text-sm border border-border dark:border-border rounded
+         bg-card dark:bg-card text-muted-foreground dark:text-muted-foreground
+         hover:bg-muted/40 dark:hover:bg-muted/40 transition-colors;
 }
 
 .page-btn.active {
-  @apply bg-primary-600 text-white border-primary-600;
+  @apply bg-primary text-white border-primary;
 }
 
 .btn {
@@ -685,11 +685,11 @@ watch([selectedCategory, selectedDifficulty, sortBy], () => {
 }
 
 .btn-primary {
-  @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  @apply bg-primary text-white hover:bg-primary/90 focus:ring-primary;
 }
 
 .btn-secondary {
-  @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+  @apply bg-muted/80 text-white hover:bg-muted/40 focus:ring-primary;
 }
 
 .btn-sm {

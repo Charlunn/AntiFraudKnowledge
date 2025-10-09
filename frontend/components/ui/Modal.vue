@@ -7,22 +7,22 @@
         @click="handleOverlayClick"
       >
         <div
-          class="modal-content bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden"
+          class="modal-content bg-card rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden"
           :class="sizeClass"
           @click.stop
         >
           <!-- 头部 -->
-          <div v-if="$slots.header || title" class="modal-header px-6 py-4 border-b border-gray-200">
+          <div v-if="$slots.header || title" class="modal-header px-6 py-4 border-b border-border">
             <div class="flex items-center justify-between">
               <slot name="header">
-                <h3 class="text-lg font-semibold text-gray-900">
+                <h3 class="text-lg font-semibold text-foreground">
                   {{ title }}
                 </h3>
               </slot>
               <button
                 v-if="closable"
                 @click="close"
-                class="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100"
+                class="text-muted-foreground hover:text-muted-foreground transition-colors duration-200 p-1 rounded-full hover:bg-muted/60"
               >
                 <XMarkIcon class="w-5 h-5" />
               </button>
@@ -35,7 +35,7 @@
           </div>
 
           <!-- 底部 -->
-          <div v-if="$slots.footer" class="modal-footer px-6 py-4 border-t border-gray-200 bg-gray-50">
+          <div v-if="$slots.footer" class="modal-footer px-6 py-4 border-t border-border bg-muted/40">
             <slot name="footer"></slot>
           </div>
         </div>
@@ -44,7 +44,7 @@
   </Teleport>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { XMarkIcon } from '@heroicons/vue/24/outline'
 
 interface Props {

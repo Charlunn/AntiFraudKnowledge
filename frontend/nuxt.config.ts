@@ -1,34 +1,34 @@
 import { defineNuxtConfig } from 'nuxt/config'
 
 export default defineNuxtConfig({
-  modules: ['@pinia/nuxt', '@nuxtjs/tailwindcss'],
+  modules: ['@pinia/nuxt', '@nuxtjs/tailwindcss', 'nuxt-icon'],
   css: ['~/assets/css/main.css', '~/assets/css/animations.css'],
-  // 页面过渡配置
+  // 页
   app: {
     pageTransition: { name: 'page', mode: 'out-in' },
     layoutTransition: { name: 'layout', mode: 'out-in' }
   },
   runtimeConfig: {
     public: {
-      // 始终使用 /api 路径，通过代理转发到后端
+      // 始使 /api 路通转
       apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
-      // OAuth功能开关
+      // OAuth芸
       enableOAuthLogin: process.env.ENABLE_OAUTH_LOGIN === 'true'
     }
   },
-  // 开发服务器配置
+  // 
   devServer: {
     port: 3000,
-    // 配置代理，将API请求转发到后端
+    // 么API转
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:8000',
+        target: process.env.DOCKER_ENV === 'true' ? 'http://backend:8000' : 'http://127.0.0.1:8000',
         changeOrigin: true,
         secure: false
       }
     }
   },
-  // 生产环境代理配置
+  // 
   nitro: {
     routeRules: {
       '/api/**': {
@@ -36,9 +36,9 @@ export default defineNuxtConfig({
       }
     }
   },
-  // 添加兼容性日期配置以消除警告
+  // 蛹
   compatibilityDate: '2025-09-02',
-  // TypeScript配置
+  // TypeScript
   typescript: {
     strict: true,
     typeCheck: false
@@ -46,7 +46,7 @@ export default defineNuxtConfig({
   devtools: {
     enabled: false
   },
-  // Vite配置
+  // Vite
   vite: {
     resolve: {
       alias: {
@@ -79,7 +79,7 @@ export default defineNuxtConfig({
     fetchTimeout: 60000,
     fetchInterval: 200
   },
-  // 配置Vue Router以忽略@vite/client路径警告
+  // Vue Router院@vite/client路
   hooks: {
     'vite:extendConfig': (config, { isClient }) => {
       if (isClient) {
@@ -90,4 +90,3 @@ export default defineNuxtConfig({
     }
   }
 })
-

@@ -1,16 +1,16 @@
 <template>
-  <div class="min-h-screen bg-neutral-50 dark:bg-dark-bg transition-colors duration-300">
+  <div class="min-h-screen bg-muted/40 dark:bg-muted/40 transition-colors duration-300">
     <!-- 侧边栏 -->
     <Sidebar :is-open="sidebarOpen" @close="sidebarOpen = false" />
     
     <!-- 主要内容区域 -->
     <div class="lg:pl-64">
       <!-- 顶部导航栏 -->
-      <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-neutral-200 dark:border-dark-border bg-white dark:bg-dark-surface px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+      <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-border dark:border-border bg-card dark:bg-card px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
         <!-- 移动端菜单按钮 -->
         <button 
           @click="sidebarOpen = true"
-          class="-m-2.5 p-2.5 text-neutral-500 dark:text-dark-text lg:hidden"
+          class="-m-2.5 p-2.5 text-muted-foreground dark:text-foreground lg:hidden"
         >
           <span class="sr-only">打开侧边栏</span>
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -19,7 +19,7 @@
         </button>
         
         <!-- 分隔线 -->
-        <div class="h-6 w-px bg-neutral-200 dark:bg-dark-border lg:hidden" />
+        <div class="h-6 w-px bg-muted/60 dark:bg-border lg:hidden" />
         
         <!-- 面包屑导航 -->
         <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
@@ -30,19 +30,19 @@
                   <NuxtLink 
                     v-if="item.href && index < breadcrumbs.length - 1"
                     :to="item.href"
-                    class="text-sm font-medium text-neutral-400 dark:text-dark-text-secondary hover:text-primary-500 dark:hover:text-primary-400 transition-colors duration-200"
+                    class="text-sm font-medium text-muted-foreground dark:text-muted-foreground hover:text-primary dark:hover:text-primary transition-colors duration-200"
                   >
                     {{ item.name }}
                   </NuxtLink>
                   <span 
                     v-else
-                    class="text-sm font-medium text-neutral-500 dark:text-dark-text"
+                    class="text-sm font-medium text-muted-foreground dark:text-foreground"
                   >
                     {{ item.name }}
                   </span>
                   <svg 
                     v-if="index < breadcrumbs.length - 1"
-                    class="ml-2 h-4 w-4 text-neutral-300 dark:text-dark-text-secondary"
+                    class="ml-2 h-4 w-4 text-neutral-300 dark:text-muted-foreground"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -58,7 +58,7 @@
             <!-- 搜索 -->
             <div class="relative hidden sm:block">
               <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <svg class="h-4 w-4 text-neutral-400 dark:text-dark-text-secondary" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <svg class="h-4 w-4 text-muted-foreground dark:text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
               </div>
@@ -66,7 +66,7 @@
                 v-model="searchQuery"
                 type="search"
                 placeholder="搜索..."
-                class="block w-full rounded-md border-0 bg-white dark:bg-dark-surface py-1.5 pl-10 pr-3 text-neutral-500 dark:text-dark-text ring-1 ring-inset ring-neutral-300 dark:ring-dark-border placeholder:text-neutral-400 dark:placeholder:text-dark-text-secondary focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:focus:ring-primary-400 sm:text-sm sm:leading-6"
+                class="block w-full rounded-md border-0 bg-card dark:bg-card py-1.5 pl-10 pr-3 text-muted-foreground dark:text-foreground ring-1 ring-inset ring-neutral-300 dark:ring-dark-border placeholder:text-muted-foreground dark:placeholder:text-dark-text-secondary focus:ring-2 focus:ring-inset focus:ring-primary dark:focus:ring-primary-400 sm:text-sm sm:leading-6"
                 @keyup.enter="handleSearch"
               >
             </div>
@@ -74,7 +74,7 @@
             <!-- 通知 -->
             <button 
               @click="toggleNotifications"
-              class="relative -m-2.5 p-2.5 text-neutral-400 dark:text-dark-text-secondary hover:text-neutral-500 dark:hover:text-dark-text transition-colors duration-200"
+              class="relative -m-2.5 p-2.5 text-muted-foreground dark:text-muted-foreground hover:text-muted-foreground dark:hover:text-dark-text transition-colors duration-200"
             >
               <span class="sr-only">查看通知</span>
               <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -89,17 +89,17 @@
             <div class="relative" ref="userMenuRef">
               <button 
                 @click="toggleUserMenu"
-                class="-m-1.5 flex items-center p-1.5 hover:bg-neutral-100 dark:hover:bg-dark-bg rounded-lg transition-colors duration-200"
+                class="-m-1.5 flex items-center p-1.5 hover:bg-neutral-100 dark:hover:bg-muted/30 rounded-lg transition-colors duration-200"
               >
                 <span class="sr-only">打开用户菜单</span>
                 <img 
-                  class="h-8 w-8 rounded-full bg-neutral-50 dark:bg-dark-surface object-cover"
+                  class="h-8 w-8 rounded-full bg-muted/40 dark:bg-card object-cover"
                   :src="currentUser?.avatar || '/default-avatar.svg'"
                   :alt="currentUser?.name || '用户头像'"
                 >
                 <span class="hidden lg:flex lg:items-center ml-2">
-                  <span class="text-sm font-semibold leading-6 text-neutral-500 dark:text-dark-text">{{ currentUser?.name || '管理员' }}</span>
-                  <svg class="ml-2 h-4 w-4 text-neutral-400 dark:text-dark-text-secondary" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <span class="text-sm font-semibold leading-6 text-muted-foreground dark:text-foreground">{{ currentUser?.name || '管理员' }}</span>
+                  <svg class="ml-2 h-4 w-4 text-muted-foreground dark:text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                   </svg>
                 </span>
@@ -109,18 +109,18 @@
               <Transition name="dropdown">
                 <div 
                   v-if="showUserMenu"
-                  class="absolute right-0 z-10 mt-2.5 w-48 origin-top-right rounded-md bg-white dark:bg-dark-surface py-2 shadow-lg ring-1 ring-neutral-900/5 dark:ring-white/10 focus:outline-none"
+                  class="absolute right-0 z-10 mt-2.5 w-48 origin-top-right rounded-md bg-card dark:bg-card py-2 shadow-lg ring-1 ring-neutral-900/5 dark:ring-white/10 focus:outline-none"
                 >
                   <NuxtLink 
                     v-for="item in userMenuItems" 
                     :key="item.name"
                     :to="item.href"
-                    class="block px-3 py-1 text-sm leading-6 text-neutral-500 dark:text-dark-text hover:bg-neutral-50 dark:hover:bg-dark-bg transition-colors duration-200"
+                    class="block px-3 py-1 text-sm leading-6 text-muted-foreground dark:text-foreground hover:bg-muted/40 dark:hover:bg-muted/30 transition-colors duration-200"
                     @click="showUserMenu = false"
                   >
                     {{ item.name }}
                   </NuxtLink>
-                  <hr class="my-1 border-neutral-200 dark:border-dark-border">
+                  <hr class="my-1 border-border dark:border-border">
                   <button 
                     @click="handleLogout"
                     class="block w-full text-left px-3 py-1 text-sm leading-6 text-error-500 hover:bg-error-50 dark:hover:bg-error-900/20 transition-colors duration-200"
@@ -225,13 +225,11 @@ const toggleUserMenu = () => {
 
 const toggleNotifications = () => {
   // TODO: 实现通知功能
-  console.log('切换通知面板')
 }
 
 const handleSearch = () => {
   if (searchQuery.value.trim()) {
     // TODO: 实现搜索功能
-    console.log('搜索:', searchQuery.value)
   }
 }
 

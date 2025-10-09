@@ -2,19 +2,19 @@
   <div class="loading-container" :class="containerClass">
     <!-- 旋转加载器 -->
     <div v-if="type === 'spinner'" class="loading-spinner" :class="sizeClass">
-      <div class="animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
+      <div class="animate-spin rounded-full border-4 border-border border-t-primary"></div>
     </div>
 
     <!-- 脉冲加载器 -->
     <div v-else-if="type === 'pulse'" class="loading-pulse" :class="sizeClass">
-      <div class="animate-pulse bg-blue-600 rounded-full"></div>
+      <div class="animate-pulse bg-primary rounded-full"></div>
     </div>
 
     <!-- 弹跳加载器 -->
     <div v-else-if="type === 'bounce'" class="loading-bounce flex space-x-1" :class="sizeClass">
-      <div class="animate-bounce bg-blue-600 rounded-full" style="animation-delay: 0s"></div>
-      <div class="animate-bounce bg-blue-600 rounded-full" style="animation-delay: 0.1s"></div>
-      <div class="animate-bounce bg-blue-600 rounded-full" style="animation-delay: 0.2s"></div>
+      <div class="animate-bounce bg-primary rounded-full" style="animation-delay: 0s"></div>
+      <div class="animate-bounce bg-primary rounded-full" style="animation-delay: 0.1s"></div>
+      <div class="animate-bounce bg-primary rounded-full" style="animation-delay: 0.2s"></div>
     </div>
 
     <!-- 点状加载器 -->
@@ -24,9 +24,9 @@
 
     <!-- 进度条加载器 -->
     <div v-else-if="type === 'progress'" class="loading-progress w-full" :class="sizeClass">
-      <div class="progress-bar bg-gray-200 rounded-full overflow-hidden">
+      <div class="progress-bar bg-muted/60 rounded-full overflow-hidden">
         <div 
-          class="h-full bg-blue-600 transition-all duration-300 ease-out"
+          class="h-full bg-primary transition-all duration-300 ease-out"
           :style="{ width: `${progress}%` }"
         ></div>
       </div>
@@ -41,7 +41,7 @@
 
     <!-- 默认旋转加载器 -->
     <div v-else class="loading-spinner" :class="sizeClass">
-      <div class="animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"></div>
+      <div class="animate-spin rounded-full border-4 border-border border-t-primary"></div>
     </div>
 
     <!-- 加载文本 -->
@@ -80,7 +80,7 @@ const containerClass = computed(() => {
   }
   
   if (props.overlay) {
-    classes.push('bg-white', 'bg-opacity-80', 'backdrop-blur-sm')
+    classes.push('bg-card', 'bg-opacity-80', 'backdrop-blur-sm')
   }
   
   return classes
@@ -98,12 +98,12 @@ const sizeClass = computed(() => {
 
 const colorClass = computed(() => {
   const colorMap = {
-    blue: 'text-blue-600',
-    green: 'text-green-600',
-    red: 'text-red-600',
-    yellow: 'text-yellow-600',
-    purple: 'text-purple-600',
-    gray: 'text-gray-600'
+    blue: 'text-primary',
+    green: 'text-primary',
+    red: 'text-destructive',
+    yellow: 'text-primary',
+    purple: 'text-primary',
+    gray: 'text-muted-foreground'
   }
   return colorMap[props.color]
 })
@@ -115,7 +115,7 @@ const textClass = computed(() => {
     lg: 'text-base',
     xl: 'text-lg'
   }
-  return [textSizeMap[props.size], props.color ? `text-${props.color}-600` : 'text-gray-600']
+  return [textSizeMap[props.size], props.color ? `text-${props.color}-600` : 'text-muted-foreground']
 })
 </script>
 

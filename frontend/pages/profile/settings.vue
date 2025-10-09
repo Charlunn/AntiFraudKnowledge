@@ -570,11 +570,11 @@
         
         <div class="modal-body">
           <div class="warning-message">
-            <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <p class="text-center text-gray-700 dark:text-gray-300 mb-4">
+            <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-destructive mx-auto mb-4" />
+            <p class="text-center text-muted-foreground dark:text-muted-foreground mb-4">
               此操作将永久删除你的所有学习记录、测验成绩和进度数据。
             </p>
-            <p class="text-center text-red-600 dark:text-red-400 font-semibold">
+            <p class="text-center text-destructive dark:text-destructive font-semibold">
               此操作不可恢复！
             </p>
           </div>
@@ -618,17 +618,17 @@
         
         <div class="modal-body">
           <div class="warning-message">
-            <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <p class="text-center text-gray-700 dark:text-gray-300 mb-4">
+            <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-destructive mx-auto mb-4" />
+            <p class="text-center text-muted-foreground dark:text-muted-foreground mb-4">
               此操作将永久删除你的账户和所有相关数据，包括：
             </p>
-            <ul class="text-left text-gray-600 dark:text-gray-400 mb-4 space-y-1">
+            <ul class="text-left text-muted-foreground dark:text-muted-foreground mb-4 space-y-1">
               <li>• 个人资料信息</li>
               <li>• 学习记录和成就</li>
               <li>• 发布的帖子和评论</li>
               <li>• 所有设置和偏好</li>
             </ul>
-            <p class="text-center text-red-600 dark:text-red-400 font-semibold">
+            <p class="text-center text-destructive dark:text-destructive font-semibold">
               此操作不可恢复！
             </p>
           </div>
@@ -1034,7 +1034,6 @@ const updatePrivacySettings = async () => {
       message: '隐私设置已成功更新'
     })
     
-    console.log('Privacy settings updated:', result)
     
   } catch (err) {
     console.error('Failed to update privacy settings:', err)
@@ -1061,7 +1060,6 @@ const updateNotificationSettings = async () => {
       message: '通知设置已成功更新'
     })
     
-    console.log('Notification settings updated:', result)
     
   } catch (err) {
     console.error('Failed to update notification settings:', err)
@@ -1278,11 +1276,11 @@ onMounted(() => {
 
 <style scoped>
 .settings-page {
-  @apply min-h-screen bg-gray-50 dark:bg-gray-900;
+  @apply min-h-screen bg-muted/40 dark:bg-background;
 }
 
 .page-header {
-  @apply bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-8;
+  @apply bg-card dark:bg-card border-b border-border dark:border-border px-6 py-8;
 }
 
 .header-content {
@@ -1294,11 +1292,11 @@ onMounted(() => {
 }
 
 .page-title {
-  @apply text-3xl font-bold text-gray-900 dark:text-white mb-2;
+  @apply text-3xl font-bold text-foreground dark:text-white mb-2;
 }
 
 .page-description {
-  @apply text-gray-600 dark:text-gray-400;
+  @apply text-muted-foreground dark:text-muted-foreground;
 }
 
 .header-actions {
@@ -1314,16 +1312,16 @@ onMounted(() => {
 }
 
 .settings-nav {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-2;
+  @apply bg-card dark:bg-card rounded-lg shadow-sm border border-border dark:border-border p-2;
 }
 
 .nav-item {
-  @apply w-full flex items-center gap-3 px-4 py-3 text-left text-gray-700 dark:text-gray-300
-         hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors;
+  @apply w-full flex items-center gap-3 px-4 py-3 text-left text-muted-foreground dark:text-muted-foreground
+         hover:bg-muted/40 dark:hover:bg-muted/40 rounded-lg transition-colors;
 }
 
 .nav-item.active {
-  @apply bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400;
+  @apply bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary;
 }
 
 .settings-panel {
@@ -1331,19 +1329,19 @@ onMounted(() => {
 }
 
 .setting-section {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8;
+  @apply bg-card dark:bg-card rounded-lg shadow-sm border border-border dark:border-border p-8;
 }
 
 .section-header {
-  @apply mb-8 pb-4 border-b border-gray-200 dark:border-gray-700;
+  @apply mb-8 pb-4 border-b border-border dark:border-border;
 }
 
 .section-title {
-  @apply text-2xl font-bold text-gray-900 dark:text-white mb-2;
+  @apply text-2xl font-bold text-foreground dark:text-white mb-2;
 }
 
 .section-description {
-  @apply text-gray-600 dark:text-gray-400;
+  @apply text-muted-foreground dark:text-muted-foreground;
 }
 
 .setting-form {
@@ -1359,38 +1357,38 @@ onMounted(() => {
 }
 
 .form-label {
-  @apply block text-sm font-medium text-gray-700 dark:text-gray-300;
+  @apply block text-sm font-medium text-muted-foreground dark:text-muted-foreground;
 }
 
 .form-input {
-  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+  @apply w-full px-3 py-2 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-primary;
 }
 
 .form-textarea {
-  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+  @apply w-full px-3 py-2 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-primary
          resize-y;
 }
 
 .form-select {
-  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+  @apply w-full px-3 py-2 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-primary;
 }
 
 .form-hint {
-  @apply text-xs text-gray-500 dark:text-gray-400 text-right;
+  @apply text-xs text-muted-foreground dark:text-muted-foreground text-right;
 }
 
 .form-error {
-  @apply text-sm text-red-600 dark:text-red-400;
+  @apply text-sm text-destructive dark:text-destructive;
 }
 
 .form-actions {
-  @apply flex justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700;
+  @apply flex justify-end gap-3 pt-6 border-t border-border dark:border-border;
 }
 
 .avatar-setting {
@@ -1398,7 +1396,7 @@ onMounted(() => {
 }
 
 .current-avatar {
-  @apply w-20 h-20 rounded-full border-2 border-gray-200 dark:border-gray-600;
+  @apply w-20 h-20 rounded-full border-2 border-border dark:border-border;
 }
 
 .avatar-actions {
@@ -1413,18 +1411,18 @@ onMounted(() => {
 }
 
 .group-title {
-  @apply text-lg font-semibold text-gray-900 dark:text-white mb-4;
+  @apply text-lg font-semibold text-foreground dark:text-white mb-4;
 }
 
 .group-description {
-  @apply text-gray-600 dark:text-gray-400 mb-4;
+  @apply text-muted-foreground dark:text-muted-foreground mb-4;
 }
 
 .security-item,
 .privacy-item,
 .notification-item,
 .danger-item {
-  @apply flex items-center justify-between py-4 border-b border-gray-200 dark:border-gray-700
+  @apply flex items-center justify-between py-4 border-b border-border dark:border-border
          last:border-b-0;
 }
 
@@ -1433,11 +1431,11 @@ onMounted(() => {
 }
 
 .item-name {
-  @apply font-medium text-gray-900 dark:text-white mb-1;
+  @apply font-medium text-foreground dark:text-white mb-1;
 }
 
 .item-description {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .item-status {
@@ -1453,23 +1451,23 @@ onMounted(() => {
 }
 
 .status-badge.enabled {
-  @apply bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300;
+  @apply bg-primary/20 dark:bg-success-900 text-success-700 dark:text-success-300;
 }
 
 .status-badge.disabled {
-  @apply bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300;
+  @apply bg-muted/60 dark:bg-muted/40 text-muted-foreground dark:text-muted-foreground;
 }
 
 .status-badge.current {
-  @apply bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300;
+  @apply bg-primary/20 dark:bg-primary/30 text-primary dark:text-primary;
 }
 
 .status-badge.suspicious {
-  @apply bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300;
+  @apply bg-destructive/10 dark:bg-destructive/30 text-destructive dark:text-destructive;
 }
 
 .status-badge.normal {
-  @apply bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300;
+  @apply bg-muted/60 dark:bg-muted/40 text-muted-foreground dark:text-muted-foreground;
 }
 
 .password-strength {
@@ -1477,7 +1475,7 @@ onMounted(() => {
 }
 
 .strength-bar {
-  @apply flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden;
+  @apply flex-1 h-2 bg-muted/60 dark:bg-muted/40 rounded-full overflow-hidden;
 }
 
 .strength-fill {
@@ -1493,7 +1491,7 @@ onMounted(() => {
 }
 
 .strength-fill.strong {
-  @apply bg-green-500;
+  @apply bg-primary/100;
 }
 
 .strength-text {
@@ -1501,15 +1499,15 @@ onMounted(() => {
 }
 
 .strength-text.weak {
-  @apply text-red-600 dark:text-red-400;
+  @apply text-destructive dark:text-destructive;
 }
 
 .strength-text.medium {
-  @apply text-yellow-600 dark:text-yellow-400;
+  @apply text-primary dark:text-primary;
 }
 
 .strength-text.strong {
-  @apply text-green-600 dark:text-green-400;
+  @apply text-primary dark:text-success-400;
 }
 
 .login-history {
@@ -1517,7 +1515,7 @@ onMounted(() => {
 }
 
 .login-item {
-  @apply flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg;
+  @apply flex items-center justify-between p-4 bg-muted/40 dark:bg-muted/40 rounded-lg;
 }
 
 .login-info {
@@ -1525,11 +1523,11 @@ onMounted(() => {
 }
 
 .login-device {
-  @apply flex items-center gap-2 font-medium text-gray-900 dark:text-white mb-1;
+  @apply flex items-center gap-2 font-medium text-foreground dark:text-white mb-1;
 }
 
 .login-details {
-  @apply flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400;
+  @apply flex items-center gap-4 text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .login-location {
@@ -1564,7 +1562,7 @@ onMounted(() => {
 }
 
 .danger-group {
-  @apply border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/10 rounded-lg p-6;
+  @apply border border-destructive/40 dark:border-red-800 bg-red-50 dark:bg-destructive/30/10 rounded-lg p-6;
 }
 
 .danger-actions {
@@ -1576,17 +1574,17 @@ onMounted(() => {
 }
 
 .toggle-label {
-  @apply block w-12 h-6 bg-gray-300 dark:bg-gray-600 rounded-full cursor-pointer
+  @apply block w-12 h-6 bg-muted/70 dark:bg-muted/20 rounded-full cursor-pointer
          transition-colors relative;
 }
 
 .toggle-label::after {
-  @apply content-[''] absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full
+  @apply content-[''] absolute top-0.5 left-0.5 w-5 h-5 bg-card rounded-full
          transition-transform;
 }
 
 .toggle-input:checked + .toggle-label {
-  @apply bg-primary-600;
+  @apply bg-primary;
 }
 
 .toggle-input:checked + .toggle-label::after {
@@ -1598,19 +1596,19 @@ onMounted(() => {
 }
 
 .modal-content {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto;
+  @apply bg-card dark:bg-card rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto;
 }
 
 .modal-header {
-  @apply flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700;
+  @apply flex items-center justify-between p-6 border-b border-border dark:border-border;
 }
 
 .modal-title {
-  @apply text-lg font-semibold text-gray-900 dark:text-white;
+  @apply text-lg font-semibold text-foreground dark:text-white;
 }
 
 .modal-close {
-  @apply p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors;
+  @apply p-2 text-muted-foreground hover:text-muted-foreground dark:hover:text-muted-foreground transition-colors;
 }
 
 .modal-body {
@@ -1618,7 +1616,7 @@ onMounted(() => {
 }
 
 .modal-actions {
-  @apply flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700;
+  @apply flex justify-end gap-3 p-6 border-t border-border dark:border-border;
 }
 
 .warning-message {
@@ -1635,11 +1633,11 @@ onMounted(() => {
 }
 
 .btn-primary {
-  @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  @apply bg-primary text-white hover:bg-primary/90 focus:ring-primary;
 }
 
 .btn-secondary {
-  @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+  @apply bg-muted/80 text-white hover:bg-muted/40 focus:ring-primary;
 }
 
 .btn-danger {
@@ -1660,7 +1658,7 @@ onMounted(() => {
 }
 
 .oauth-group {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700;
+  @apply bg-card dark:bg-card rounded-lg p-6 border border-border dark:border-border;
 }
 
 .oauth-accounts {
@@ -1668,7 +1666,7 @@ onMounted(() => {
 }
 
 .oauth-account {
-  @apply flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600;
+  @apply flex items-center justify-between p-4 bg-muted/40 dark:bg-muted/40 rounded-lg border border-border dark:border-border;
 }
 
 .account-info {
@@ -1680,11 +1678,11 @@ onMounted(() => {
 }
 
 .account-icon.qq {
-  @apply bg-blue-500;
+  @apply bg-primary/100;
 }
 
 .account-icon.wechat {
-  @apply bg-green-500;
+  @apply bg-primary/100;
 }
 
 .account-icon.douyin {
@@ -1692,7 +1690,7 @@ onMounted(() => {
 }
 
 .account-icon.alipay {
-  @apply bg-blue-600;
+  @apply bg-primary;
 }
 
 .account-details {
@@ -1700,15 +1698,15 @@ onMounted(() => {
 }
 
 .account-name {
-  @apply font-semibold text-gray-900 dark:text-white;
+  @apply font-semibold text-foreground dark:text-white;
 }
 
 .account-status {
-  @apply text-sm text-gray-500 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .account-status.bound {
-  @apply text-green-600 dark:text-green-400;
+  @apply text-primary dark:text-success-400;
 }
 
 .account-actions {
@@ -1720,6 +1718,6 @@ onMounted(() => {
 }
 
 .info-item {
-  @apply flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400;
+  @apply flex items-center gap-3 text-sm text-muted-foreground dark:text-muted-foreground;
 }
 </style>

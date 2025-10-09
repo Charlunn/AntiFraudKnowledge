@@ -1,12 +1,12 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-dark-bg">
+  <div class="min-h-screen bg-muted/40 dark:bg-muted/40">
     <div class="container mx-auto px-4 py-8">
       <!-- 页面标题 -->
       <div class="text-center mb-12">
-        <h1 class="text-4xl font-bold text-gray-900 dark:text-dark-text mb-4">
+        <h1 class="text-4xl font-bold text-foreground dark:text-foreground mb-4">
           学习资源
         </h1>
-        <p class="text-xl text-gray-600 dark:text-dark-text-secondary max-w-3xl mx-auto">
+        <p class="text-xl text-muted-foreground dark:text-muted-foreground max-w-3xl mx-auto">
           丰富的反欺诈案例、防范指南和学习材料，帮助您全面提升防范意识
         </p>
       </div>
@@ -19,8 +19,8 @@
           @click="activeCategory = category.id"
           class="px-6 py-2 rounded-full font-medium transition-colors duration-200"
           :class="activeCategory === category.id 
-            ? 'bg-blue-500 text-white' 
-            : 'bg-white dark:bg-dark-surface text-gray-700 dark:text-dark-text hover:bg-blue-50 dark:hover:bg-dark-bg'"
+            ? 'bg-primary/100 text-white' 
+            : 'bg-card dark:bg-card text-muted-foreground dark:text-foreground hover:bg-primary/10 dark:hover:bg-muted/30'"
         >
           {{ category.name }}
         </button>
@@ -31,7 +31,7 @@
         <div 
           v-for="resource in filteredResources" 
           :key="resource.id"
-          class="bg-white dark:bg-dark-surface rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
+          class="bg-card dark:bg-card rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300"
         >
           <!-- 资源类型标签 -->
           <div class="flex items-center justify-between mb-4">
@@ -41,16 +41,16 @@
             >
               {{ getTypeName(resource.type) }}
             </span>
-            <span class="text-sm text-gray-500 dark:text-dark-text-secondary">
+            <span class="text-sm text-muted-foreground dark:text-muted-foreground">
               {{ formatDate(resource.createdAt) }}
             </span>
           </div>
 
           <!-- 资源标题和描述 -->
-          <h3 class="text-xl font-semibold text-gray-900 dark:text-dark-text mb-2">
+          <h3 class="text-xl font-semibold text-foreground dark:text-foreground mb-2">
             {{ resource.title }}
           </h3>
-          <p class="text-gray-600 dark:text-dark-text-secondary mb-4 line-clamp-3">
+          <p class="text-muted-foreground dark:text-muted-foreground mb-4 line-clamp-3">
             {{ resource.description }}
           </p>
 
@@ -59,7 +59,7 @@
             <span 
               v-for="tag in resource.tags" 
               :key="tag"
-              class="px-2 py-1 bg-gray-100 dark:bg-dark-bg text-gray-600 dark:text-dark-text-secondary text-xs rounded-md"
+              class="px-2 py-1 bg-muted/60 dark:bg-muted/40 text-muted-foreground dark:text-muted-foreground text-xs rounded-md"
             >
               {{ tag }}
             </span>
@@ -67,7 +67,7 @@
 
           <!-- 操作按钮 -->
           <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-4 text-sm text-gray-500 dark:text-dark-text-secondary">
+            <div class="flex items-center space-x-4 text-sm text-muted-foreground dark:text-muted-foreground">
               <span class="flex items-center">
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -84,7 +84,7 @@
             </div>
             <button 
               @click="viewResource(resource)"
-              class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
+              class="bg-primary/100 hover:bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200"
             >
               查看详情
             </button>
@@ -94,11 +94,11 @@
 
       <!-- 空状态 -->
       <div v-if="filteredResources.length === 0" class="text-center py-12">
-        <svg class="w-16 h-16 text-gray-400 dark:text-dark-text-secondary mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-16 h-16 text-muted-foreground dark:text-muted-foreground mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
-        <p class="text-gray-500 dark:text-dark-text-secondary text-lg">暂无相关资源</p>
-        <p class="text-sm text-gray-400 dark:text-dark-text-secondary mt-2">请尝试选择其他分类或稍后再来查看</p>
+        <p class="text-muted-foreground dark:text-muted-foreground text-lg">暂无相关资源</p>
+        <p class="text-sm text-muted-foreground dark:text-muted-foreground mt-2">请尝试选择其他分类或稍后再来查看</p>
       </div>
 
       <!-- 分页 -->
@@ -110,8 +110,8 @@
             @click="currentPage = page"
             class="px-4 py-2 rounded-lg font-medium transition-colors duration-200"
             :class="currentPage === page 
-              ? 'bg-blue-500 text-white' 
-              : 'bg-white dark:bg-dark-surface text-gray-700 dark:text-dark-text hover:bg-blue-50 dark:hover:bg-dark-bg'"
+              ? 'bg-primary/100 text-white' 
+              : 'bg-card dark:bg-card text-muted-foreground dark:text-foreground hover:bg-primary/10 dark:hover:bg-muted/30'"
           >
             {{ page }}
           </button>
@@ -237,13 +237,13 @@ const totalPages = computed(() => {
 // 方法
 const getTypeClass = (type) => {
   const classes = {
-    'case': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-    'guide': 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-    'video': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-    'article': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+    'case': 'bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive',
+    'guide': 'bg-primary/20 text-primary dark:bg-primary/20 dark:text-primary',
+    'video': 'bg-primary/20 text-success-700 dark:bg-success-900/20 dark:text-success-400',
+    'article': 'bg-primary/20 text-yellow-800 dark:bg-yellow-900/20 dark:text-primary',
     'tool': 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400'
   }
-  return classes[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
+  return classes[type] || 'bg-muted/60 text-foreground dark:bg-background/20 dark:text-muted-foreground'
 }
 
 const getTypeName = (type) => {
@@ -322,7 +322,6 @@ const loadResources = async () => {
       resources.value = generatedResources
     } else {
       // 保持原有的模拟数据
-      console.log('使用默认模拟数据')
     }
     
   } catch (error) {

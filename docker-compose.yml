@@ -33,7 +33,7 @@ services:
       - CI=true
       - NUXT_HOST=0.0.0.0
       - PNPM_STORE_PATH=/pnpm/store
-    command: ["sh", "-c", "if [ ! -d node_modules ] || [ -z \"$(ls -A node_modules)\" ]; then pnpm install --prefer-offline --frozen-lockfile; fi && pnpm run dev"]
+    command: ["sh", "-c", "pnpm install --prefer-offline --frozen-lockfile && pnpm run dev"]
 
   neo4j:
     image: neo4j:latest

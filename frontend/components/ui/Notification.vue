@@ -5,23 +5,23 @@
         <div
           v-for="notification in notifications"
           :key="notification.id"
-          class="notification-item max-w-sm w-full bg-white rounded-lg shadow-lg border-l-4 p-4 flex items-start space-x-3"
+          class="notification-item max-w-sm w-full bg-card rounded-lg shadow-lg border-l-4 p-4 flex items-start space-x-3"
           :class="getNotificationClass(notification.type)"
         >
           <!-- 图标 -->
           <div class="flex-shrink-0">
-            <CheckCircleIcon v-if="notification.type === 'success'" class="w-5 h-5 text-green-500" />
+            <CheckCircleIcon v-if="notification.type === 'success'" class="w-5 h-5 text-success-500" />
             <ExclamationTriangleIcon v-else-if="notification.type === 'warning'" class="w-5 h-5 text-yellow-500" />
-            <XCircleIcon v-else-if="notification.type === 'error'" class="w-5 h-5 text-red-500" />
-            <InformationCircleIcon v-else class="w-5 h-5 text-blue-500" />
+            <XCircleIcon v-else-if="notification.type === 'error'" class="w-5 h-5 text-destructive" />
+            <InformationCircleIcon v-else class="w-5 h-5 text-primary" />
           </div>
 
           <!-- 内容 -->
           <div class="flex-1 min-w-0">
-            <h4 v-if="notification.title" class="text-sm font-medium text-gray-900 mb-1">
+            <h4 v-if="notification.title" class="text-sm font-medium text-foreground mb-1">
               {{ notification.title }}
             </h4>
-            <p class="text-sm text-gray-600">
+            <p class="text-sm text-muted-foreground">
               {{ notification.message }}
             </p>
           </div>
@@ -29,7 +29,7 @@
           <!-- 关闭按钮 -->
           <button
             @click="removeNotification(notification.id)"
-            class="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+            class="flex-shrink-0 text-muted-foreground hover:text-muted-foreground transition-colors duration-200"
           >
             <XMarkIcon class="w-4 h-4" />
           </button>
@@ -107,10 +107,10 @@ const clearAll = () => {
 // 获取通知样式类
 const getNotificationClass = (type: Notification['type']) => {
   const classMap = {
-    success: 'border-green-500 bg-green-50',
-    error: 'border-red-500 bg-red-50',
+    success: 'border-success-500 bg-primary/10',
+    error: 'border-destructive bg-red-50',
     warning: 'border-yellow-500 bg-yellow-50',
-    info: 'border-blue-500 bg-blue-50'
+    info: 'border-primary bg-primary/10'
   }
   return classMap[type] || classMap.info
 }

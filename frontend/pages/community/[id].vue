@@ -8,7 +8,7 @@
     
     <!-- 错误状态 -->
     <div v-else-if="error" class="error-state">
-      <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-red-500" />
+      <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-destructive" />
       <h3>加载失败</h3>
       <p>{{ error }}</p>
       <button @click="fetchPost" class="btn btn-primary">重试</button>
@@ -82,7 +82,7 @@
                     <Icon name="heroicons:pencil" class="w-4 h-4" />
                     编辑
                   </button>
-                  <button @click="deletePost" class="dropdown-item text-red-600">
+                  <button @click="deletePost" class="dropdown-item text-destructive">
                     <Icon name="heroicons:trash" class="w-4 h-4" />
                     删除
                   </button>
@@ -183,7 +183,7 @@
         <!-- 评论列表 -->
         <div class="comments-list">
           <div v-if="sortedComments.length === 0" class="empty-comments">
-            <Icon name="heroicons:chat-bubble-left-ellipsis" class="w-12 h-12 text-gray-400" />
+            <Icon name="heroicons:chat-bubble-left-ellipsis" class="w-12 h-12 text-muted-foreground" />
             <p>还没有评论，快来发表第一个评论吧！</p>
           </div>
           
@@ -242,7 +242,7 @@
                 <button 
                   v-if="canDeleteComment(comment)"
                   @click="deleteComment(comment)"
-                  class="comment-action text-red-600"
+                  class="comment-action text-destructive"
                 >
                   <Icon name="heroicons:trash" class="w-4 h-4" />
                   删除
@@ -485,18 +485,15 @@ const sharePost = () => {
   const url = window.location.href
   navigator.clipboard.writeText(url).then(() => {
     // TODO: 显示成功提示
-    console.log('链接已复制到剪贴板')
   })
 }
 
 const editPost = () => {
   // TODO: 跳转到编辑页面或显示编辑弹窗
-  console.log('编辑帖子')
 }
 
 const deletePost = () => {
   // TODO: 显示确认弹窗并删除帖子
-  console.log('删除帖子')
 }
 
 const submitComment = async () => {
@@ -591,12 +588,10 @@ const canDeleteComment = (comment) => {
 
 const editComment = (comment) => {
   // TODO: 实现编辑评论功能
-  console.log('编辑评论', comment)
 }
 
 const deleteComment = (comment) => {
   // TODO: 实现删除评论功能
-  console.log('删除评论', comment)
 }
 
 const goBack = () => {
@@ -611,7 +606,7 @@ onMounted(() => {
 
 <style scoped>
 .post-detail-page {
-  @apply min-h-screen bg-gray-50 dark:bg-gray-900;
+  @apply min-h-screen bg-muted/40 dark:bg-background;
 }
 
 .loading-state,
@@ -620,7 +615,7 @@ onMounted(() => {
 }
 
 .loading-spinner {
-  @apply w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin mb-4;
+  @apply w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mb-4;
 }
 
 .post-content {
@@ -632,12 +627,12 @@ onMounted(() => {
 }
 
 .back-btn {
-  @apply inline-flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-400
-         hover:text-gray-900 dark:hover:text-white transition-colors;
+  @apply inline-flex items-center gap-2 px-4 py-2 text-muted-foreground dark:text-muted-foreground
+         hover:text-foreground dark:hover:text-white transition-colors;
 }
 
 .post-main {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8 mb-8;
+  @apply bg-card dark:bg-card rounded-lg shadow-sm border border-border dark:border-border p-8 mb-8;
 }
 
 .post-header {
@@ -661,19 +656,19 @@ onMounted(() => {
 }
 
 .author-name {
-  @apply text-lg font-semibold text-gray-900 dark:text-white;
+  @apply text-lg font-semibold text-foreground dark:text-white;
 }
 
 .author-title {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .post-time {
-  @apply text-sm text-gray-500 dark:text-gray-400 mt-1;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground mt-1;
 }
 
 .updated-time {
-  @apply text-gray-400 dark:text-gray-500;
+  @apply text-muted-foreground dark:text-muted-foreground;
 }
 
 .post-actions {
@@ -681,13 +676,13 @@ onMounted(() => {
 }
 
 .action-btn {
-  @apply flex items-center gap-2 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400
-         hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white
+  @apply flex items-center gap-2 px-3 py-2 rounded-lg text-muted-foreground dark:text-muted-foreground
+         hover:bg-muted/60 dark:hover:bg-muted/40 hover:text-foreground dark:hover:text-white
          transition-colors;
 }
 
 .action-btn.liked {
-  @apply text-red-500;
+  @apply text-destructive;
 }
 
 .action-btn.bookmarked {
@@ -699,13 +694,13 @@ onMounted(() => {
 }
 
 .dropdown-menu {
-  @apply absolute right-0 top-full mt-2 w-32 bg-white dark:bg-gray-800 rounded-lg shadow-lg
-         border border-gray-200 dark:border-gray-700 py-2 z-10;
+  @apply absolute right-0 top-full mt-2 w-32 bg-card dark:bg-card rounded-lg shadow-lg
+         border border-border dark:border-border py-2 z-10;
 }
 
 .dropdown-item {
-  @apply w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 dark:text-gray-300
-         hover:bg-gray-100 dark:hover:bg-gray-700;
+  @apply w-full flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground dark:text-muted-foreground
+         hover:bg-muted/60 dark:hover:bg-muted/40;
 }
 
 .post-taxonomy {
@@ -713,8 +708,8 @@ onMounted(() => {
 }
 
 .post-category {
-  @apply flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-gray-700
-         text-gray-700 dark:text-gray-300 rounded-full text-sm;
+  @apply flex items-center gap-2 px-3 py-1 bg-muted/60 dark:bg-muted/40
+         text-muted-foreground dark:text-muted-foreground rounded-full text-sm;
 }
 
 .post-tags {
@@ -722,12 +717,12 @@ onMounted(() => {
 }
 
 .post-tag {
-  @apply px-2 py-1 bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300
+  @apply px-2 py-1 bg-primary/20 dark:bg-primary/30 text-primary dark:text-primary/80
          rounded text-sm;
 }
 
 .post-title {
-  @apply text-3xl font-bold text-gray-900 dark:text-white mb-6 leading-tight;
+  @apply text-3xl font-bold text-foreground dark:text-white mb-6 leading-tight;
 }
 
 .post-body {
@@ -763,50 +758,50 @@ onMounted(() => {
 }
 
 .content-text :deep(code) {
-  @apply bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded text-sm;
+  @apply bg-muted/60 dark:bg-card px-2 py-1 rounded text-sm;
 }
 
 .content-text :deep(table) {
-  @apply w-full border-collapse border border-gray-300 dark:border-gray-600 mb-4;
+  @apply w-full border-collapse border border-border dark:border-border mb-4;
 }
 
 .content-text :deep(th),
 .content-text :deep(td) {
-  @apply border border-gray-300 dark:border-gray-600 px-4 py-2 text-left;
+  @apply border border-border dark:border-border px-4 py-2 text-left;
 }
 
 .content-text :deep(th) {
-  @apply bg-gray-100 dark:bg-gray-700 font-semibold;
+  @apply bg-muted/60 dark:bg-muted/40 font-semibold;
 }
 
 .post-stats {
-  @apply flex items-center gap-6 pt-6 border-t border-gray-200 dark:border-gray-700;
+  @apply flex items-center gap-6 pt-6 border-t border-border dark:border-border;
 }
 
 .stat-item {
-  @apply flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400;
+  @apply flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .comments-section {
-  @apply bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-8;
+  @apply bg-card dark:bg-card rounded-lg shadow-sm border border-border dark:border-border p-8;
 }
 
 .comments-header {
-  @apply flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700;
+  @apply flex items-center justify-between mb-6 pb-4 border-b border-border dark:border-border;
 }
 
 .comments-title {
-  @apply text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3;
+  @apply text-2xl font-bold text-foreground dark:text-white flex items-center gap-3;
 }
 
 .sort-select {
-  @apply px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+  @apply px-3 py-2 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-primary;
 }
 
 .comment-form {
-  @apply mb-8 p-6 bg-gray-50 dark:bg-gray-700 rounded-lg;
+  @apply mb-8 p-6 bg-muted/40 dark:bg-muted/40 rounded-lg;
 }
 
 .form-header {
@@ -818,13 +813,13 @@ onMounted(() => {
 }
 
 .form-title {
-  @apply font-semibold text-gray-900 dark:text-white;
+  @apply font-semibold text-foreground dark:text-white;
 }
 
 .comment-textarea {
-  @apply w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-800 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+  @apply w-full px-4 py-3 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-card text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-primary
          resize-y;
 }
 
@@ -833,7 +828,7 @@ onMounted(() => {
 }
 
 .form-tips {
-  @apply flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400;
+  @apply flex items-center gap-2 text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .comments-list {
@@ -841,7 +836,7 @@ onMounted(() => {
 }
 
 .empty-comments {
-  @apply flex flex-col items-center justify-center py-12 text-center text-gray-500 dark:text-gray-400;
+  @apply flex flex-col items-center justify-center py-12 text-center text-muted-foreground dark:text-muted-foreground;
 }
 
 .comment-item {
@@ -869,15 +864,15 @@ onMounted(() => {
 }
 
 .author-name {
-  @apply font-semibold text-gray-900 dark:text-white;
+  @apply font-semibold text-foreground dark:text-white;
 }
 
 .author-title {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .comment-time {
-  @apply text-sm text-gray-500 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .comment-body {
@@ -885,7 +880,7 @@ onMounted(() => {
 }
 
 .comment-text {
-  @apply text-gray-700 dark:text-gray-300 leading-relaxed;
+  @apply text-muted-foreground dark:text-muted-foreground leading-relaxed;
 }
 
 .comment-actions {
@@ -893,22 +888,22 @@ onMounted(() => {
 }
 
 .comment-action {
-  @apply flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400
-         hover:text-gray-700 dark:hover:text-gray-300 transition-colors;
+  @apply flex items-center gap-1 text-sm text-muted-foreground dark:text-muted-foreground
+         hover:text-muted-foreground dark:hover:text-muted-foreground transition-colors;
 }
 
 .comment-action.liked {
-  @apply text-red-500;
+  @apply text-destructive;
 }
 
 .reply-form {
-  @apply mt-4 p-4 bg-gray-50 dark:bg-gray-600 rounded-lg;
+  @apply mt-4 p-4 bg-muted/40 dark:bg-muted/20 rounded-lg;
 }
 
 .reply-textarea {
-  @apply w-full px-3 py-2 border border-gray-300 dark:border-gray-500 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-primary-500
+  @apply w-full px-3 py-2 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-primary
          resize-y;
 }
 
@@ -917,7 +912,7 @@ onMounted(() => {
 }
 
 .replies-list {
-  @apply mt-4 pl-4 border-l-2 border-gray-200 dark:border-gray-600 space-y-4;
+  @apply mt-4 pl-4 border-l-2 border-border dark:border-border space-y-4;
 }
 
 .reply-item {
@@ -941,11 +936,11 @@ onMounted(() => {
 }
 
 .reply-author {
-  @apply font-medium text-gray-900 dark:text-white text-sm;
+  @apply font-medium text-foreground dark:text-white text-sm;
 }
 
 .reply-time {
-  @apply text-xs text-gray-500 dark:text-gray-400;
+  @apply text-xs text-muted-foreground dark:text-muted-foreground;
 }
 
 .reply-body {
@@ -953,7 +948,7 @@ onMounted(() => {
 }
 
 .reply-text {
-  @apply text-sm text-gray-700 dark:text-gray-300 leading-relaxed;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground leading-relaxed;
 }
 
 .reply-actions {
@@ -961,12 +956,12 @@ onMounted(() => {
 }
 
 .reply-action {
-  @apply flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400
-         hover:text-gray-700 dark:hover:text-gray-300 transition-colors;
+  @apply flex items-center gap-1 text-xs text-muted-foreground dark:text-muted-foreground
+         hover:text-muted-foreground dark:hover:text-muted-foreground transition-colors;
 }
 
 .reply-action.liked {
-  @apply text-red-500;
+  @apply text-destructive;
 }
 
 .btn {
@@ -979,10 +974,10 @@ onMounted(() => {
 }
 
 .btn-primary {
-  @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  @apply bg-primary text-white hover:bg-primary/90 focus:ring-primary;
 }
 
 .btn-secondary {
-  @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+  @apply bg-muted/80 text-white hover:bg-muted/40 focus:ring-primary;
 }
 </style>

@@ -45,7 +45,7 @@
                 <p class="text-sm text-muted-foreground">举报线索</p>
                 <p class="text-2xl font-semibold text-foreground">1,248</p>
               </div>
-              <Badge variant="secondary" class="bg-emerald-100 text-emerald-700">+18% 同比</Badge>
+              <Badge variant="secondary" class="bg-primary/20 text-emerald-700">+18% 同比</Badge>
             </div>
             <div class="grid grid-cols-2 gap-3 text-sm text-muted-foreground">
               <div class="rounded-lg bg-muted/40 p-3">

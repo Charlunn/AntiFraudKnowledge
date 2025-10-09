@@ -1,0 +1,149 @@
+{
+  "nodes": [
+    {
+      "data": {
+        "id": "scam-ring",
+        "label": "跨境诈骗团伙",
+        "type": "organization",
+        "riskLevel": "high",
+        "badges": ["multi-source", "model-infer"],
+        "updatedAt": "2025-10-06T09:00:00Z",
+        "source": "antiFraudBureau",
+        "relatedCases": 28,
+        "suspiciousScore": 0.92
+      }
+    },
+    {
+      "data": {
+        "id": "money-mule",
+        "label": "资金中转账户",
+        "type": "account",
+        "riskLevel": "high",
+        "badges": ["official"],
+        "updatedAt": "2025-10-07T04:00:00Z",
+        "source": "psbShanghai",
+        "relatedCases": 16,
+        "suspiciousScore": 0.89
+      }
+    },
+    {
+      "data": {
+        "id": "victim-group",
+        "label": "中老年受害群体",
+        "type": "victim",
+        "riskLevel": "medium",
+        "badges": ["report"],
+        "updatedAt": "2025-10-05T02:00:00Z",
+        "source": "cityHotline",
+        "relatedCases": 42,
+        "suspiciousScore": 0.63
+      }
+    },
+    {
+      "data": {
+        "id": "telecom-channel",
+        "label": "虚拟运营商短信",
+        "type": "channel",
+        "riskLevel": "medium",
+        "badges": ["media"],
+        "updatedAt": "2025-10-07T09:00:00Z",
+        "source": "newsAggregator",
+        "relatedCases": 31,
+        "suspiciousScore": 0.58
+      }
+    },
+    {
+      "data": {
+        "id": "ai-bait",
+        "label": "AI换脸荐股",
+        "type": "modus",
+        "riskLevel": "high",
+        "badges": ["model-infer"],
+        "updatedAt": "2025-10-07T05:30:00Z",
+        "source": "modelInfer",
+        "relatedCases": 14,
+        "suspiciousScore": 0.87
+      }
+    },
+    {
+      "data": {
+        "id": "safe-steps",
+        "label": "三步防范手册",
+        "type": "guide",
+        "riskLevel": "low",
+        "badges": ["official"],
+        "updatedAt": "2025-10-04T01:00:00Z",
+        "source": "nationalAntiFraudCenter",
+        "relatedCases": 0,
+        "suspiciousScore": 0.12
+      }
+    }
+  ],
+  "edges": [
+    {
+      "data": {
+        "id": "flow-1",
+        "source": "scam-ring",
+        "target": "money-mule",
+        "label": "资金流转",
+        "type": "transaction",
+        "weight": 0.94,
+        "confidence": 0.86,
+        "updatedAt": "2025-10-07T02:30:00Z",
+        "sourceTag": "bankingMonitor"
+      }
+    },
+    {
+      "data": {
+        "id": "flow-2",
+        "source": "scam-ring",
+        "target": "telecom-channel",
+        "label": "推广渠道",
+        "type": "communication",
+        "weight": 0.71,
+        "confidence": 0.73,
+        "updatedAt": "2025-10-06T16:00:00Z",
+        "sourceTag": "telecomAudit"
+      }
+    },
+    {
+      "data": {
+        "id": "flow-3",
+        "source": "telecom-channel",
+        "target": "victim-group",
+        "label": "触达路径",
+        "type": "reach",
+        "weight": 0.81,
+        "confidence": 0.68,
+        "updatedAt": "2025-10-06T20:10:00Z",
+        "sourceTag": "publicReports"
+      }
+    },
+    {
+      "data": {
+        "id": "flow-4",
+        "source": "ai-bait",
+        "target": "victim-group",
+        "label": "话术匹配",
+        "type": "content",
+        "weight": 0.77,
+        "confidence": 0.64,
+        "updatedAt": "2025-10-07T07:10:00Z",
+        "sourceTag": "modelInfer"
+      }
+    },
+    {
+      "data": {
+        "id": "flow-5",
+        "source": "safe-steps",
+        "target": "victim-group",
+        "label": "防范指导",
+        "type": "guideline",
+        "weight": 0.36,
+        "confidence": 0.92,
+        "updatedAt": "2025-10-06T08:30:00Z",
+        "sourceTag": "antiFraudBureau"
+      }
+    }
+  ]
+}

@@ -78,7 +78,6 @@ export async function createTestRecord(data: {
  * @example
  * ```typescript
  * const records = await fetchTestRecords(1, 10);
- * console.log('测试记录:', records.data);
  * ```
  */
 export async function fetchTestRecords(
@@ -105,7 +104,6 @@ export async function fetchTestRecords(
  * @example
  * ```typescript
  * const record = await fetchTestRecordDetail(123);
- * console.log('测试记录详情:', record.data);
  * ```
  */
 export async function fetchTestRecordDetail(id: number): Promise<ApiResponse<TestRecord>> {
@@ -119,7 +117,6 @@ export async function fetchTestRecordDetail(id: number): Promise<ApiResponse<Tes
  * @example
  * ```typescript
  * const stats = await fetchTestRecordStats();
- * console.log('统计数据:', stats.data);
  * ```
  */
 export async function fetchTestRecordStats(): Promise<ApiResponse<TestRecordStats>> {

@@ -62,7 +62,6 @@ export async function fetchQuestions(
  *     '3': 'C'
  *   }
  * });
- * console.log('得分:', result.data.score);
  * ```
  */
 export async function submitAnswers(
@@ -101,7 +100,6 @@ export async function submitAnswers(
  * @example
  * ```typescript
  * const records = await fetchQuizHistory();
- * console.log('答题记录:', records.data);
  * ```
  */
 export async function fetchQuizHistory(
@@ -123,7 +121,6 @@ export async function fetchQuizHistory(
  * @example
  * ```typescript
  * const stats = await fetchUserQuizStats();
- * console.log('统计数据:', stats.data);
  * ```
  */
 export async function fetchUserQuizStats(): Promise<ApiResponse<{

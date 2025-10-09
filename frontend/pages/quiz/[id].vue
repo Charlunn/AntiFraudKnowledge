@@ -8,7 +8,7 @@
     
     <!-- 错误状态 -->
     <div v-else-if="error" class="error-state fadeInDown">
-      <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-red-500" />
+      <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-destructive" />
       <h3>加载失败</h3>
       <p>{{ error }}</p>
       <button @click="fetchQuizDetail" class="btn btn-primary hover-lift">重试</button>
@@ -507,7 +507,7 @@ onMounted(() => {
 
 <style scoped>
 .quiz-detail-page {
-  @apply min-h-screen bg-gray-50 dark:bg-gray-900;
+  @apply min-h-screen bg-muted/40 dark:bg-background;
 }
 
 .loading-state,
@@ -516,7 +516,7 @@ onMounted(() => {
 }
 
 .loading-spinner {
-  @apply w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin mb-4;
+  @apply w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mb-4;
 }
 
 .quiz-detail-content {
@@ -524,7 +524,7 @@ onMounted(() => {
 }
 
 .quiz-header {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-700
+  @apply bg-card dark:bg-card rounded-lg p-8 shadow-sm border border-border dark:border-border
          flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6;
 }
 
@@ -537,7 +537,7 @@ onMounted(() => {
 }
 
 .quiz-category {
-  @apply text-sm font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900
+  @apply text-sm font-medium text-primary dark:text-primary bg-primary/10 dark:bg-primary/30
          px-3 py-1 rounded-full;
 }
 
@@ -546,27 +546,27 @@ onMounted(() => {
 }
 
 .difficulty-beginner {
-  @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+  @apply bg-primary/20 text-success-700 dark:bg-success-900 dark:text-success-200;
 }
 
 .difficulty-intermediate {
-  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
+  @apply bg-primary/20 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
 }
 
 .difficulty-advanced {
-  @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+  @apply bg-destructive/10 text-destructive dark:bg-destructive/30 dark:text-destructive/80;
 }
 
 .quiz-title {
-  @apply text-3xl font-bold text-gray-900 dark:text-white mb-4;
+  @apply text-3xl font-bold text-foreground dark:text-white mb-4;
 }
 
 .quiz-description {
-  @apply text-lg text-gray-600 dark:text-gray-300 mb-6 leading-relaxed;
+  @apply text-lg text-muted-foreground dark:text-muted-foreground mb-6 leading-relaxed;
 }
 
 .quiz-stats {
-  @apply flex flex-wrap gap-6 text-sm text-gray-600 dark:text-gray-400;
+  @apply flex flex-wrap gap-6 text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .stat-item {
@@ -591,7 +591,7 @@ onMounted(() => {
 }
 
 .score-header h3 {
-  @apply text-lg font-semibold text-gray-900 dark:text-white;
+  @apply text-lg font-semibold text-foreground dark:text-white;
 }
 
 .score-content {
@@ -599,7 +599,7 @@ onMounted(() => {
 }
 
 .score-value {
-  @apply text-4xl font-bold text-yellow-600 dark:text-yellow-400;
+  @apply text-4xl font-bold text-primary dark:text-primary;
 }
 
 .score-details {
@@ -611,11 +611,11 @@ onMounted(() => {
 }
 
 .detail-item .label {
-  @apply text-gray-600 dark:text-gray-400;
+  @apply text-muted-foreground dark:text-muted-foreground;
 }
 
 .detail-item .value {
-  @apply font-medium text-gray-900 dark:text-white;
+  @apply font-medium text-foreground dark:text-white;
 }
 
 .info-cards {
@@ -623,15 +623,15 @@ onMounted(() => {
 }
 
 .info-card {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700;
+  @apply bg-card dark:bg-card rounded-lg p-6 shadow-sm border border-border dark:border-border;
 }
 
 .card-header {
-  @apply flex items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700;
+  @apply flex items-center gap-3 mb-4 pb-3 border-b border-border dark:border-border;
 }
 
 .card-header h3 {
-  @apply text-lg font-semibold text-gray-900 dark:text-white;
+  @apply text-lg font-semibold text-foreground dark:text-white;
 }
 
 .card-content {
@@ -643,15 +643,15 @@ onMounted(() => {
 }
 
 .stat-label {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .stat-value {
-  @apply text-sm font-medium text-gray-900 dark:text-white;
+  @apply text-sm font-medium text-foreground dark:text-white;
 }
 
 .rules-list {
-  @apply space-y-2 text-sm text-gray-600 dark:text-gray-400;
+  @apply space-y-2 text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .rules-list li {
@@ -660,7 +660,7 @@ onMounted(() => {
 
 .rules-list li::before {
   content: '•';
-  @apply text-primary-600 dark:text-primary-400 font-bold;
+  @apply text-primary dark:text-primary font-bold;
 }
 
 .topics-list {
@@ -668,28 +668,28 @@ onMounted(() => {
 }
 
 .topic-item {
-  @apply flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded;
+  @apply flex justify-between items-center p-3 bg-muted/40 dark:bg-muted/40 rounded;
 }
 
 .topic-name {
-  @apply text-sm font-medium text-gray-900 dark:text-white;
+  @apply text-sm font-medium text-foreground dark:text-white;
 }
 
 .topic-weight {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .recent-participants,
 .comments-section {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700;
+  @apply bg-card dark:bg-card rounded-lg p-6 shadow-sm border border-border dark:border-border;
 }
 
 .section-header {
-  @apply flex items-center gap-3 mb-6 pb-3 border-b border-gray-200 dark:border-gray-700;
+  @apply flex items-center gap-3 mb-6 pb-3 border-b border-border dark:border-border;
 }
 
 .section-header h3 {
-  @apply text-lg font-semibold text-gray-900 dark:text-white;
+  @apply text-lg font-semibold text-foreground dark:text-white;
 }
 
 .participants-list {
@@ -697,7 +697,7 @@ onMounted(() => {
 }
 
 .participant-item {
-  @apply flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg;
+  @apply flex items-center gap-4 p-3 bg-muted/40 dark:bg-muted/40 rounded-lg;
 }
 
 .participant-avatar,
@@ -710,7 +710,7 @@ onMounted(() => {
 }
 
 .avatar-placeholder {
-  @apply w-full h-full bg-primary-600 text-white flex items-center justify-center font-medium;
+  @apply w-full h-full bg-primary text-white flex items-center justify-center font-medium;
 }
 
 .participant-info {
@@ -718,15 +718,15 @@ onMounted(() => {
 }
 
 .participant-name {
-  @apply font-medium text-gray-900 dark:text-white;
+  @apply font-medium text-foreground dark:text-white;
 }
 
 .participant-score {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .participant-time {
-  @apply text-xs text-gray-500 dark:text-gray-500;
+  @apply text-xs text-muted-foreground dark:text-muted-foreground;
 }
 
 .add-comment {
@@ -734,9 +734,9 @@ onMounted(() => {
 }
 
 .comment-input {
-  @apply w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg
-         bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-         focus:ring-2 focus:ring-primary-500 focus:border-transparent
+  @apply w-full p-3 border border-border dark:border-border rounded-lg
+         bg-card dark:bg-muted/40 text-foreground dark:text-white
+         focus:ring-2 focus:ring-primary focus:border-transparent
          resize-none;
 }
 
@@ -761,15 +761,15 @@ onMounted(() => {
 }
 
 .comment-author {
-  @apply font-medium text-gray-900 dark:text-white;
+  @apply font-medium text-foreground dark:text-white;
 }
 
 .comment-time {
-  @apply text-xs text-gray-500 dark:text-gray-500;
+  @apply text-xs text-muted-foreground dark:text-muted-foreground;
 }
 
 .comment-text {
-  @apply text-gray-700 dark:text-gray-300 mb-3 leading-relaxed;
+  @apply text-muted-foreground dark:text-muted-foreground mb-3 leading-relaxed;
 }
 
 .comment-actions {
@@ -777,8 +777,8 @@ onMounted(() => {
 }
 
 .action-btn {
-  @apply flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400
-         hover:text-primary-600 dark:hover:text-primary-400 transition-colors;
+  @apply flex items-center gap-1 text-sm text-muted-foreground dark:text-muted-foreground
+         hover:text-primary dark:hover:text-primary transition-colors;
 }
 
 .btn {
@@ -787,16 +787,16 @@ onMounted(() => {
 }
 
 .btn-primary {
-  @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  @apply bg-primary text-white hover:bg-primary/90 focus:ring-primary;
 }
 
 .btn-secondary {
-  @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+  @apply bg-muted/80 text-white hover:bg-muted/40 focus:ring-primary;
 }
 
 .btn-outline {
-  @apply border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300
-         hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-gray-500;
+  @apply border border-border dark:border-border text-muted-foreground dark:text-muted-foreground
+         hover:bg-muted/40 dark:hover:bg-muted/40 focus:ring-primary;
 }
 
 .btn:disabled {

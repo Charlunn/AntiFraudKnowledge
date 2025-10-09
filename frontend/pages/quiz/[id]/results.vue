@@ -8,7 +8,7 @@
     
     <!-- 错误状态 -->
     <div v-else-if="error" class="error-state fadeInDown">
-      <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-red-500" />
+      <Icon name="heroicons:exclamation-triangle" class="w-12 h-12 text-destructive" />
       <h3>加载失败</h3>
       <p>{{ error }}</p>
       <button @click="fetchResults" class="btn btn-primary hover-lift">重试</button>
@@ -56,7 +56,7 @@
         
         <div class="score-card">
           <div class="card-header">
-            <Icon name="heroicons:check-circle" class="w-6 h-6 text-green-500" />
+            <Icon name="heroicons:check-circle" class="w-6 h-6 text-success-500" />
             <h3>正确题数</h3>
           </div>
           <div class="card-value">{{ results.correct_count }} / {{ results.total_questions }}</div>
@@ -65,7 +65,7 @@
         
         <div class="score-card">
           <div class="card-header">
-            <Icon name="heroicons:clock" class="w-6 h-6 text-blue-500" />
+            <Icon name="heroicons:clock" class="w-6 h-6 text-primary" />
             <h3>用时</h3>
           </div>
           <div class="card-value">{{ formatDuration(results.time_spent) }}</div>
@@ -213,7 +213,7 @@
                 <span class="number">{{ index + 1 }}</span>
                 <Icon 
                   :name="question.is_correct ? 'heroicons:check' : 'heroicons:x-mark'" 
-                  :class="question.is_correct ? 'text-green-500' : 'text-red-500'"
+                  :class="question.is_correct ? 'text-success-500' : 'text-destructive'"
                   class="w-4 h-4"
                 />
               </div>
@@ -266,7 +266,7 @@
         <div class="recommendations-content">
           <div class="recommendation-card">
             <div class="card-header">
-              <Icon name="heroicons:book-open" class="w-5 h-5 text-blue-500" />
+              <Icon name="heroicons:book-open" class="w-5 h-5 text-primary" />
               <h3>推荐学习资料</h3>
             </div>
             <div class="card-content">
@@ -284,7 +284,7 @@
           
           <div class="recommendation-card">
             <div class="card-header">
-              <Icon name="heroicons:arrow-trending-up" class="w-5 h-5 text-green-500" />
+              <Icon name="heroicons:arrow-trending-up" class="w-5 h-5 text-success-500" />
               <h3>提升建议</h3>
             </div>
             <div class="card-content">
@@ -549,9 +549,9 @@ const getScoreIcon = (score) => {
 
 const getScoreIconClass = (score) => {
   if (score >= 90) return 'text-yellow-500'
-  if (score >= 80) return 'text-blue-500'
-  if (score >= 70) return 'text-green-500'
-  return 'text-red-500'
+  if (score >= 80) return 'text-primary'
+  if (score >= 70) return 'text-success-500'
+  return 'text-destructive'
 }
 
 const getScoreStatus = (score) => {
@@ -569,7 +569,7 @@ const getScoreStatusClass = (score) => {
 }
 
 const getTopicProgressClass = (score) => {
-  if (score >= 80) return 'bg-green-500'
+  if (score >= 80) return 'bg-primary/100'
   if (score >= 60) return 'bg-yellow-500'
   return 'bg-red-500'
 }
@@ -647,7 +647,7 @@ onMounted(() => {
 
 <style scoped>
 .quiz-results-page {
-  @apply min-h-screen bg-gray-50 dark:bg-gray-900;
+  @apply min-h-screen bg-muted/40 dark:bg-background;
 }
 
 .loading-state,
@@ -656,7 +656,7 @@ onMounted(() => {
 }
 
 .loading-spinner {
-  @apply w-8 h-8 border-4 border-gray-200 border-t-primary-600 rounded-full animate-spin mb-4;
+  @apply w-8 h-8 border-4 border-border border-t-primary rounded-full animate-spin mb-4;
 }
 
 .results-content {
@@ -664,7 +664,7 @@ onMounted(() => {
 }
 
 .results-header {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-700
+  @apply bg-card dark:bg-card rounded-lg p-8 shadow-sm border border-border dark:border-border
          flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6;
 }
 
@@ -673,11 +673,11 @@ onMounted(() => {
 }
 
 .quiz-title {
-  @apply text-3xl font-bold text-gray-900 dark:text-white mb-2;
+  @apply text-3xl font-bold text-foreground dark:text-white mb-2;
 }
 
 .quiz-description {
-  @apply text-gray-600 dark:text-gray-400;
+  @apply text-muted-foreground dark:text-muted-foreground;
 }
 
 .header-actions {
@@ -689,12 +689,12 @@ onMounted(() => {
 }
 
 .score-card {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700;
+  @apply bg-card dark:bg-card rounded-lg p-6 shadow-sm border border-border dark:border-border;
 }
 
 .score-card.main-score {
-  @apply md:col-span-2 lg:col-span-1 bg-gradient-to-br from-primary-50 to-primary-100 
-         dark:from-primary-900 dark:to-primary-800 border-primary-200 dark:border-primary-700
+  @apply md:col-span-2 lg:col-span-1 bg-gradient-to-br from-primary/10 to-primary/20 
+         dark:from-primary/25 dark:to-primary/30 border-primary/40 dark:border-primary
          flex items-center gap-6;
 }
 
@@ -707,11 +707,11 @@ onMounted(() => {
 }
 
 .score-value {
-  @apply text-4xl font-bold text-primary-600 dark:text-primary-400;
+  @apply text-4xl font-bold text-primary dark:text-primary;
 }
 
 .score-label {
-  @apply text-sm text-gray-600 dark:text-gray-400 mb-2;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground mb-2;
 }
 
 .score-status {
@@ -719,19 +719,19 @@ onMounted(() => {
 }
 
 .status-excellent {
-  @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
+  @apply bg-primary/20 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
 }
 
 .status-good {
-  @apply bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200;
+  @apply bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary/80;
 }
 
 .status-pass {
-  @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+  @apply bg-primary/20 text-success-700 dark:bg-success-900 dark:text-success-200;
 }
 
 .status-fail {
-  @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+  @apply bg-destructive/10 text-destructive dark:bg-destructive/30 dark:text-destructive/80;
 }
 
 .card-header {
@@ -739,29 +739,29 @@ onMounted(() => {
 }
 
 .card-header h3 {
-  @apply text-lg font-semibold text-gray-900 dark:text-white;
+  @apply text-lg font-semibold text-foreground dark:text-white;
 }
 
 .card-value {
-  @apply text-2xl font-bold text-gray-900 dark:text-white mb-2;
+  @apply text-2xl font-bold text-foreground dark:text-white mb-2;
 }
 
 .card-subtitle {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .analysis-section,
 .questions-section,
 .recommendations-section {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-700;
+  @apply bg-card dark:bg-card rounded-lg p-8 shadow-sm border border-border dark:border-border;
 }
 
 .section-header {
-  @apply flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-gray-700;
+  @apply flex items-center justify-between mb-6 pb-4 border-b border-border dark:border-border;
 }
 
 .section-header h2 {
-  @apply text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3;
+  @apply text-2xl font-bold text-foreground dark:text-white flex items-center gap-3;
 }
 
 .section-filters {
@@ -770,12 +770,12 @@ onMounted(() => {
 
 .filter-btn {
   @apply px-4 py-2 text-sm font-medium rounded-lg transition-colors
-         border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300
-         hover:bg-gray-50 dark:hover:bg-gray-700;
+         border border-border dark:border-border text-muted-foreground dark:text-muted-foreground
+         hover:bg-muted/40 dark:hover:bg-muted/40;
 }
 
 .filter-btn.active {
-  @apply bg-primary-600 text-white border-primary-600;
+  @apply bg-primary text-white border-primary;
 }
 
 .analysis-cards {
@@ -783,11 +783,11 @@ onMounted(() => {
 }
 
 .analysis-card {
-  @apply bg-gray-50 dark:bg-gray-700 rounded-lg p-6;
+  @apply bg-muted/40 dark:bg-muted/40 rounded-lg p-6;
 }
 
 .analysis-card .card-header {
-  @apply mb-4 pb-3 border-b border-gray-200 dark:border-gray-600;
+  @apply mb-4 pb-3 border-b border-border dark:border-border;
 }
 
 .analysis-card .card-header h3 {
@@ -807,15 +807,15 @@ onMounted(() => {
 }
 
 .topic-name {
-  @apply font-medium text-gray-900 dark:text-white;
+  @apply font-medium text-foreground dark:text-white;
 }
 
 .topic-score {
-  @apply text-sm font-medium text-gray-600 dark:text-gray-400;
+  @apply text-sm font-medium text-muted-foreground dark:text-muted-foreground;
 }
 
 .topic-progress {
-  @apply w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2;
+  @apply w-full bg-muted/60 dark:bg-muted/20 rounded-full h-2;
 }
 
 .progress-fill {
@@ -823,7 +823,7 @@ onMounted(() => {
 }
 
 .topic-details {
-  @apply flex justify-between text-xs text-gray-500 dark:text-gray-400;
+  @apply flex justify-between text-xs text-muted-foreground dark:text-muted-foreground;
 }
 
 .time-stats {
@@ -835,11 +835,11 @@ onMounted(() => {
 }
 
 .stat-label {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .stat-value {
-  @apply text-sm font-medium text-gray-900 dark:text-white;
+  @apply text-sm font-medium text-foreground dark:text-white;
 }
 
 .pattern-analysis {
@@ -851,11 +851,11 @@ onMounted(() => {
 }
 
 .pattern-label {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .pattern-value {
-  @apply text-sm font-medium text-gray-900 dark:text-white;
+  @apply text-sm font-medium text-foreground dark:text-white;
 }
 
 .questions-list {
@@ -863,15 +863,15 @@ onMounted(() => {
 }
 
 .question-item {
-  @apply border border-gray-200 dark:border-gray-600 rounded-lg p-6;
+  @apply border border-border dark:border-border rounded-lg p-6;
 }
 
 .question-correct {
-  @apply border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-900/20;
+  @apply border-green-200 dark:border-green-700 bg-primary/10 dark:bg-success-900/20;
 }
 
 .question-incorrect {
-  @apply border-red-200 dark:border-red-700 bg-red-50 dark:bg-red-900/20;
+  @apply border-destructive/40 dark:border-red-700 bg-red-50 dark:bg-destructive/20;
 }
 
 .question-header {
@@ -883,16 +883,16 @@ onMounted(() => {
 }
 
 .question-number .number {
-  @apply w-8 h-8 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300
+  @apply w-8 h-8 bg-muted/60 dark:bg-muted/20 text-muted-foreground dark:text-muted-foreground
          rounded-full flex items-center justify-center font-medium text-sm;
 }
 
 .question-meta {
-  @apply flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400;
+  @apply flex items-center gap-4 text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .question-type {
-  @apply bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded;
+  @apply bg-muted/60 dark:bg-muted/40 px-2 py-1 rounded;
 }
 
 .question-content {
@@ -900,7 +900,7 @@ onMounted(() => {
 }
 
 .question-text {
-  @apply text-lg font-semibold text-gray-900 dark:text-white;
+  @apply text-lg font-semibold text-foreground dark:text-white;
 }
 
 .answer-section {
@@ -908,31 +908,31 @@ onMounted(() => {
 }
 
 .answer-label {
-  @apply text-sm font-medium text-gray-600 dark:text-gray-400;
+  @apply text-sm font-medium text-muted-foreground dark:text-muted-foreground;
 }
 
 .user-answer {
-  @apply p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-gray-900 dark:text-white;
+  @apply p-3 bg-muted/60 dark:bg-muted/40 rounded-lg text-foreground dark:text-white;
 }
 
 .user-answer.incorrect {
-  @apply bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200;
+  @apply bg-destructive/10 dark:bg-destructive/25 text-destructive dark:text-destructive/80;
 }
 
 .correct-answer {
-  @apply p-3 bg-green-100 dark:bg-green-900/30 rounded-lg text-green-800 dark:text-green-200;
+  @apply p-3 bg-primary/20 dark:bg-success-900/30 rounded-lg text-success-700 dark:text-success-200;
 }
 
 .explanation-section {
-  @apply mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg;
+  @apply mt-4 p-4 bg-primary/10 dark:bg-primary/20 rounded-lg;
 }
 
 .explanation-label {
-  @apply flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300 mb-2;
+  @apply flex items-center gap-2 text-sm font-medium text-primary dark:text-primary mb-2;
 }
 
 .explanation-text {
-  @apply text-sm text-blue-800 dark:text-blue-200 leading-relaxed;
+  @apply text-sm text-primary dark:text-primary/80 leading-relaxed;
 }
 
 .recommendations-content {
@@ -940,11 +940,11 @@ onMounted(() => {
 }
 
 .recommendation-card {
-  @apply bg-gray-50 dark:bg-gray-700 rounded-lg p-6;
+  @apply bg-muted/40 dark:bg-muted/40 rounded-lg p-6;
 }
 
 .recommendation-card .card-header {
-  @apply mb-4 pb-3 border-b border-gray-200 dark:border-gray-600;
+  @apply mb-4 pb-3 border-b border-border dark:border-border;
 }
 
 .recommendation-card .card-header h3 {
@@ -961,20 +961,20 @@ onMounted(() => {
 }
 
 .resource-link {
-  @apply flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline;
+  @apply flex items-center gap-2 text-primary dark:text-primary hover:underline;
 }
 
 .resource-type {
-  @apply text-xs text-gray-500 dark:text-gray-400 bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded;
+  @apply text-xs text-muted-foreground dark:text-muted-foreground bg-muted/60 dark:bg-muted/20 px-2 py-1 rounded;
 }
 
 .suggestion-list li {
-  @apply text-sm text-gray-700 dark:text-gray-300 leading-relaxed;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground leading-relaxed;
 }
 
 .suggestion-list li::before {
   content: '•';
-  @apply text-primary-600 dark:text-primary-400 font-bold mr-2;
+  @apply text-primary dark:text-primary font-bold mr-2;
 }
 
 .related-quizzes {
@@ -982,7 +982,7 @@ onMounted(() => {
 }
 
 .related-quiz-item {
-  @apply flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600;
+  @apply flex items-center justify-between p-4 bg-card dark:bg-card rounded-lg border border-border dark:border-border;
 }
 
 .quiz-info {
@@ -990,11 +990,11 @@ onMounted(() => {
 }
 
 .quiz-name {
-  @apply font-medium text-gray-900 dark:text-white mb-1;
+  @apply font-medium text-foreground dark:text-white mb-1;
 }
 
 .quiz-desc {
-  @apply text-sm text-gray-600 dark:text-gray-400;
+  @apply text-sm text-muted-foreground dark:text-muted-foreground;
 }
 
 .btn {
@@ -1007,15 +1007,15 @@ onMounted(() => {
 }
 
 .btn-primary {
-  @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500;
+  @apply bg-primary text-white hover:bg-primary/90 focus:ring-primary;
 }
 
 .btn-secondary {
-  @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+  @apply bg-muted/80 text-white hover:bg-muted/40 focus:ring-primary;
 }
 
 .btn-outline {
-  @apply border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300
-         hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-gray-500;
+  @apply border border-border dark:border-border text-muted-foreground dark:text-muted-foreground
+         hover:bg-muted/40 dark:hover:bg-muted/40 focus:ring-primary;
 }
 </style>

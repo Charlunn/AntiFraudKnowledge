@@ -65,7 +65,11 @@ from .cypher_queries import (
     TIME_RANGE_FILTER_CYPHER,
     PROPERTY_FILTER_CYPHER,
     MULTI_HOP_QUERY_CYPHER,
-    COMPLEX_FILTER_QUERY_CYPHER
+    COMPLEX_FILTER_QUERY_CYPHER,
+    TOP_DEGREE_NODES_CYPHER,
+    NODE_LABEL_USAGE_CYPHER,
+    RELATIONSHIP_USAGE_CYPHER,
+    UNIVERSAL_SEARCH_CYPHER
 )
 from . import serializers
 
@@ -907,6 +911,99 @@ class FilteredGraphView(BaseGraphAPIView):
             return [item.strip() for item in value.split(',') if item.strip()]
         return [str(value).strip()]
 
+class GraphMetadataView(BaseGraphAPIView):
+    """
+    Provide graph structure insights such as high-degree nodes and relationship usage.
+    """
+
+    def get(self, request, format=None):
+        node_limit = self._clamp(request.query_params.get('node_limit', 10), default=10, min_value=1, max_value=100)
+        node_skip = self._clamp(request.query_params.get('node_skip', 0), default=0, min_value=0, max_value=10_000)
+        rel_limit = self._clamp(request.query_params.get('relationship_limit', 25), default=25, min_value=1, max_value=200)
+        label_limit = self._clamp(request.query_params.get('label_limit', 25), default=25, min_value=1, max_value=200)
+
+        try:
+            top_nodes_raw = read_from_neo4j(
+                TOP_DEGREE_NODES_CYPHER,
+                {'limit': node_limit + 1, 'skip': node_skip}
+            )
+            labels_raw = read_from_neo4j(
+                NODE_LABEL_USAGE_CYPHER,
+                {'limit': label_limit}
+            )
+            relationships_raw = read_from_neo4j(
+                RELATIONSHIP_USAGE_CYPHER,
+                {'limit': rel_limit}
+            )
+
+            nodes_formatted = []
+            for record in top_nodes_raw[:node_limit]:
+                node_obj = record.get('n')
+                degree = record.get('degree', 0)
+                if node_obj is None:
+                    continue
+                properties = dict(node_obj)
+                labels = list(getattr(node_obj, 'labels', []))
+                node_id = serializers.get_node_id(properties) or properties.get('node_id') or properties.get('id')
+                element_id = getattr(node_obj, 'element_id', None)
+                display_name = (
+                    properties.get('name')
+                    or properties.get('title')
+                    or properties.get('term')
+                    or node_id
+                    or element_id
+                    or labels[0] if labels else None
+                )
+                nodes_formatted.append({
+                    'id': node_id or element_id,
+                    'elementId': element_id,
+                    'labels': labels,
+                    'name': display_name,
+                    'degree': degree,
+                    'properties': properties
+                })
+
+            has_more_nodes = len(top_nodes_raw) > node_limit
+
+            labels_formatted = [
+                {'label': record.get('label'), 'count': record.get('count', 0)}
+                for record in labels_raw
+            ]
+
+            relationships_formatted = [
+                {'type': record.get('type'), 'count': record.get('count', 0)}
+                for record in relationships_raw
+            ]
+
+            response_payload = {
+                'nodes': {
+                    'items': nodes_formatted,
+                    'pagination': {
+                        'skip': node_skip,
+                        'limit': node_limit,
+                        'hasMore': has_more_nodes
+                    }
+                },
+                'labels': labels_formatted,
+                'relationships': relationships_formatted
+            }
+
+            return Response(response_payload, status=status.HTTP_200_OK)
+        except Exception as exc:
+            logger.error(f"Failed to load graph metadata: {exc}")
+            return Response(
+                {'error': 'Failed to load graph metadata', 'details': str(exc)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @staticmethod
+    def _clamp(value, default, min_value, max_value):
+        try:
+            numeric = int(value)
+        except (TypeError, ValueError):
+            numeric = default
+        return max(min_value, min(max_value, numeric))
+
 class NodeDetailView(BaseGraphAPIView):
     """
     Retrieve a specific node along with its immediate neighbours for tooltip/detail panels.
@@ -950,6 +1047,88 @@ class NodeDetailView(BaseGraphAPIView):
                 {'error': 'Failed to load node detail', 'details': str(exc)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class GraphUniversalSearchView(BaseGraphAPIView):
+    """
+    Perform a fuzzy search across nodes and relationships, returning structured matches.
+    """
+
+    def get(self, request, format=None):
+        query = (request.query_params.get('query') or '').strip()
+        if not query:
+            return Response({'error': 'Query parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        node_limit = self._clamp(request.query_params.get('node_limit', 25), default=25, min_value=1, max_value=200)
+        relationship_limit = self._clamp(request.query_params.get('relationship_limit', 25), default=25, min_value=1, max_value=200)
+
+        try:
+            results = read_from_neo4j(
+                UNIVERSAL_SEARCH_CYPHER,
+                {
+                    'query': query,
+                    'node_limit': node_limit,
+                    'relationship_limit': relationship_limit
+                }
+            )
+
+            nodes = []
+            relationships = []
+
+            for record in results:
+                kind = record.get('kind')
+                if kind == 'node':
+                    properties = record.get('properties') or {}
+                    labels = record.get('labels') or []
+                    node_id = serializers.get_node_id(properties) or properties.get('node_id') or record.get('id')
+                    display_name = (
+                        properties.get('name')
+                        or properties.get('title')
+                        or properties.get('term')
+                        or node_id
+                    )
+                    nodes.append({
+                        'id': node_id or record.get('id'),
+                        'elementId': record.get('id'),
+                        'labels': labels,
+                        'name': display_name,
+                        'degree': record.get('degree', 0),
+                        'properties': properties
+                    })
+                else:
+                    relationships.append({
+                        'id': record.get('id'),
+                        'type': record.get('type'),
+                        'source': record.get('source'),
+                        'target': record.get('target'),
+                        'properties': record.get('properties') or {}
+                    })
+
+            response_payload = {
+                'query': query,
+                'nodes': nodes,
+                'relationships': relationships,
+                'meta': {
+                    'node_limit': node_limit,
+                    'relationship_limit': relationship_limit,
+                    'returned_nodes': len(nodes),
+                    'returned_relationships': len(relationships)
+                }
+            }
+            return Response(response_payload, status=status.HTTP_200_OK)
+        except Exception as exc:
+            logger.error(f"Universal search failed: {exc}")
+            return Response(
+                {'error': 'Failed to complete search', 'details': str(exc)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @staticmethod
+    def _clamp(value, default, min_value, max_value):
+        try:
+            numeric = int(value)
+        except (TypeError, ValueError):
+            numeric = default
+        return max(min_value, min(max_value, numeric))
 
 class GraphSearchView(BaseGraphAPIView):
     """
@@ -1054,4 +1233,3 @@ class NodeExpandView(BaseGraphAPIView):
                 {'error': 'Failed to expand node', 'details': str(exc)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-

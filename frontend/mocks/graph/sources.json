@@ -1,0 +1,38 @@
+[
+  {
+    "id": "antiFraudBureau",
+    "label": "国家反诈中心",
+    "type": "official",
+    "color": "bg-emerald-100 text-emerald-700"
+  },
+  {
+    "id": "psbShanghai",
+    "label": "上海市公安局",
+    "type": "official",
+    "color": "bg-emerald-100 text-emerald-700"
+  },
+  {
+    "id": "cityHotline",
+    "label": "市民热线",
+    "type": "report",
+    "color": "bg-sky-100 text-sky-700"
+  },
+  {
+    "id": "newsAggregator",
+    "label": "媒体巡检",
+    "type": "media",
+    "color": "bg-indigo-100 text-indigo-700"
+  },
+  {
+    "id": "modelInfer",
+    "label": "模型推断",
+    "type": "model-infer",
+    "color": "bg-amber-100 text-amber-700"
+  },
+  {
+    "id": "bankingMonitor",
+    "label": "银行风控数据",
+    "type": "multi-source",
+    "color": "bg-purple-100 text-purple-700"
+  }
+]

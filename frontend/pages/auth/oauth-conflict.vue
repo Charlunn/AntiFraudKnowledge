@@ -1,14 +1,14 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+  <div class="min-h-screen flex items-center justify-center bg-muted/40 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-md w-full space-y-8">
       <div>
         <div class="flex justify-center">
           <img class="h-12 w-auto" src="/logo.svg" alt="Logo" />
         </div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-foreground">
           账户冲突处理
         </h2>
-        <p class="mt-2 text-center text-sm text-gray-600">
+        <p class="mt-2 text-center text-sm text-muted-foreground">
           检测到账户冲突，请选择处理方式
         </p>
       </div>
@@ -17,7 +17,7 @@
       <div v-if="conflictInfo" class="bg-yellow-50 border border-yellow-200 rounded-md p-4">
         <div class="flex">
           <div class="flex-shrink-0">
-            <ExclamationTriangleIcon class="h-5 w-5 text-yellow-400" />
+            <ExclamationTriangleIcon class="h-5 w-5 text-primary" />
           </div>
           <div class="ml-3">
             <h3 class="text-sm font-medium text-yellow-800">
@@ -37,7 +37,7 @@
       </div>
       
       <!-- 第三方账户信息 -->
-      <div v-if="userInfo" class="bg-blue-50 border border-blue-200 rounded-md p-4">
+      <div v-if="userInfo" class="bg-primary/10 border border-primary/50 rounded-md p-4">
         <div class="flex items-center">
           <div class="flex-shrink-0">
             <img
@@ -46,15 +46,15 @@
               :alt="userInfo.nickname"
               class="h-10 w-10 rounded-full"
             />
-            <div v-else class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-              <UserIcon class="h-6 w-6 text-gray-600" />
+            <div v-else class="h-10 w-10 rounded-full bg-muted/70 flex items-center justify-center">
+              <UserIcon class="h-6 w-6 text-muted-foreground" />
             </div>
           </div>
           <div class="ml-3">
-            <p class="text-sm font-medium text-blue-900">
+            <p class="text-sm font-medium text-primary">
               {{ userInfo.nickname || '未知用户' }}
             </p>
-            <p class="text-sm text-blue-700">
+            <p class="text-sm text-primary">
               来自 {{ providerName }}
             </p>
           </div>
@@ -64,7 +64,7 @@
       <!-- 处理选项 -->
       <div class="space-y-4">
         <!-- 选项1: 登录现有账户 -->
-        <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors">
+        <div class="border border-border rounded-lg p-4 hover:border-primary/40 transition-colors">
           <div class="flex items-center">
             <input
               id="login-existing"
@@ -72,13 +72,13 @@
               name="conflict-option"
               type="radio"
               value="login"
-              class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+              class="h-4 w-4 text-primary focus:ring-primary border-border"
             />
-            <label for="login-existing" class="ml-3 block text-sm font-medium text-gray-700">
+            <label for="login-existing" class="ml-3 block text-sm font-medium text-muted-foreground">
               登录现有账户
             </label>
           </div>
-          <p class="mt-2 text-sm text-gray-500 ml-7">
+          <p class="mt-2 text-sm text-muted-foreground ml-7">
             使用现有账户登录，并将 {{ providerName }} 账户绑定到该账户
           </p>
           
@@ -88,13 +88,13 @@
               v-model="password"
               type="password"
               placeholder="请输入账户密码"
-              class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              class="block w-full px-3 py-2 border border-border rounded-md shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
             />
           </div>
         </div>
         
         <!-- 选项2: 创建新账户 -->
-        <div class="border border-gray-200 rounded-lg p-4 hover:border-indigo-300 transition-colors">
+        <div class="border border-border rounded-lg p-4 hover:border-primary/40 transition-colors">
           <div class="flex items-center">
             <input
               id="create-new"
@@ -102,19 +102,19 @@
               name="conflict-option"
               type="radio"
               value="create"
-              class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+              class="h-4 w-4 text-primary focus:ring-primary border-border"
             />
-            <label for="create-new" class="ml-3 block text-sm font-medium text-gray-700">
+            <label for="create-new" class="ml-3 block text-sm font-medium text-muted-foreground">
               创建新账户
             </label>
           </div>
-          <p class="mt-2 text-sm text-gray-500 ml-7">
+          <p class="mt-2 text-sm text-muted-foreground ml-7">
             使用不同的用户名和邮箱创建新账户
           </p>
         </div>
         
         <!-- 选项3: 取消操作 -->
-        <div class="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+        <div class="border border-border rounded-lg p-4 hover:border-red-300 transition-colors">
           <div class="flex items-center">
             <input
               id="cancel"
@@ -122,26 +122,26 @@
               name="conflict-option"
               type="radio"
               value="cancel"
-              class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300"
+              class="h-4 w-4 text-destructive focus:ring-red-500 border-border"
             />
-            <label for="cancel" class="ml-3 block text-sm font-medium text-gray-700">
+            <label for="cancel" class="ml-3 block text-sm font-medium text-muted-foreground">
               取消操作
             </label>
           </div>
-          <p class="mt-2 text-sm text-gray-500 ml-7">
+          <p class="mt-2 text-sm text-muted-foreground ml-7">
             返回登录页面，不进行任何操作
           </p>
         </div>
       </div>
       
       <!-- 错误提示 -->
-      <div v-if="error" class="bg-red-50 border border-red-200 rounded-md p-4">
+      <div v-if="error" class="bg-red-50 border border-destructive/40 rounded-md p-4">
         <div class="flex">
           <div class="flex-shrink-0">
-            <ExclamationCircleIcon class="h-5 w-5 text-red-400" />
+            <ExclamationCircleIcon class="h-5 w-5 text-destructive" />
           </div>
           <div class="ml-3">
-            <p class="text-sm text-red-800">{{ error }}</p>
+            <p class="text-sm text-destructive">{{ error }}</p>
           </div>
         </div>
       </div>
@@ -150,7 +150,7 @@
       <div class="space-y-3">
         <button
           :disabled="!selectedOption || loading || (selectedOption === 'login' && !password)"
-          class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
           @click="handleSubmit"
         >
           <span v-if="loading" class="absolute left-0 inset-y-0 flex items-center pl-3">
@@ -161,7 +161,7 @@
         
         <button
           type="button"
-          class="w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          class="w-full flex justify-center py-2 px-4 border border-border text-sm font-medium rounded-md text-muted-foreground bg-card hover:bg-muted/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           @click="goBack"
         >
           返回登录页面

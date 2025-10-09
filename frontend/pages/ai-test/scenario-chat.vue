@@ -3,24 +3,24 @@
     <div class="container mx-auto px-4 py-8">
       <!-- 页面标题和场景信息 -->
       <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-dark-text mb-4">
+        <h1 class="text-3xl font-bold text-foreground dark:text-foreground mb-4">
           {{ scenarioData?.title || '电信诈骗模拟' }}
         </h1>
         <div class="flex justify-center items-center space-x-4 mb-4">
-          <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
+          <span class="px-3 py-1 bg-destructive/10 text-destructive rounded-full text-sm font-medium">
             难度: {{ difficultyText }}
           </span>
-          <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+          <span class="px-3 py-1 bg-primary/20 text-primary rounded-full text-sm font-medium">
             模式: {{ modeText }}
           </span>
-          <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+          <span class="px-3 py-1 bg-primary/20 text-success-700 rounded-full text-sm font-medium">
             当前分数: {{ currentScore }}
           </span>
           <span class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
             轮次: {{ conversationRounds }}/{{ maxRounds }}
           </span>
         </div>
-        <p class="text-lg text-gray-600 dark:text-dark-text-secondary">
+        <p class="text-lg text-muted-foreground dark:text-muted-foreground">
           {{ scenarioData?.description || '请保持警惕，识别诈骗行为' }}
         </p>
       </div>
@@ -31,7 +31,7 @@
           <h3 class="text-sm font-semibold text-yellow-800 dark:text-yellow-200 mb-2">📊 最近分数变化</h3>
           <div class="max-h-20 overflow-y-auto space-y-1">
             <div v-for="change in recentScoreChanges.slice(-3)" :key="change.id" class="text-xs text-yellow-700 dark:text-yellow-300">
-              <span :class="change.scoreChange > 0 ? 'text-green-600' : 'text-red-600'" class="font-medium">
+              <span :class="change.scoreChange > 0 ? 'text-primary' : 'text-destructive'" class="font-medium">
                 {{ change.scoreChange > 0 ? '+' : '' }}{{ change.scoreChange }}分
               </span>
               - {{ change.changeReason }}
@@ -42,35 +42,35 @@
 
       <!-- 聊天界面 -->
       <div class="max-w-4xl mx-auto">
-        <div class="bg-white dark:bg-dark-surface rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-card dark:bg-card rounded-xl shadow-lg overflow-hidden">
           <!-- 聊天消息区域 -->
           <div class="h-96 overflow-y-auto p-6 space-y-4" ref="chatContainer">
             <div v-for="message in messages" :key="message.id" class="flex" :class="message.sender === 'user' ? 'justify-end' : 'justify-start'">
               <div class="max-w-xs lg:max-w-md px-4 py-2 rounded-lg" :class="[
-                message.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-red-100 dark:bg-red-900 text-red-900 dark:text-red-100 border border-red-200',
+                message.sender === 'user' ? 'bg-primary/100 text-white' : 'bg-destructive/10 dark:bg-destructive/30 text-destructive dark:text-destructive/80 border border-destructive/40',
                 message.isWaiting ? 'opacity-75' : ''
               ]">
                 <div class="text-sm mb-1" v-if="message.sender === 'ai' && !message.isWaiting">
-                  <span class="font-semibold text-red-600 dark:text-red-400">🚨 诈骗者</span>
+                  <span class="font-semibold text-destructive dark:text-destructive">🚨 诈骗者</span>
                 </div>
                 <div class="text-sm mb-1" v-if="message.sender === 'ai' && message.isWaiting">
-                  <span class="font-semibold text-gray-600 dark:text-gray-400">⏳ 系统</span>
+                  <span class="font-semibold text-muted-foreground dark:text-muted-foreground">⏳ 系统</span>
                 </div>
                 <div class="flex items-center space-x-2">
                   <span>{{ message.content }}</span>
                   <div v-if="message.isWaiting" class="flex space-x-1">
-                    <div class="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce"></div>
-                    <div class="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
-                    <div class="w-1.5 h-1.5 bg-gray-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                    <div class="w-1.5 h-1.5 bg-muted/400 rounded-full animate-bounce"></div>
+                    <div class="w-1.5 h-1.5 bg-muted/400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                    <div class="w-1.5 h-1.5 bg-muted/400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
                   </div>
                 </div>
-                <div v-if="message.scoreChange" class="text-xs mt-1 font-medium" :class="message.scoreChange > 0 ? 'text-green-600' : 'text-red-600'">
+                <div v-if="message.scoreChange" class="text-xs mt-1 font-medium" :class="message.scoreChange > 0 ? 'text-primary' : 'text-destructive'">
                   {{ message.scoreChange > 0 ? '+' : '' }}{{ message.scoreChange }}分
                 </div>
               </div>
             </div>
             <div v-if="isTyping" class="flex justify-start">
-              <div class="bg-red-100 dark:bg-red-900 px-4 py-2 rounded-lg border border-red-200">
+              <div class="bg-destructive/10 dark:bg-destructive/30 px-4 py-2 rounded-lg border border-destructive/40">
                 <div class="flex space-x-1">
                   <div class="w-2 h-2 bg-red-500 rounded-full animate-bounce"></div>
                   <div class="w-2 h-2 bg-red-500 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
@@ -81,14 +81,14 @@
           </div>
 
           <!-- 输入区域 -->
-          <div class="border-t border-gray-200 dark:border-dark-border p-4">
+          <div class="border-t border-border dark:border-border p-4">
             <div class="flex space-x-4">
               <input
                 v-model="currentMessage"
                 @keyup.enter="sendMessage"
                 type="text"
                 placeholder="输入您的回复..."
-                class="flex-1 px-4 py-2 border border-gray-300 dark:border-dark-border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-dark-bg dark:text-dark-text"
+                class="flex-1 px-4 py-2 border border-border dark:border-border rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-muted/40 dark:text-foreground"
                 :disabled="isTyping || gameEnded"
               >
               <button
@@ -101,7 +101,7 @@
               <button
                 @click="endConversation"
                 :disabled="gameEnded"
-                class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+                class="px-6 py-2 bg-muted/400 text-white rounded-lg hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
                 结束对话
               </button>
@@ -113,35 +113,35 @@
 
     <!-- 对话报告弹窗 -->
     <div v-if="showReport" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div class="bg-white dark:bg-dark-surface rounded-xl p-8 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-dark-text mb-6">对话报告</h2>
+      <div class="bg-card dark:bg-card rounded-xl p-8 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+        <h2 class="text-2xl font-bold text-foreground dark:text-foreground mb-6">对话报告</h2>
         
         <!-- 报告生成中的加载提示 -->
         <div v-if="isGeneratingReport" class="text-center py-8">
-          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
-          <p class="text-gray-600 dark:text-dark-text-secondary">正在生成此次报告，请稍候...</p>
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+          <p class="text-muted-foreground dark:text-muted-foreground">正在生成此次报告，请稍候...</p>
         </div>
         
         <!-- 报告内容 -->
         <div v-else class="space-y-4">
-          <div class="flex justify-between items-center p-4 bg-gray-50 dark:bg-dark-bg rounded-lg">
+          <div class="flex justify-between items-center p-4 bg-muted/40 dark:bg-muted/40 rounded-lg">
             <span class="font-semibold">最终得分:</span>
-            <span class="text-2xl font-bold" :class="finalScore >= 80 ? 'text-green-600' : finalScore >= 60 ? 'text-yellow-600' : 'text-red-600'">
+            <span class="text-2xl font-bold" :class="finalScore >= 80 ? 'text-primary' : finalScore >= 60 ? 'text-primary' : 'text-destructive'">
               {{ finalScore }}分
             </span>
           </div>
           
-          <div class="p-4 bg-gray-50 dark:bg-dark-bg rounded-lg">
+          <div class="p-4 bg-muted/40 dark:bg-muted/40 rounded-lg">
             <h3 class="font-semibold mb-2">表现评价:</h3>
-            <p class="text-gray-700 dark:text-dark-text-secondary">{{ performanceText }}</p>
+            <p class="text-muted-foreground dark:text-muted-foreground">{{ performanceText }}</p>
           </div>
           
-          <div class="p-4 bg-gray-50 dark:bg-dark-bg rounded-lg">
+          <div class="p-4 bg-muted/40 dark:bg-muted/40 rounded-lg">
             <h3 class="font-semibold mb-2">AI建议:</h3>
-            <p class="text-gray-700 dark:text-dark-text-secondary">{{ aiAdvice }}</p>
+            <p class="text-muted-foreground dark:text-muted-foreground">{{ aiAdvice }}</p>
           </div>
           
-          <div class="p-4 bg-gray-50 dark:bg-dark-bg rounded-lg">
+          <div class="p-4 bg-muted/40 dark:bg-muted/40 rounded-lg">
             <h3 class="font-semibold mb-2">统计信息:</h3>
             <div class="grid grid-cols-2 gap-4 text-sm">
               <div>对话轮次: {{ conversationRounds }}</div>
@@ -156,14 +156,14 @@
           <button
             @click="saveReport"
             :disabled="isGeneratingReport"
-            class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            class="px-6 py-2 bg-primary/100 text-white rounded-lg hover:bg-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             保存报告
           </button>
           <button
             @click="goBack"
             :disabled="isGeneratingReport"
-            class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            class="px-6 py-2 bg-muted/400 text-white rounded-lg hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
           >
             返回
           </button>
@@ -395,7 +395,6 @@ const sendMessage = async () => {
           }
         }
         
-        console.log(`分数更新: ${oldScore} -> ${currentScore.value}, 变化: ${scoreChange}, 原因: ${changeReason}`)
       }
     } else {
       // 如果API调用失败，显示错误信息
@@ -591,7 +590,6 @@ const saveReport = async () => {
       replace_latest: reportData.replace_latest
     })
     
-    console.log('智能评估报告保存成功:', response)
     alert('AI评估报告已保存！')
     goBack()
   } catch (error) {
@@ -615,9 +613,7 @@ const scrollToBottom = () => {
 // 初始化
 onMounted(async () => {
   // 设置场景数据 - 根据URL参数动态设置
-  console.log('当前场景ID:', scenarioId)
   scenarioData.value = scenarios[scenarioId] || scenarios['pig-butchering']
-  console.log('设置的场景数据:', scenarioData.value)
   
   // 添加等待消息的占位符
   const waitingMessageId = Date.now()

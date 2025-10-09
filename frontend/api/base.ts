@@ -93,17 +93,29 @@ export class ApiClient {
    * 获取基础URL
    */
   private getBaseURL(): string {
-    try {
-      // 检查是否在浏览器环境中
-      if (typeof window === 'undefined') {
-        return 'http://127.0.0.1:8000/api';
-      }
-      
-      const config = useRuntimeConfig();
-      return config?.public?.apiBase || 'http://127.0.0.1:8000/api';
-    } catch {
-      return 'http://127.0.0.1:8000/api';
+    const envBase =
+      process.env.NUXT_PUBLIC_API_BASE ||
+      process.env.API_BASE_URL ||
+      process.env.BASE_URL;
+
+    if (envBase) {
+      return envBase;
     }
+
+    try {
+      const config = useRuntimeConfig?.();
+      if (config?.public?.apiBase) {
+        return config.public.apiBase;
+      }
+    } catch {
+      // ignore runtime config access errors
+    }
+
+    if (process.env.DOCKER_ENV === 'true') {
+      return 'http://backend:8000/api';
+    }
+
+    return '/api';
   }
 
   /**

@@ -48,7 +48,6 @@ export async function fetchAllAchievements(): Promise<ApiResponse<Achievement[]>
  * @example
  * ```typescript
  * await grantAchievement(123, 1);
- * console.log('成就授予成功');
  * ```
  */
 export async function grantAchievement(
@@ -77,7 +76,6 @@ export async function grantAchievement(
  * @example
  * ```typescript
  * const achievement = await fetchAchievementDetail(1);
- * console.log('成就详情:', achievement.data);
  * ```
  */
 export async function fetchAchievementDetail(
@@ -97,7 +95,6 @@ export async function fetchAchievementDetail(
  * @example
  * ```typescript
  * const stats = await fetchAchievementStats();
- * console.log('成就统计:', stats.data);
  * ```
  */
 export async function fetchAchievementStats(): Promise<ApiResponse<{

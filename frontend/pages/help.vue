@@ -117,7 +117,7 @@
               <div class="space-y-2">
                 <p><strong>邮箱：</strong> feedback@antifraud-kg.com</p>
                 <p><strong>在线反馈：</strong> 
-                  <NuxtLink to="/report" class="text-blue-600 hover:text-blue-500">举报中心</NuxtLink>
+                  <NuxtLink to="/report" class="text-primary hover:text-primary">举报中心</NuxtLink>
                 </p>
                 <p>我们重视每一条用户反馈，会及时回复处理。</p>
               </div>
@@ -146,19 +146,19 @@ definePageMeta({
 
 <style scoped>
 .help-page {
-  @apply min-h-screen bg-gray-50 dark:bg-gray-900;
+  @apply min-h-screen bg-muted/40 dark:bg-background;
 }
 
 .page-header {
-  @apply bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-8;
+  @apply bg-card dark:bg-card border-b border-border dark:border-border px-6 py-8;
 }
 
 .page-title {
-  @apply text-3xl font-bold text-gray-900 dark:text-white mb-2;
+  @apply text-3xl font-bold text-foreground dark:text-white mb-2;
 }
 
 .page-description {
-  @apply text-lg text-gray-600 dark:text-gray-300;
+  @apply text-lg text-muted-foreground dark:text-muted-foreground;
 }
 
 .help-content {
@@ -166,35 +166,35 @@ definePageMeta({
 }
 
 .help-card {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-200 dark:border-gray-700 block;
+  @apply bg-card dark:bg-card rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow duration-200 border border-border dark:border-border block;
 }
 
 .help-card-icon {
-  @apply text-blue-600 dark:text-blue-400 mb-4;
+  @apply text-primary dark:text-primary mb-4;
 }
 
 .help-card-title {
-  @apply text-lg font-semibold text-gray-900 dark:text-white mb-2;
+  @apply text-lg font-semibold text-foreground dark:text-white mb-2;
 }
 
 .help-card-description {
-  @apply text-gray-600 dark:text-gray-300 text-sm;
+  @apply text-muted-foreground dark:text-muted-foreground text-sm;
 }
 
 .faq-item {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700;
+  @apply bg-card dark:bg-card rounded-lg p-6 shadow-sm border border-border dark:border-border;
 }
 
 .faq-question {
-  @apply text-lg font-semibold text-gray-900 dark:text-white mb-3;
+  @apply text-lg font-semibold text-foreground dark:text-white mb-3;
 }
 
 .faq-answer {
-  @apply text-gray-600 dark:text-gray-300 leading-relaxed;
+  @apply text-muted-foreground dark:text-muted-foreground leading-relaxed;
 }
 
 .contact-section {
-  @apply bg-white dark:bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-200 dark:border-gray-700;
+  @apply bg-card dark:bg-card rounded-lg p-8 shadow-sm border border-border dark:border-border;
 }
 
 .contact-info, .feedback-info {
