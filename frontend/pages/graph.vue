@@ -1,20 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { useHead } from '#imports'
-import TopAppBar from '~/components/fraud-graph/TopAppBar.vue'
+import { useHead, definePageMeta } from '#imports'
 import GraphSidebar from '~/components/fraud-graph/GraphSidebar.vue'
 import GraphStage from '~/components/fraud-graph/GraphStage.vue'
 import AdvancedDrawer from '~/components/fraud-graph/AdvancedDrawer.vue'
 import BottomBar from '~/components/fraud-graph/BottomBar.vue'
-import Button from '~/components/ui/button.vue'
 import { useGraphStore } from '~/stores/useGraphStore'
 import { useUIStore } from '~/stores/useUIStore'
 import { useShare } from '~/composables/useShare'
 import { useExport } from '~/composables/useExport'
 import type { AdvancedAnalysisPayload, ExportPayload, NetworkAnalysisRequest } from '~/types/graph'
 import { useI18n } from 'vue-i18n'
-import { PanelLeft, PanelLeftOpen } from 'lucide-vue-next'
+import { PanelLeft } from 'lucide-vue-next'
 
 const graphStore = useGraphStore()
 const uiStore = useUIStore()
@@ -119,46 +117,55 @@ function handleFeedback() {
   uiStore.recordFeedback()
 }
 
-const layoutGridClass = computed(() => (showLeftRail.value ? 'xl:grid-cols-[minmax(280px,340px)_1fr]' : 'xl:grid-cols-1'))
+function toggleSidebar() {
+  uiStore.toggleLeftRail(!showLeftRail.value)
+}
 
 useHead({
   title: '反诈知识图谱'
 })
+
+definePageMeta({
+  layout: 'graph'
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50">
-    <TopAppBar />
+  <div class="relative flex h-[90vh] max-h-[90vh] w-full overflow-hidden bg-slate-50">
+    <div class="relative container-grid flex h-full w-full items-stretch gap-6 overflow-hidden py-4">
+      <button
+        v-if="!showLeftRail"
+        type="button"
+        class="absolute left-0 top-1/2 z-30 flex -translate-y-1/2 -translate-x-1/2 items-center gap-2 rounded-full border border-border/50 bg-background/90 px-3 py-2 text-xs font-medium text-muted-foreground shadow backdrop-blur transition hover:text-foreground"
+        @click="uiStore.toggleLeftRail(true)"
+      >
+        <PanelLeft class="size-4" aria-hidden="true" />
+        {{ t('graph.controls.expandSidebar') }}
+      </button>
 
-    <main class="mx-auto flex w-full max-w-[1600px] flex-col gap-5 px-3 py-5 sm:px-5 lg:px-6">
-      <div class="flex flex-wrap items-center justify-end gap-2 px-1 sm:px-0">
-        <Button variant="ghost" size="sm" class="rounded-full px-3 text-xs" @click="uiStore.toggleLeftRail()">
-          <component :is="showLeftRail ? PanelLeftOpen : PanelLeft" class="mr-1 size-4" aria-hidden="true" />
-          {{ showLeftRail ? t('graph.controls.collapseSidebar') : t('graph.controls.expandSidebar') }}
-        </Button>
-      </div>
+      <GraphSidebar
+        v-if="showLeftRail"
+        class="z-20 h-full w-[320px] shrink-0 xl:w-[340px]"
+        :selected="selectedElement"
+        :ai-summary="aiExplain"
+        :evidence-list="evidenceList"
+        :redaction-message="redactionTag"
+        @save="() => uiStore.openCommandPalette()"
+        @share="handleShare"
+        @help="() => uiStore.triggerHelp(true)"
+        @read="() => uiStore.openCommandPalette()"
+      />
 
-      <div class="grid gap-5" :class="layoutGridClass">
-        <GraphSidebar
-          v-if="showLeftRail"
-          class="order-2 xl:order-1"
-          :selected="selectedElement"
-          :ai-summary="aiExplain"
-          :evidence-list="evidenceList"
-          :redaction-message="redactionTag"
-          @save="() => uiStore.openCommandPalette()"
-          @share="handleShare"
-          @help="() => uiStore.triggerHelp(true)"
-          @read="() => uiStore.openCommandPalette()"
+      <div class="flex h-full flex-1 min-h-0 flex-col overflow-hidden">
+        <GraphStage class="flex-1 min-h-0" :sidebar-expanded="showLeftRail" @toggle-sidebar="toggleSidebar" />
+
+        <BottomBar
+          class="mt-4 flex-shrink-0 border-t border-border/60 bg-background/90 px-4 py-3 sm:px-5 lg:px-6"
+          :updated-at="lastUpdatedAt"
+          @feedback="handleFeedback"
         />
-
-        <section class="order-1 xl:order-2">
-          <GraphStage />
-        </section>
       </div>
-
-      <BottomBar :updated-at="lastUpdatedAt" @feedback="handleFeedback" />
-    </main>
+    </div>
 
     <AdvancedDrawer
       v-model="drawerBinding"

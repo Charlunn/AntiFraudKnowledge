@@ -7,11 +7,13 @@
     "timeRange": "时间窗口",
     "locale": "语言",
     "help": "帮助",
-    "readAloud": "朗读"
+    "readAloud": "朗读",
+    "advancedDrawer": "打开高级面板"
   },
   "controls": {
     "collapseSidebar": "收起侧栏",
-    "expandSidebar": "展开侧栏"
+    "expandSidebar": "展开侧栏",
+    "collapseSidebarShort": "收起"
   },
   "sidebar": {
     "scenario": "场景",
@@ -84,7 +86,6 @@
     "role": "涉众角色",
     "confidence": "可信度",
     "apply": "应用筛选",
-    "clear": "清除",
     "chips": {
       "investment": "投资理财",
       "telecom": "电信网络",
@@ -96,7 +97,11 @@
       "victim": "受害人",
       "accomplice": "帮凶/车手",
       "organization": "诈骗团伙"
-    }
+    },
+    "reset": "重置",
+    "showMore": "展开更多 (+{count})",
+    "showLess": "收起",
+    "loadMore": "加载更多节点"
   },
   "trending": {
     "title": "最近高发",
@@ -148,11 +153,18 @@
         "hierarchy": "层级",
         "timeline": "时间线"
       },
-      "showMore": "展开更多"
+      "showMore": "展开更多",
+      "advancedMenu": {
+        "layouts": "布局选项"
+      }
     },
     "empty": {
       "title": "还没有加载图谱",
-      "steps": ["选择或搜索一个场景", "应用筛选条件", "点击生成图谱"]
+      "steps": [
+        "选择或搜索一个场景",
+        "应用筛选条件",
+        "点击生成图谱"
+      ]
     },
     "error": {
       "title": "加载失败",
@@ -166,7 +178,11 @@
   "riskBar": {
     "title": "当前风险等级",
     "cta": "三步防范",
-    "steps": ["核实身份", "延时转账", "拨打反诈专线 96110"]
+    "steps": [
+      "核实身份",
+      "延时转账",
+      "拨打反诈专线 96110"
+    ]
   },
   "scenario": {
     "baseline": {

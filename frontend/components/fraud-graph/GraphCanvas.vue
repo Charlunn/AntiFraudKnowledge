@@ -80,6 +80,7 @@ const chartInstance = shallowRef<EChartsInstance | null>(null);
 const chartOption = ref<EChartsOption>({ series: [] });
 const pendingOption = shallowRef<EChartsOption | null>(null);
 const boxSelectEnabled = ref(false);
+const shouldAutoFit = ref(true);
 const containerRef = ref<HTMLElement | null>(null);
 const containerWidth = ref(0);
 const containerHeight = ref(0);
@@ -101,6 +102,7 @@ const riskColorMap: Record<string, string> = {
   medium: "#f59e0b",
   low: "#22c55e",
 };
+const SERIES_ID = "fraud-graph";
 
 function evaluateContainerSize(entry?: ResizeObserverEntry): boolean {
   if (entry) {
@@ -145,6 +147,19 @@ function buildOption(): EChartsOption {
   const nodeElements = props.elements.filter((item) => item.group === "nodes");
   const edgeElements = props.elements.filter((item) => item.group === "edges");
 
+  const degreeMap: Record<string, number> = {};
+  edgeElements.forEach((element) => {
+    const data = element.data;
+    const source = data.source;
+    const target = data.target;
+    if (typeof source === "string") {
+      degreeMap[source] = (degreeMap[source] ?? 0) + 1;
+    }
+    if (typeof target === "string") {
+      degreeMap[target] = (degreeMap[target] ?? 0) + 1;
+    }
+  });
+
   const nodes: GraphNodeItemOption[] = [];
   const edges: GraphEdgeItemOption[] = [];
   nodeElements.forEach((element) => {
@@ -152,10 +167,14 @@ function buildOption(): EChartsOption {
     const risk = typeof data.riskLevel === "string" ? data.riskLevel : "medium";
     const isSelected = props.selectedId === data.id;
     const opacity = computeTimelineOpacity(data.updatedAt);
-    const size =
+    const degree = degreeMap[data.id] ?? 0;
+    const baseSize =
       typeof data.size === "number" && Number.isFinite(data.size)
         ? data.size
-        : 30;
+        : 26;
+    const weightedSize =
+      baseSize + Math.min(degree, 12) * 4 + (degree > 0 ? 6 : 0);
+    const size = Math.max(22, Math.min(weightedSize, 96));
 
     nodes.push({
       id: data.id,
@@ -288,6 +307,7 @@ function buildOption(): EChartsOption {
     },
     series: [
       {
+        id: SERIES_ID,
         type: "graph",
         layout: "force",
         data: nodes,
@@ -358,6 +378,89 @@ async function applyOption(option: EChartsOption, instance: EChartsInstance) {
   return true;
 }
 
+async function fitGraphToViewport(instance: EChartsInstance) {
+  await nextTick();
+  const model = instance.getModel?.();
+  const seriesModel =
+    typeof model?.getSeriesByIndex === "function"
+      ? (model.getSeriesByIndex(0) as any)
+      : undefined;
+  const graph = seriesModel?.getGraph?.();
+  if (!graph) {
+    return;
+  }
+
+  let minX = Number.POSITIVE_INFINITY;
+  let maxX = Number.NEGATIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  let maxY = Number.NEGATIVE_INFINITY;
+
+  graph.eachNode((node) => {
+    const layout = typeof node.getLayout === "function" ? node.getLayout() : null;
+    if (!layout || layout.length < 2) return;
+    const [x, y] = layout as [number, number];
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    minX = Math.min(minX, x);
+    maxX = Math.max(maxX, x);
+    minY = Math.min(minY, y);
+    maxY = Math.max(maxY, y);
+  });
+
+  if (
+    !Number.isFinite(minX) ||
+    !Number.isFinite(maxX) ||
+    !Number.isFinite(minY) ||
+    !Number.isFinite(maxY)
+  ) {
+    return;
+  }
+
+  const width = containerWidth.value || instance.getWidth?.() || 0;
+  const height = containerHeight.value || instance.getHeight?.() || 0;
+  if (width <= 0 || height <= 0) {
+    return;
+  }
+
+  const padding = Math.min(Math.min(width, height) * 0.2, 120);
+  const effectiveWidth = Math.max(width - padding, width * 0.6);
+  const effectiveHeight = Math.max(height - padding, height * 0.6);
+  const graphWidth = Math.max(maxX - minX, 1);
+  const graphHeight = Math.max(maxY - minY, 1);
+  const scaleX = effectiveWidth / graphWidth;
+  const scaleY = effectiveHeight / graphHeight;
+  const minZoom = 0.25;
+  const maxZoom = 2.5;
+  const desiredZoom = Math.min(Math.max(Math.min(scaleX, scaleY), minZoom), maxZoom);
+
+  const option = instance.getOption?.();
+  const seriesOption = Array.isArray(option?.series) ? option?.series?.[0] ?? {} : {};
+  const currentZoom =
+    typeof seriesOption?.zoom === "number" && Number.isFinite(seriesOption.zoom)
+      ? Math.max(seriesOption.zoom, minZoom)
+      : 1;
+  const zoomDelta = desiredZoom / currentZoom;
+
+  if (Number.isFinite(zoomDelta) && zoomDelta > 0) {
+    instance.dispatchAction({
+      type: "graphRoam",
+      seriesIndex: 0,
+      zoom: zoomDelta,
+    });
+  }
+
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+  const dx = width / 2 - centerX * desiredZoom;
+  const dy = height / 2 - centerY * desiredZoom;
+
+  instance.dispatchAction({
+    type: "graphRoam",
+    seriesIndex: 0,
+    dx,
+    dy,
+  });
+}
+
 async function updateOption() {
   const option = buildOption();
   chartOption.value = option;
@@ -372,6 +475,10 @@ async function updateOption() {
   }
   const applied = await applyOption(option, instance);
   if (applied) {
+    if (shouldAutoFit.value) {
+      await fitGraphToViewport(instance);
+      shouldAutoFit.value = false;
+    }
     pendingOption.value = null;
   }
 }
@@ -414,11 +521,16 @@ function handleContextMenu(params: any) {
   }
 }
 
+function handleRoam() {
+  shouldAutoFit.value = false;
+}
+
 function attachEvents() {
   if (!chartInstance.value) return;
   chartInstance.value.on("click", handleClick);
   chartInstance.value.on("dblclick", handleDoubleClick);
   chartInstance.value.on("contextmenu", handleContextMenu);
+  chartInstance.value.on("graphRoam", handleRoam);
 }
 
 function detachEvents() {
@@ -426,6 +538,7 @@ function detachEvents() {
   chartInstance.value.off("click", handleClick);
   chartInstance.value.off("dblclick", handleDoubleClick);
   chartInstance.value.off("contextmenu", handleContextMenu);
+  chartInstance.value.off("graphRoam", handleRoam);
 }
 
 function enableBrush(enabled: boolean) {
@@ -486,13 +599,19 @@ async function flushPendingOption(force = false) {
 
 watch(
   () => props.elements,
-  () => updateOption(),
+  () => {
+    shouldAutoFit.value = true;
+    updateOption();
+  },
   { deep: true },
 );
 
 watch(
   () => props.layout,
-  () => updateOption(),
+  () => {
+    shouldAutoFit.value = true;
+    updateOption();
+  },
 );
 
 watch(
@@ -502,7 +621,10 @@ watch(
 
 watch(
   () => props.timeline,
-  () => updateOption(),
+  () => {
+    shouldAutoFit.value = true;
+    updateOption();
+  },
   { deep: true },
 );
 
@@ -558,21 +680,33 @@ function setBoxSelection(value: boolean) {
 }
 
 function zoomIn() {
+  shouldAutoFit.value = false;
   ensureChartInstance();
-  chartInstance.value?.dispatchAction({ type: "graphRoam", zoom: 1.2 });
+  chartInstance.value?.dispatchAction({
+    type: "graphRoam",
+    seriesIndex: 0,
+    zoom: 1.2,
+  });
 }
 
 function zoomOut() {
+  shouldAutoFit.value = false;
   ensureChartInstance();
-  chartInstance.value?.dispatchAction({ type: "graphRoam", zoom: 0.8 });
+  chartInstance.value?.dispatchAction({
+    type: "graphRoam",
+    seriesIndex: 0,
+    zoom: 0.8,
+  });
 }
 
 function resetView() {
+  shouldAutoFit.value = true;
   ensureChartInstance();
   updateOption();
 }
 
 function focusTimeline() {
+  shouldAutoFit.value = true;
   updateOption();
 }
 
@@ -588,7 +722,7 @@ defineExpose({
 <template>
   <div
     ref="containerRef"
-    class="relative flex-1 min-h-[320px] w-full overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-slate-50 via-white/90 to-slate-100 shadow-inner sm:min-h-[420px] lg:min-h-[520px]"
+    class="relative flex-1 h-full min-h-[320px] w-full overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-slate-50 via-white/90 to-slate-100 shadow-inner sm:min-h-[420px] lg:min-h-[520px]"
   >
     <div
       v-if="loading"

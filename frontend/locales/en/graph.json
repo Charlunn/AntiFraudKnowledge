@@ -7,11 +7,13 @@
     "timeRange": "Time Range",
     "locale": "Locale",
     "help": "Help",
-    "readAloud": "Read aloud"
+    "readAloud": "Read aloud",
+    "advancedDrawer": "Open Advanced Panel"
   },
   "controls": {
     "collapseSidebar": "Hide sidebar",
-    "expandSidebar": "Show sidebar"
+    "expandSidebar": "Show sidebar",
+    "collapseSidebarShort": "Hide"
   },
   "sidebar": {
     "scenario": "Scenarios",
@@ -83,8 +85,7 @@
     "channel": "Channels",
     "role": "Roles",
     "confidence": "Confidence",
-    "apply": "Apply",
-    "clear": "Clear",
+    "apply": "Apply Filters",
     "chips": {
       "investment": "Investment",
       "telecom": "Telecom",
@@ -96,7 +97,11 @@
       "victim": "Victim",
       "accomplice": "Accomplice",
       "organization": "Ring"
-    }
+    },
+    "reset": "Reset",
+    "showMore": "Show more (+{count})",
+    "showLess": "Show less",
+    "loadMore": "Load more nodes"
   },
   "trending": {
     "title": "Trending Risks",
@@ -148,11 +153,18 @@
         "hierarchy": "Hierarchy",
         "timeline": "Timeline"
       },
-      "showMore": "Reveal more"
+      "showMore": "Reveal more",
+      "advancedMenu": {
+        "layouts": "Layouts"
+      }
     },
     "empty": {
       "title": "No graph yet",
-      "steps": ["Pick or search a scenario", "Apply filters if needed", "Click generate to load"]
+      "steps": [
+        "Pick or search a scenario",
+        "Apply filters if needed",
+        "Click generate to load"
+      ]
     },
     "error": {
       "title": "Something went wrong",
@@ -166,7 +178,11 @@
   "riskBar": {
     "title": "Current Risk Level",
     "cta": "3-Step Defense",
-    "steps": ["Verify identity", "Delay transfers", "Call 96110"]
+    "steps": [
+      "Verify identity",
+      "Delay transfers",
+      "Call 96110"
+    ]
   },
   "scenario": {
     "baseline": {
