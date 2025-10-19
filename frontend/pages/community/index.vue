@@ -349,7 +349,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
-import { useCommunityApi } from '~/composables/useApi'
+import { useCommunityApi } from '~/composables/useApiData'
 import { useToast } from '~/composables/useNotification'
 import { formatDate } from '~/utils/formatters'
 import { COMMUNITY_CATEGORIES, COMMUNITY_SORT_OPTIONS } from '~/constants'

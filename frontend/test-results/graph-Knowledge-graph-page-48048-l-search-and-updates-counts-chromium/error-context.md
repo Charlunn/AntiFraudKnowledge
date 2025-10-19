@@ -1,0 +1,224 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic "通知"
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "澄源" [ref=e8] [cursor=pointer]:
+            - /url: /
+          - navigation [ref=e9]:
+            - link "首页" [ref=e10] [cursor=pointer]:
+              - /url: /
+            - link "仪表盘" [ref=e11] [cursor=pointer]:
+              - /url: /dashboard
+            - link "知识图谱" [ref=e12] [cursor=pointer]:
+              - /url: /graph
+            - link "反欺诈测验" [ref=e13] [cursor=pointer]:
+              - /url: /quiz
+            - link "AI测试" [ref=e14] [cursor=pointer]:
+              - /url: /ai-test
+            - button "更多" [ref=e15] [cursor=pointer]:
+              - text: 更多
+              - img [ref=e16]
+        - generic [ref=e18]:
+          - button "搜索" [ref=e19] [cursor=pointer]:
+            - img [ref=e20]
+            - generic [ref=e23]: 搜索
+          - button "切换主题" [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+            - generic [ref=e31]: 切换主题
+          - generic [ref=e32]:
+            - button "登录" [ref=e33] [cursor=pointer]
+            - button "注册" [ref=e34] [cursor=pointer]
+    - main [ref=e35]:
+      - generic [ref=e37]:
+        - banner [ref=e38]:
+          - generic [ref=e39]:
+            - generic [ref=e40]:
+              - generic [ref=e41]:
+                - img [ref=e42]
+                - heading "反诈知识图谱" [level=1] [ref=e44]
+              - paragraph [ref=e45]: 三步洞察诈骗链路 · 快速识别高风险节点
+            - generic [ref=e46]:
+              - generic [ref=e48]:
+                - img [ref=e49]
+                - textbox "Global search" [active] [ref=e52]:
+                  - /placeholder: 输入查询或按 / 呼出指令面板
+                  - text: 张三
+                - button / [ref=e53] [cursor=pointer]:
+                  - img [ref=e54]
+                  - generic [ref=e56]: /
+              - generic [ref=e57]:
+                - 'button "时间窗口: 近 7 天" [ref=e58] [cursor=pointer]':
+                  - img [ref=e59]
+                  - generic [ref=e61]: "时间窗口:"
+                  - generic [ref=e62]: 近 7 天
+                - 'button "语言: 中文" [ref=e63] [cursor=pointer]':
+                  - img [ref=e64]
+                  - generic [ref=e67]: "语言: 中文"
+                - button "帮助" [ref=e68] [cursor=pointer]:
+                  - img [ref=e69]
+                  - generic [ref=e72]: 帮助
+                - button "高级功能 New" [ref=e73] [cursor=pointer]:
+                  - img [ref=e74]
+                  - generic [ref=e76]: 高级功能
+                  - generic [ref=e77]: New
+        - main [ref=e78]:
+          - button "收起侧栏" [ref=e80] [cursor=pointer]:
+            - img [ref=e81]
+            - text: 收起侧栏
+          - generic [ref=e84]:
+            - complementary [ref=e85]:
+              - navigation [ref=e86]:
+                - button "筛选" [pressed] [ref=e87] [cursor=pointer]:
+                  - img [ref=e88]
+                  - generic [ref=e90]: 筛选
+                - button "高发" [ref=e91] [cursor=pointer]:
+                  - img [ref=e92]
+                - button "误区" [ref=e95] [cursor=pointer]:
+                  - img [ref=e96]
+                - button "洞察" [ref=e98] [cursor=pointer]:
+                  - img [ref=e99]
+              - generic [ref=e103]:
+                - heading "快速筛选" [level=3] [ref=e105]
+                - generic [ref=e107]:
+                  - generic [ref=e108]:
+                    - generic [ref=e109]: 可信度
+                    - generic [ref=e110]: 60%
+                  - slider "confidence" [ref=e111]: "0.6"
+                - generic [ref=e112]:
+                  - button "清除" [ref=e113] [cursor=pointer]
+                  - button "应用筛选" [ref=e114] [cursor=pointer]
+            - generic [ref=e116]:
+              - generic [ref=e117]:
+                - generic [ref=e118]:
+                  - button "放大" [ref=e120] [cursor=pointer]:
+                    - img [ref=e121]
+                    - generic [ref=e124]: 放大
+                  - button "缩小" [ref=e126] [cursor=pointer]:
+                    - img [ref=e127]
+                    - generic [ref=e130]: 缩小
+                  - button "框选" [ref=e132] [cursor=pointer]:
+                    - img [ref=e133]
+                    - generic [ref=e138]: 框选
+                  - button "重置视图" [ref=e140] [cursor=pointer]:
+                    - img [ref=e141]
+                    - generic [ref=e146]: 重置视图
+                  - generic [ref=e148]:
+                    - button "力引导" [ref=e149] [cursor=pointer]:
+                      - img [ref=e150]
+                      - text: 力引导
+                    - button "层级" [ref=e155] [cursor=pointer]:
+                      - img [ref=e156]
+                      - text: 层级
+                    - button "时间线" [ref=e161] [cursor=pointer]:
+                      - img [ref=e162]
+                      - text: 时间线
+                  - button "播放时间线" [ref=e168] [cursor=pointer]:
+                    - img [ref=e169]
+                    - text: 播放时间线
+                  - button "展开更多" [ref=e171] [cursor=pointer]
+                - button "近 7 天" [ref=e172] [cursor=pointer]
+              - generic [ref=e174]:
+                - paragraph [ref=e175]: 图谱加载中
+                - paragraph [ref=e176]: 正在为你计算关键节点与关系
+              - generic [ref=e177]:
+                - heading "还没有加载图谱" [level=3] [ref=e178]
+                - list [ref=e179]:
+                  - listitem [ref=e180]: 选择或搜索一个场景
+                  - listitem [ref=e181]: 应用筛选条件
+                  - listitem [ref=e182]: 点击生成图谱
+              - generic [ref=e184]:
+                - generic [ref=e185]:
+                  - generic [ref=e186]:
+                    - paragraph [ref=e187]: 当前风险等级
+                    - heading "HIGH" [level=3] [ref=e188]
+                  - generic [ref=e189]: 三步防范
+                - generic [ref=e193]: high
+                - list [ref=e194]:
+                  - listitem [ref=e195]:
+                    - generic [ref=e196]: "1"
+                    - generic [ref=e197]: 核实身份
+                  - listitem [ref=e198]:
+                    - generic [ref=e199]: "2"
+                    - generic [ref=e200]: 延时转账
+                  - listitem [ref=e201]:
+                    - generic [ref=e202]: "3"
+                    - generic [ref=e203]: 拨打反诈专线 96110
+                - button "三步防范" [ref=e204] [cursor=pointer]
+          - generic [ref=e206]:
+            - button "反馈/举报" [ref=e207] [cursor=pointer]
+            - generic [ref=e208]: 隐私说明
+            - generic [ref=e209]: "数据更新于: 2025-10-12 15:53:59"
+    - contentinfo [ref=e210]:
+      - generic [ref=e211]:
+        - generic [ref=e212]:
+          - generic [ref=e213]:
+            - generic [ref=e214]:
+              - img [ref=e216]
+              - generic [ref=e219]:
+                - paragraph [ref=e220]: 反欺诈知识平台
+                - paragraph [ref=e221]: 让每一次点击都更安全
+            - paragraph [ref=e222]: 我们通过知识图谱、互动测验与社区交流，为公众提供系统化、实时化的反诈骗教育内容，帮助您更快识别风险、守护财产安全。
+            - generic [ref=e223]:
+              - link [ref=e224] [cursor=pointer]:
+                - /url: https://github.com
+                - img [ref=e225]
+              - link [ref=e228] [cursor=pointer]:
+                - /url: /community
+                - img [ref=e229]
+              - link [ref=e234] [cursor=pointer]:
+                - /url: /support
+                - img [ref=e235]
+              - link [ref=e237] [cursor=pointer]:
+                - /url: /dashboard
+                - img [ref=e238]
+          - generic [ref=e240]:
+            - heading "平台导航" [level=3] [ref=e241]
+            - list [ref=e242]:
+              - listitem [ref=e243]:
+                - link "知识图谱" [ref=e244] [cursor=pointer]:
+                  - /url: /graph
+              - listitem [ref=e245]:
+                - link "反诈测验" [ref=e246] [cursor=pointer]:
+                  - /url: /quiz
+              - listitem [ref=e247]:
+                - link "AI 智能测试" [ref=e248] [cursor=pointer]:
+                  - /url: /ai-test
+              - listitem [ref=e249]:
+                - link "学习资源" [ref=e250] [cursor=pointer]:
+                  - /url: /resources
+          - generic [ref=e251]:
+            - heading "帮助中心" [level=3] [ref=e252]
+            - list [ref=e253]:
+              - listitem [ref=e254]:
+                - link "帮助中心" [ref=e255] [cursor=pointer]:
+                  - /url: /help
+              - listitem [ref=e256]:
+                - link "常见问题" [ref=e257] [cursor=pointer]:
+                  - /url: /faq
+              - listitem [ref=e258]:
+                - link "意见反馈" [ref=e259] [cursor=pointer]:
+                  - /url: /feedback
+              - listitem [ref=e260]:
+                - link "联系我们" [ref=e261] [cursor=pointer]:
+                  - /url: /contact
+        - separator [ref=e262]
+        - generic [ref=e263]:
+          - paragraph [ref=e264]: © 2025 澄源 Anti-Fraud. 保留所有权利。
+          - generic [ref=e265]:
+            - link "隐私政策" [ref=e266] [cursor=pointer]:
+              - /url: /privacy
+            - link "使用条款" [ref=e267] [cursor=pointer]:
+              - /url: /terms
+            - link "免责声明" [ref=e268] [cursor=pointer]:
+              - /url: /disclaimer
+          - generic [ref=e269]:
+            - img [ref=e270]
+            - combobox [ref=e273]:
+              - option "简体中文" [selected]
+              - option "English"
+```

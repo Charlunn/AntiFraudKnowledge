@@ -3,17 +3,17 @@
  * 提供完善的请求拦截、响应处理和错误处理机制
  */
 
-import axios from 'axios';
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { useRuntimeConfig } from '#imports';
+import axios from "axios";
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { useRuntimeConfig } from "#imports";
 import type {
   ApiResponse,
   ApiError,
   RequestConfig,
   RequestInterceptor,
   ResponseInterceptor,
-  HttpMethod
-} from '~/types/api';
+  HttpMethod,
+} from "~/types/api";
 
 /**
  * API错误类
@@ -26,7 +26,7 @@ export class ApiException extends Error {
 
   constructor(error: ApiError) {
     super(error.message);
-    this.name = 'ApiException';
+    this.name = "ApiException";
     this.status = error.status;
     this.code = error.code;
     this.details = error.details;
@@ -76,14 +76,16 @@ export class ApiClient {
   private axiosInstance: AxiosInstance;
   private requestInterceptors: RequestInterceptor[] = [];
   private responseInterceptors: ResponseInterceptor[] = [];
+  private baseURL: string;
 
   constructor(baseURL?: string, timeout: number = 30000) {
+    this.baseURL = this.normaliseBaseURL(baseURL ?? this.getBaseURL());
     this.axiosInstance = axios.create({
-      baseURL: baseURL || this.getBaseURL(),
+      baseURL: this.ensureTrailingSlash(this.baseURL),
       timeout,
       headers: {
-        'Content-Type': 'application/json'
-      }
+        "Content-Type": "application/json",
+      },
     });
 
     this.setupInterceptors();
@@ -111,11 +113,67 @@ export class ApiClient {
       // ignore runtime config access errors
     }
 
-    if (process.env.DOCKER_ENV === 'true') {
-      return 'http://backend:8000/api';
+    if (process.env.DOCKER_ENV === "true") {
+      return "http://backend:8000/api";
     }
 
-    return '/api';
+    return "/api";
+  }
+
+  private normaliseBaseURL(input: string): string {
+    if (!input) {
+      return "/api";
+    }
+
+    const trimmed = input.replace(/\/+$/, "");
+
+    if (/^https?:\/\//i.test(trimmed)) {
+      try {
+        const url = new URL(trimmed);
+        const cleanPath = url.pathname.replace(/\/+$/, "");
+
+        if (!cleanPath || cleanPath === "" || cleanPath === "/") {
+          url.pathname = "/api";
+        } else if (!cleanPath.startsWith("/api")) {
+          url.pathname = `${cleanPath}/api`;
+        }
+
+        return url.toString().replace(/\/+$/, "");
+      } catch {
+        // fall back to relative handling if URL parsing fails
+      }
+    }
+
+    if (trimmed === "/" || trimmed === "") {
+      return "/api";
+    }
+
+    if (
+      trimmed === "/api" ||
+      trimmed.startsWith("/api/") ||
+      trimmed.endsWith("/api")
+    ) {
+      return trimmed;
+    }
+
+    return `${trimmed}/api`;
+  }
+
+  private normaliseEndpoint(endpoint: string): string {
+    if (!endpoint) {
+      return "";
+    }
+    if (/^https?:\/\//i.test(endpoint)) {
+      return endpoint;
+    }
+    return endpoint.replace(/^\/+/, "");
+  }
+
+  private ensureTrailingSlash(value: string): string {
+    if (!value) {
+      return "/";
+    }
+    return value.endsWith("/") ? value : `${value}/`;
   }
 
   /**
@@ -129,19 +187,19 @@ export class ApiClient {
         if (process.client) {
           try {
             // 优先从cookie获取token
-            const accessTokenCookie = useCookie('access-token');
+            const accessTokenCookie = useCookie("access-token");
             if (accessTokenCookie.value) {
               config.headers.Authorization = `Bearer ${accessTokenCookie.value}`;
             } else {
               // 备选方案：从localStorage获取
-              const { userStorage } = await import('~/utils/storage');
+              const { userStorage } = await import("~/utils/storage");
               const token = userStorage.getToken();
               if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
               }
             }
           } catch (error) {
-            console.warn('无法获取认证状态:', error);
+            console.warn("无法获取认证状态:", error);
           }
         }
 
@@ -153,9 +211,9 @@ export class ApiClient {
         return config;
       },
       (error) => {
-        console.error('请求配置错误:', error);
+        console.error("请求配置错误:", error);
         return Promise.reject(this.createApiError(error));
-      }
+      },
     );
 
     // 响应拦截器
@@ -173,21 +231,25 @@ export class ApiClient {
         const originalRequest: any = error.config;
 
         // 若401且尚未重试，尝试刷新令牌并重试
-        if (error.response && error.response.status === 401 && !originalRequest?._retry) {
+        if (
+          error.response &&
+          error.response.status === 401 &&
+          !originalRequest?._retry
+        ) {
           originalRequest._retry = true;
           try {
-            const { useAuth } = await import('~/composables/useAuth');
+            const { useAuth } = await import("~/composables/useAuth");
             const { refreshAccessToken, accessToken } = useAuth();
             const newToken = await refreshAccessToken();
             if (newToken) {
               originalRequest.headers = {
                 ...(originalRequest.headers || {}),
-                Authorization: `Bearer ${newToken}`
+                Authorization: `Bearer ${newToken}`,
               };
               return this.axiosInstance(originalRequest);
             }
           } catch (refreshErr) {
-            console.warn('刷新令牌失败:', refreshErr);
+            console.warn("刷新令牌失败:", refreshErr);
           }
         }
 
@@ -199,7 +261,7 @@ export class ApiClient {
         }
 
         return Promise.reject(await this.handleResponseError(error));
-      }
+      },
     );
   }
 
@@ -209,20 +271,20 @@ export class ApiClient {
   private async handleResponseError(error: any): Promise<ApiException> {
     if (error.response) {
       const { status, data } = error.response;
-      
+
       // 处理认证错误
       if (status === 401) {
         if (process.client) {
           try {
             // 使用 navigateTo 重定向到登录页面，避免直接使用 store
-            await navigateTo('/login');
-            console.error('认证失败，请重新登录');
+            await navigateTo("/login");
+            console.error("认证失败，请重新登录");
           } catch (e) {
-            console.warn('无法处理认证错误:', e);
+            console.warn("无法处理认证错误:", e);
             // 作为备选方案，直接清除本地存储
-            if (typeof localStorage !== 'undefined') {
-              localStorage.removeItem('access-token');
-              localStorage.removeItem('user-info');
+            if (typeof localStorage !== "undefined") {
+              localStorage.removeItem("access-token");
+              localStorage.removeItem("user-info");
             }
           }
         }
@@ -232,19 +294,19 @@ export class ApiClient {
         message: this.getErrorMessage(status, data),
         status,
         code: data?.code,
-        details: data
+        details: data,
       });
     } else if (error.request) {
       return this.createApiError({
-        message: '网络错误，请检查您的网络连接',
+        message: "网络错误，请检查您的网络连接",
         status: 0,
-        code: 'NETWORK_ERROR'
+        code: "NETWORK_ERROR",
       });
     } else {
       return this.createApiError({
-        message: error.message || '请求配置错误',
+        message: error.message || "请求配置错误",
         status: 0,
-        code: 'CONFIG_ERROR'
+        code: "CONFIG_ERROR",
       });
     }
   }
@@ -259,25 +321,25 @@ export class ApiClient {
 
     switch (status) {
       case 400:
-        return '请求参数错误';
+        return "请求参数错误";
       case 401:
-        return '认证失败，请重新登录';
+        return "认证失败，请重新登录";
       case 403:
-        return '权限不足';
+        return "权限不足";
       case 404:
-        return '请求的资源不存在';
+        return "请求的资源不存在";
       case 422:
-        return '数据验证失败';
+        return "数据验证失败";
       case 429:
-        return '请求过于频繁，请稍后再试';
+        return "请求过于频繁，请稍后再试";
       case 500:
-        return '服务器内部错误';
+        return "服务器内部错误";
       case 502:
-        return '网关错误';
+        return "网关错误";
       case 503:
-        return '服务暂时不可用';
+        return "服务暂时不可用";
       case 504:
-        return '网关超时';
+        return "网关超时";
       default:
         return `请求失败 (${status})`;
     }
@@ -288,10 +350,10 @@ export class ApiClient {
    */
   private createApiError(error: Partial<ApiError>): ApiException {
     return new ApiException({
-      message: error.message || '未知错误',
+      message: error.message || "未知错误",
       status: error.status || 0,
       code: error.code,
-      details: error.details
+      details: error.details,
     });
   }
 
@@ -314,10 +376,9 @@ export class ApiClient {
    */
   public async get<T = any>(
     url: string,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
-    const response = await this.axiosInstance.get(url, config);
-    return response.data;
+    return this.request<T>("GET", url, undefined, config);
   }
 
   /**
@@ -326,10 +387,9 @@ export class ApiClient {
   public async post<T = any>(
     url: string,
     data?: any,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
-    const response = await this.axiosInstance.post(url, data, config);
-    return response.data;
+    return this.request<T>("POST", url, data, config);
   }
 
   /**
@@ -338,10 +398,9 @@ export class ApiClient {
   public async put<T = any>(
     url: string,
     data?: any,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
-    const response = await this.axiosInstance.put(url, data, config);
-    return response.data;
+    return this.request<T>("PUT", url, data, config);
   }
 
   /**
@@ -350,10 +409,9 @@ export class ApiClient {
   public async patch<T = any>(
     url: string,
     data?: any,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
-    const response = await this.axiosInstance.patch(url, data, config);
-    return response.data;
+    return this.request<T>("PATCH", url, data, config);
   }
 
   /**
@@ -361,10 +419,9 @@ export class ApiClient {
    */
   public async delete<T = any>(
     url: string,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
-    const response = await this.axiosInstance.delete(url, config);
-    return response.data;
+    return this.request<T>("DELETE", url, undefined, config);
   }
 
   /**
@@ -374,18 +431,22 @@ export class ApiClient {
     method: HttpMethod,
     url: string,
     data?: any,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<ApiResponse<T>> {
+    const normalisedUrl = this.normaliseEndpoint(url);
     const requestConfig: AxiosRequestConfig = {
       method,
-      url,
-      ...config
+      url: normalisedUrl,
+      ...config,
     };
 
-    if (data && ['POST', 'PUT', 'PATCH'].includes(method)) {
+    if (data && ["POST", "PUT", "PATCH"].includes(method)) {
       requestConfig.data = data;
     } else if (data) {
-      requestConfig.params = data;
+      requestConfig.params = {
+        ...(config?.params ?? {}),
+        ...(typeof data === "object" ? data : { data }),
+      };
     }
 
     const response = await this.axiosInstance.request(requestConfig);
@@ -398,9 +459,10 @@ export class ApiClient {
   public async upload<T = any>(
     url: string,
     file: File,
-    fieldName: string = 'file',
-    additionalData?: Record<string, any>
+    fieldName: string = "file",
+    additionalData?: Record<string, any>,
   ): Promise<ApiResponse<T>> {
+    const normalisedUrl = this.normaliseEndpoint(url);
     const formData = new FormData();
     formData.append(fieldName, file);
 
@@ -410,10 +472,10 @@ export class ApiClient {
       });
     }
 
-    const response = await this.axiosInstance.post(url, formData, {
+    const response = await this.axiosInstance.post(normalisedUrl, formData, {
       headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+        "Content-Type": "multipart/form-data",
+      },
     });
 
     return response.data;
@@ -431,4 +493,12 @@ export class ApiClient {
 export const apiClient = new ApiClient();
 
 // 导出便捷方法
-export const { get, post, put, patch, delete: del, request, upload } = apiClient;
+export const {
+  get,
+  post,
+  put,
+  patch,
+  delete: del,
+  request,
+  upload,
+} = apiClient;

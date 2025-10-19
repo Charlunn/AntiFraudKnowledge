@@ -10,15 +10,16 @@ import { useUIStore } from '~/stores/useUIStore'
 import { useTimeline } from '~/composables/useTimeline'
 import { Motion } from '@motionone/vue'
 import { useI18n } from 'vue-i18n'
+import { useRoute } from '#imports'
 
 const graphStore = useGraphStore()
 const uiStore = useUIStore()
 const { tm } = useI18n()
+const route = useRoute()
 
 const {
   visibleElements,
   layout,
-  availableLayouts,
   isLoading,
   error,
   selectedId,
@@ -26,6 +27,8 @@ const {
   redactionTag,
   timeline
 } = storeToRefs(graphStore)
+
+const availableLayouts = computed(() => graphStore.availableLayouts)
 
 const canvasRef = ref<InstanceType<typeof GraphCanvas> | null>(null)
 const boxSelectEnabled = ref(false)
@@ -51,6 +54,18 @@ watch(
 )
 
 onMounted(() => {
+  const mockParam = route.query.mock
+  const shouldForceMock = Array.isArray(mockParam)
+    ? mockParam.some((value) => ['1', 'true', 'yes'].includes(String(value).toLowerCase()))
+    : typeof mockParam === 'string'
+      ? ['1', 'true', 'yes'].includes(mockParam.toLowerCase())
+      : false
+
+  if (shouldForceMock) {
+    graphStore.loadMockGraph({ resetInitial: true })
+    return
+  }
+
   graphStore.initialize()
 })
 
@@ -65,8 +80,8 @@ function handleExpand(nodeId: string) {
   graphStore.expandNode(nodeId)
 }
 
-function handleShowMore() {
-  graphStore.showAllNeighbors()
+async function handleShowMore() {
+  await graphStore.showAllNeighbors()
 }
 
 function togglePlay() {
@@ -107,7 +122,7 @@ async function resetView() {
 </script>
 
 <template>
-  <section class="flex h-full flex-col gap-4">
+  <section class="flex flex-1 flex-col gap-4">
     <div class="flex flex-wrap items-center justify-between gap-3">
       <GraphToolbar
         :layout="layout"

@@ -1,17 +1,53 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
-import type cytoscapeType from 'cytoscape'
-import Button from '~/components/ui/button.vue'
-import type { GraphElement, LayoutType, TimelineConfig } from '~/types/graph'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  shallowRef,
+  watch,
+} from "vue";
+import type {
+  EChartsOption,
+  GraphNodeItemOption,
+  GraphEdgeItemOption,
+  SeriesGraph,
+} from "echarts";
+import { use } from "echarts/core";
+import { GraphChart } from "echarts/charts";
+import {
+  TooltipComponent,
+  LegendComponent,
+  GridComponent,
+  ToolboxComponent,
+  DataZoomComponent,
+  BrushComponent,
+} from "echarts/components";
+import { CanvasRenderer } from "echarts/renderers";
+import VChart from "vue-echarts";
+import Button from "~/components/ui/button.vue";
+import type { GraphElement, LayoutType, TimelineConfig } from "~/types/graph";
+
+use([
+  GraphChart,
+  TooltipComponent,
+  LegendComponent,
+  GridComponent,
+  ToolboxComponent,
+  DataZoomComponent,
+  BrushComponent,
+  CanvasRenderer,
+]);
 
 const props = withDefaults(
   defineProps<{
-    elements: GraphElement[]
-    layout: LayoutType
-    selectedId?: string | null
-    loading?: boolean
-    error?: string | null
-    timeline?: TimelineConfig
+    elements: GraphElement[];
+    layout: LayoutType;
+    selectedId?: string | null;
+    loading?: boolean;
+    error?: string | null;
+    timeline?: TimelineConfig;
   }>(),
   {
     selectedId: null,
@@ -19,320 +55,555 @@ const props = withDefaults(
     error: null,
     timeline: () => ({
       enabled: false,
-      range: [new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(), new Date().toISOString()]
-    })
-  }
-)
+      range: [
+        new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+        new Date().toISOString(),
+      ],
+    }),
+  },
+);
 
 const emit = defineEmits<{
-  (e: 'select', id: string | null): void
-  (e: 'expand', nodeId: string): void
-  (e: 'subgraph', nodeId: string): void
-  (e: 'retry'): void
-  (e: 'focus-node', nodeId: string): void
-}>()
+  (e: "select", id: string | null): void;
+  (e: "expand", nodeId: string): void;
+  (e: "subgraph", nodeId: string): void;
+  (e: "retry"): void;
+  (e: "focus-node", nodeId: string): void;
+}>();
 
-const containerRef = shallowRef<HTMLElement | null>(null)
-const cy = shallowRef<cytoscapeType.Core | null>(null)
-const isReady = shallowRef(false)
-const isBoxSelect = shallowRef(false)
+type EChartsInstance = ReturnType<
+  InstanceType<typeof VChart>["getEchartsInstance"]
+>;
 
-let cytoscape: typeof cytoscapeType | null = null
+const chartRef = ref<InstanceType<typeof VChart> | null>(null);
+const chartInstance = shallowRef<EChartsInstance | null>(null);
+const chartOption = ref<EChartsOption>({ series: [] });
+const pendingOption = shallowRef<EChartsOption | null>(null);
+const boxSelectEnabled = ref(false);
+const containerRef = ref<HTMLElement | null>(null);
+const containerWidth = ref(0);
+const containerHeight = ref(0);
+const hasRenderableArea = ref(false);
+let resizeObserver: ResizeObserver | null = null;
+let isFlushingPending = false;
+const MIN_CANVAS_HEIGHT = 320;
+const canvasHeight = computed(() =>
+  Math.max(containerHeight.value, MIN_CANVAS_HEIGHT),
+);
+const canvasStyle = computed(() => ({
+  width: containerWidth.value > 0 ? `${containerWidth.value}px` : "100%",
+  height: `${canvasHeight.value}px`,
+  minHeight: `${MIN_CANVAS_HEIGHT}px`,
+}));
 
-const baseStyle: cytoscapeType.Stylesheet[] = [
-  {
-    selector: 'node',
-    style: {
-      'background-color': '#2563eb',
-      'border-color': '#bfdbfe',
-      'border-width': 2,
-      'width': 'data(size)',
-      'height': 'data(size)',
-      'shape': 'ellipse',
-      color: '#0f172a',
-      label: 'data(label)',
-      'text-wrap': 'wrap',
-      'text-max-width': 140,
-      'font-size': 12,
-      'text-halign': 'center',
-      'text-valign': 'center',
-      'text-outline-color': '#eff6ff',
-      'text-outline-width': 2,
-      'shadow-color': 'rgba(15, 23, 42, 0.18)',
-      'shadow-blur': 16,
-      'shadow-offset-x': 0,
-      'shadow-offset-y': 6
-    }
-  },
-  {
-    selector: 'edge',
-    style: {
-      width: 2,
-      'line-color': '#cbd5f5',
-      'target-arrow-color': '#94a3f1',
-      'target-arrow-shape': 'triangle',
-      'target-arrow-fill': 'filled',
-      'curve-style': 'bezier',
-      'arrow-scale': 1.1,
-      'opacity': 0.8,
-      label: 'data(label)',
-      'font-size': 11,
-      color: '#475569',
-      'text-background-color': '#ffffff',
-      'text-background-opacity': 0.85,
-      'text-background-padding': 3,
-      'text-border-color': '#e2e8f0',
-      'text-border-width': 1,
-      'text-border-opacity': 0.5
-    }
-  },
-  {
-    selector: '.is-selected',
-    style: {
-      'border-color': '#38bdf8',
-      'border-width': 4,
-      'background-color': '#1d4ed8',
-      'color': '#0f172a',
-      'shadow-color': 'rgba(56, 189, 248, 0.35)',
-      'shadow-blur': 20
-    }
-  },
-  {
-    selector: '.faded',
-    style: {
-      opacity: 0.2
-    }
+const riskColorMap: Record<string, string> = {
+  high: "#ef4444",
+  medium: "#f59e0b",
+  low: "#22c55e",
+};
+
+function evaluateContainerSize(entry?: ResizeObserverEntry): boolean {
+  if (entry) {
+    const width = Math.max(0, entry.contentRect.width);
+    const height = Math.max(0, entry.contentRect.height);
+    containerWidth.value = width;
+    containerHeight.value = height;
+    const ready = width > 0 && height > 0;
+    hasRenderableArea.value = ready;
+    return ready;
   }
-]
+  const element = containerRef.value;
+  if (!element) {
+    containerWidth.value = 0;
+    containerHeight.value = 0;
+    hasRenderableArea.value = false;
+    return false;
+  }
+  const rect = element.getBoundingClientRect();
+  const width = Math.max(0, rect.width ?? 0);
+  const height = Math.max(0, rect.height ?? 0);
+  containerWidth.value = width;
+  containerHeight.value = height;
+  const ready = width > 0 && height > 0;
+  hasRenderableArea.value = ready;
+  return ready;
+}
 
-const layoutConfig: Record<LayoutType, cytoscapeType.LayoutOptions> = {
-  force: {
-    name: 'cola',
-    animate: true,
-    refresh: 1,
-    infinite: true,
-    maxSimulationTime: 4000,
-    padding: 40,
-    randomize: false,
-    avoidOverlap: true,
-    fit: false,
-    edgeLength: 160,
-    nodeSpacing: (node: any) => 24 + (node.data('size') ?? 32) * 0.35
-  } as unknown as cytoscapeType.LayoutOptions,
-  hierarchy: {
-    name: 'breadthfirst',
-    directed: true,
-    padding: 30,
-    spacingFactor: 1.2,
-    avoidOverlap: true,
-    nodeDimensionsIncludeLabels: true
-  },
-  timeline: {
-    name: 'cose-bilkent',
-    animate: false,
-    randomize: false,
-    idealEdgeLength: 140,
-    nodeRepulsion: 4500,
-    gravity: 0.8,
-    numIter: 2000
+function computeTimelineOpacity(updatedAt: string | undefined): number {
+  if (!props.timeline?.enabled) return 1;
+  const [startIso, endIso] = props.timeline.range;
+  const start = Date.parse(startIso);
+  const end = Date.parse(endIso);
+  const value = updatedAt ? Date.parse(updatedAt) : NaN;
+  if (Number.isNaN(start) || Number.isNaN(end) || Number.isNaN(value)) {
+    return 0.45;
+  }
+  return value >= start && value <= end ? 1 : 0.18;
+}
+
+function buildOption(): EChartsOption {
+  const nodeElements = props.elements.filter((item) => item.group === "nodes");
+  const edgeElements = props.elements.filter((item) => item.group === "edges");
+
+  const nodes: GraphNodeItemOption[] = [];
+  const edges: GraphEdgeItemOption[] = [];
+  nodeElements.forEach((element) => {
+    const data = element.data;
+    const risk = typeof data.riskLevel === "string" ? data.riskLevel : "medium";
+    const isSelected = props.selectedId === data.id;
+    const opacity = computeTimelineOpacity(data.updatedAt);
+    const size =
+      typeof data.size === "number" && Number.isFinite(data.size)
+        ? data.size
+        : 30;
+
+    nodes.push({
+      id: data.id,
+      name: data.label,
+      category: data.type ?? "unknown",
+      value: data,
+      symbolSize: size,
+      draggable: true,
+      itemStyle: {
+        color: riskColorMap[risk] ?? "#2563eb",
+        opacity,
+        borderColor: isSelected ? "#22d3ee" : "#bfdbfe",
+        borderWidth: isSelected ? 3 : 1,
+        shadowBlur: isSelected ? 12 : 4,
+        shadowColor: isSelected
+          ? "rgba(34,211,238,0.35)"
+          : "rgba(15,23,42,0.12)",
+      },
+      label: {
+        show: true,
+        formatter: data.label,
+        color: "#0f172a",
+        position: "inside",
+        fontSize: 12,
+      },
+    });
+  });
+
+  edgeElements.forEach((element) => {
+    const data = element.data;
+    const isSelected = props.selectedId === data.id;
+    const opacity = computeTimelineOpacity(data.updatedAt);
+    edges.push({
+      id: data.id,
+      source: data.source,
+      target: data.target,
+      value: data.label,
+      lineStyle: {
+        width: isSelected ? 3 : 1.4,
+        color: isSelected ? "#22d3ee" : "#cbd5f5",
+        opacity,
+      },
+      emphasis: {
+        lineStyle: {
+          width: 3,
+          color: "#38bdf8",
+        },
+      },
+      label: {
+        show: Boolean(data.label),
+        formatter: data.label,
+        color: "#475569",
+        fontSize: 11,
+      },
+    });
+  });
+
+  const categories = Array.from(
+    new Set(
+      nodes
+        .map((node) => node.category)
+        .filter((value): value is string => Boolean(value)),
+    ),
+  ).map((name) => ({ name }));
+
+  const baseForce: SeriesGraph["force"] = {
+    repulsion: 3200,
+    edgeLength: [80, 160],
+    gravity: 0.06,
+  };
+
+  const forceByLayout: Record<LayoutType, SeriesGraph["force"]> = {
+    force: {
+      repulsion: 3800,
+      gravity: 0.05,
+      edgeLength: [100, 200],
+      friction: 0.2,
+    },
+    hierarchy: {
+      repulsion: 4200,
+      gravity: 0.18,
+      edgeLength: [90, 180],
+      friction: 0.12,
+    },
+    timeline: {
+      repulsion: 3600,
+      gravity: 0.04,
+      edgeLength: [80, 200],
+      friction: 0.25,
+    },
+  };
+
+  const option: EChartsOption = {
+    backgroundColor: "transparent",
+    tooltip: {
+      trigger: "item",
+      formatter: (params) => {
+        if (params.dataType === "edge") {
+          return `<div class="text-xs">
+            <div><strong>${params.data?.label ?? ""}</strong></div>
+            <div>${params.data?.source ?? ""} → ${params.data?.target ?? ""}</div>
+          </div>`;
+        }
+        const value = params.data?.value ?? {};
+        const risk = value.riskLevel ?? "unknown";
+        const source = value.source ? `<div>来源：${value.source}</div>` : "";
+        return `<div class="text-xs">
+          <div><strong>${params.name}</strong></div>
+          <div>风险：${risk}</div>
+          ${source}
+        </div>`;
+      },
+    },
+    legend: categories.length
+      ? {
+          data: categories.map((item) => item.name),
+          orient: "horizontal",
+          bottom: 8,
+          textStyle: {
+            color: "#475569",
+            fontSize: 11,
+          },
+        }
+      : undefined,
+    toolbox: {
+      show: false,
+      feature: {
+        restore: {},
+      },
+    },
+    series: [
+      {
+        type: "graph",
+        layout: "force",
+        data: nodes,
+        links: edges,
+        categories,
+        roam: true,
+        focusNodeAdjacency: true,
+        force: forceByLayout[props.layout] ?? baseForce,
+        label: { position: "inside", color: "#0f172a" },
+        edgeLabel: { show: false },
+        lineStyle: {
+          color: "#cbd5f5",
+          width: 1.4,
+          curveness: 0.1,
+        },
+        emphasis: {
+          focus: "adjacency",
+          lineStyle: { width: 3 },
+        },
+        draggable: true,
+        animation: true,
+        animationDuration: 600,
+        animationEasing: "cubicOut",
+      },
+    ],
+  };
+
+  return option;
+}
+
+function resolveChartInstance(): EChartsInstance | null {
+  if (!chartRef.value) return null;
+  if (typeof chartRef.value.getEchartsInstance === "function") {
+    return chartRef.value.getEchartsInstance();
+  }
+  // @ts-expect-error vue-echarts legacy API fallback
+  return chartRef.value.chart ?? null;
+}
+
+async function waitForRenderableArea(
+  instance: EChartsInstance,
+  retries = 60,
+  delay = 80,
+) {
+  for (let attempt = 0; attempt < retries; attempt += 1) {
+    if (evaluateContainerSize()) {
+      return true;
+    }
+    await new Promise((resolve) => setTimeout(resolve, delay));
+  }
+  const dom = instance.getDom?.();
+  if (!dom) {
+    return false;
+  }
+  const ready = (dom.clientWidth ?? 0) > 0 && (dom.clientHeight ?? 0) > 0;
+  hasRenderableArea.value = ready;
+  return ready;
+}
+
+async function applyOption(option: EChartsOption, instance: EChartsInstance) {
+  const ready =
+    hasRenderableArea.value || (await waitForRenderableArea(instance));
+  if (!ready) {
+    return false;
+  }
+  instance.setOption(option, true);
+  instance.resize();
+  return true;
+}
+
+async function updateOption() {
+  const option = buildOption();
+  chartOption.value = option;
+  pendingOption.value = option;
+  await nextTick();
+  const instance = chartInstance.value ?? resolveChartInstance();
+  if (!instance) return;
+  chartInstance.value = instance;
+  attachEvents();
+  if (boxSelectEnabled.value) {
+    enableBrush(true);
+  }
+  const applied = await applyOption(option, instance);
+  if (applied) {
+    pendingOption.value = null;
   }
 }
 
-async function ensureCytoscape() {
-  if (cytoscape) return cytoscape
-  const cytoscapeModule = await import('cytoscape')
-  const colaModule = await import('cytoscape-cola')
-  const coseModule = await import('cytoscape-cose-bilkent')
-  cytoscapeModule.default.use(colaModule.default)
-  cytoscapeModule.default.use(coseModule.default)
-  cytoscape = cytoscapeModule.default
-  return cytoscape
-}
-
-function buildElements(): cytoscapeType.ElementDefinition[] {
-  return props.elements.map((element) => {
-    const data = { ...element.data } as cytoscapeType.NodeDataDefinition | cytoscapeType.EdgeDataDefinition & {
-      size?: number
-    }
-
-    if (element.group === 'nodes') {
-      data.size = typeof data.size === 'number' && Number.isFinite(data.size) ? data.size : 40
-    }
-
-    return {
-      group: element.group,
-      data
-    }
-  })
-}
-
-async function mountGraph() {
-  const lib = await ensureCytoscape()
-  if (!containerRef.value) return
-
-  cy.value = lib({
-    container: containerRef.value,
-    elements: buildElements(),
-    style: baseStyle,
-    boxSelectionEnabled: isBoxSelect.value,
-    layout: layoutConfig[props.layout]
-  })
-
-  cy.value.nodes().forEach((node) => node.unlock())
-
-  cy.value.on('tap', 'node', (event) => {
-    const originalEvent = event.originalEvent as MouseEvent | undefined
-    const nodeId = event.target.id()
-    if (originalEvent?.shiftKey) {
-      emit('subgraph', nodeId)
-      return
-    }
-    emit('select', nodeId)
-  })
-
-  cy.value.on('tap', 'edge', (event) => {
-    emit('select', event.target.id())
-  })
-
-  cy.value.on('tap', (event) => {
-    if (event.target === cy.value) {
-      emit('select', null)
-    }
-  })
-
-  cy.value.on('cxttap', 'node', (event) => {
-    emit('expand', event.target.id())
-  })
-
-  cy.value.on('dbltap', 'node', (event) => {
-    emit('focus-node', event.target.id())
-  })
-
-  cy.value
-    .elements()
-    .unselectify()
-    .selectify()
-
-  isReady.value = true
-  highlightSelection(props.selectedId)
-}
-
-function highlightSelection(id: string | null) {
-  if (!cy.value) return
-  cy.value.elements().removeClass('is-selected')
-  if (id) {
-    cy.value.$id(id).addClass('is-selected')
-  }
-}
-
-function rerunLayout() {
-  if (!cy.value) return
-  const layoutOptions = { ...layoutConfig[props.layout] }
-  const layout = cy.value.layout(layoutOptions)
-  layout.run()
-}
-
-function updateElements() {
-  if (!cy.value) return
-  cy.value.batch(() => {
-    cy.value?.elements().remove()
-    cy.value?.add(buildElements())
-  })
-  rerunLayout()
-  highlightSelection(props.selectedId)
-}
-
-function setBoxSelection(enabled: boolean) {
-  isBoxSelect.value = enabled
-  cy.value?.boxSelectionEnabled(enabled)
-}
-
-function zoomIn() {
-  if (!cy.value) return
-  cy.value.zoom(cy.value.zoom() * 1.2)
-}
-
-function zoomOut() {
-  if (!cy.value) return
-  cy.value.zoom(cy.value.zoom() * 0.8)
-}
-
-function resetView() {
-  if (!cy.value) return
-  cy.value.fit(undefined, 32)
-}
-
-function focusTimeline() {
-  if (!cy.value) return
-  const elements = cy.value.elements()
-  elements.forEach((element) => {
-    const updatedAt = (element.data('updatedAt') ?? '') as string
-    if (!updatedAt || !props.timeline?.enabled) {
-      element.removeClass('faded')
-      return
-    }
-    const [start, end] = props.timeline.range.map((time) => new Date(time).getTime())
-    const current = new Date(updatedAt).getTime()
-    if (current < start || current > end) {
-      element.addClass('faded')
+function handleClick(params: any) {
+  if (!params) return;
+  if (params.dataType === "node") {
+    const nodeId = params.data?.id as string | undefined;
+    if (!nodeId) return;
+    if (params.event?.event?.shiftKey) {
+      emit("subgraph", nodeId);
     } else {
-      element.removeClass('faded')
+      emit("select", nodeId);
     }
-  })
+  } else if (params.dataType === "edge") {
+    const edgeId = params.data?.id as string | undefined;
+    if (!edgeId) return;
+    emit("select", edgeId);
+  } else {
+    emit("select", null);
+  }
 }
 
-watch(
-  () => props.layout,
-  () => nextTick(rerunLayout)
-)
+function handleDoubleClick(params: any) {
+  if (params.dataType === "node") {
+    const nodeId = params.data?.id as string | undefined;
+    if (nodeId) {
+      emit("focus-node", nodeId);
+    }
+  }
+}
+
+function handleContextMenu(params: any) {
+  if (params.dataType === "node") {
+    params.event?.event?.preventDefault?.();
+    const nodeId = params.data?.id as string | undefined;
+    if (nodeId) {
+      emit("expand", nodeId);
+    }
+  }
+}
+
+function attachEvents() {
+  if (!chartInstance.value) return;
+  chartInstance.value.on("click", handleClick);
+  chartInstance.value.on("dblclick", handleDoubleClick);
+  chartInstance.value.on("contextmenu", handleContextMenu);
+}
+
+function detachEvents() {
+  if (!chartInstance.value) return;
+  chartInstance.value.off("click", handleClick);
+  chartInstance.value.off("dblclick", handleDoubleClick);
+  chartInstance.value.off("contextmenu", handleContextMenu);
+}
+
+function enableBrush(enabled: boolean) {
+  if (!chartInstance.value) return;
+  chartInstance.value.dispatchAction({
+    type: "takeGlobalCursor",
+    key: "brush",
+    brushOption: enabled
+      ? {
+          brushType: "rect",
+          brushMode: "multiple",
+          throttleType: "debounce",
+          throttleDelay: 100,
+        }
+      : {
+          brushType: false,
+        },
+  });
+  if (!enabled) {
+    chartInstance.value.dispatchAction({ type: "brush", areas: [] });
+  }
+}
+
+function ensureChartInstance(): EChartsInstance | null {
+  const existing = chartInstance.value;
+  const instance = existing ?? resolveChartInstance();
+  if (!instance) return null;
+  if (chartInstance.value !== instance) {
+    detachEvents();
+    chartInstance.value = instance;
+    attachEvents();
+    if (boxSelectEnabled.value) {
+      enableBrush(true);
+    }
+  }
+  return instance;
+}
+
+async function flushPendingOption(force = false) {
+  if (isFlushingPending) return;
+  const instance = ensureChartInstance();
+  if (!instance) return;
+  const option = pendingOption.value ?? (force ? chartOption.value : null);
+  if (!option) {
+    instance.resize();
+    return;
+  }
+  isFlushingPending = true;
+  try {
+    const applied = await applyOption(option, instance);
+    if (applied) {
+      pendingOption.value = null;
+    }
+  } finally {
+    isFlushingPending = false;
+  }
+}
 
 watch(
   () => props.elements,
-  () => nextTick(updateElements),
-  { deep: true }
-)
+  () => updateOption(),
+  { deep: true },
+);
+
+watch(
+  () => props.layout,
+  () => updateOption(),
+);
 
 watch(
   () => props.selectedId,
-  (id) => highlightSelection(id ?? null)
-)
+  () => updateOption(),
+);
 
 watch(
   () => props.timeline,
-  () => focusTimeline(),
-  { deep: true }
-)
+  () => updateOption(),
+  { deep: true },
+);
+
+watch(canvasHeight, () => {
+  flushPendingOption(true);
+});
+
+watch(containerWidth, () => {
+  flushPendingOption(true);
+});
+
+function handleChartReady(instance: EChartsInstance) {
+  chartInstance.value = instance;
+  attachEvents();
+  if (boxSelectEnabled.value) {
+    enableBrush(true);
+  }
+  evaluateContainerSize();
+  flushPendingOption(true);
+}
 
 onMounted(async () => {
-  await mountGraph()
-  await nextTick()
-  resetView()
-})
+  await nextTick();
+  evaluateContainerSize();
+  if (process.client && typeof ResizeObserver !== "undefined") {
+    resizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[entries.length - 1];
+      const ready = evaluateContainerSize(entry);
+      if (ready) {
+        flushPendingOption(true);
+      }
+    });
+    if (containerRef.value) {
+      resizeObserver.observe(containerRef.value);
+    }
+  }
+  await updateOption();
+});
 
 onBeforeUnmount(() => {
-  cy.value?.destroy()
-  cy.value = null
-})
+  detachEvents();
+  chartInstance.value = null;
+  if (resizeObserver) {
+    resizeObserver.disconnect();
+    resizeObserver = null;
+  }
+});
+
+function setBoxSelection(value: boolean) {
+  boxSelectEnabled.value = value;
+  ensureChartInstance();
+  enableBrush(value);
+}
+
+function zoomIn() {
+  ensureChartInstance();
+  chartInstance.value?.dispatchAction({ type: "graphRoam", zoom: 1.2 });
+}
+
+function zoomOut() {
+  ensureChartInstance();
+  chartInstance.value?.dispatchAction({ type: "graphRoam", zoom: 0.8 });
+}
+
+function resetView() {
+  ensureChartInstance();
+  updateOption();
+}
+
+function focusTimeline() {
+  updateOption();
+}
 
 defineExpose({
   zoomIn,
   zoomOut,
   resetView,
   setBoxSelection,
-  focusTimeline
-})
+  focusTimeline,
+});
 </script>
 
 <template>
-  <div class="relative h-full min-h-[320px] w-full overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-slate-50 via-white/90 to-slate-100 shadow-inner sm:min-h-[420px] lg:min-h-[520px]">
+  <div
+    ref="containerRef"
+    class="relative flex-1 min-h-[320px] w-full overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-slate-50 via-white/90 to-slate-100 shadow-inner sm:min-h-[420px] lg:min-h-[520px]"
+  >
     <div
       v-if="loading"
       class="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-background/80 backdrop-blur"
       role="status"
     >
-      <div class="h-12 w-12 animate-spin rounded-full border-4 border-primary/40 border-t-primary" />
-      <p class="text-sm text-muted-foreground">{{ $t('graph.graphStage.loading.title') }}</p>
-      <p class="text-xs text-muted-foreground/80">{{ $t('graph.graphStage.loading.tip') }}</p>
+      <div
+        class="h-12 w-12 animate-spin rounded-full border-4 border-primary/40 border-t-primary"
+      />
+      <p class="text-sm text-muted-foreground">
+        {{ $t("graph.graphStage.loading.title") }}
+      </p>
+      <p class="text-xs text-muted-foreground/80">
+        {{ $t("graph.graphStage.loading.tip") }}
+      </p>
     </div>
 
     <div
@@ -342,10 +613,18 @@ defineExpose({
     >
       <p class="text-sm font-medium text-destructive">{{ error }}</p>
       <Button size="sm" class="rounded-full px-4" @click="emit('retry')">
-        {{ $t('graph.graphStage.error.retry') }}
+        {{ $t("graph.graphStage.error.retry") }}
       </Button>
     </div>
 
-    <div v-else ref="containerRef" class="h-full w-full" role="presentation" />
+    <VChart
+      v-else
+      ref="chartRef"
+      class="w-full"
+      :style="canvasStyle"
+      :option="chartOption"
+      autoresize
+      @ready="handleChartReady"
+    />
   </div>
 </template>

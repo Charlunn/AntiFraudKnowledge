@@ -602,7 +602,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useAuth } from '~/composables/useAuth'
-import { fetchUserProfile, fetchUserStats } from '~/composables/useApi'
+import { fetchUserProfile, fetchUserStats } from '~/composables/useApiData'
 import { useToast } from '~/composables/useNotification'
 import { formatDate, formatNumber } from '~/utils/formatters'
 import { fetchTestRecords, fetchTestRecordStats } from '~/api/test-records'

@@ -1,5 +1,22 @@
 import { defineNuxtConfig } from 'nuxt/config'
 
+const serverApiBase =
+  process.env.API_BASE_SERVER ||
+  process.env.NUXT_API_BASE_SERVER ||
+  'http://api:8000'
+
+const clientApiBase =
+  process.env.API_BASE_CLIENT ||
+  process.env.NUXT_PUBLIC_API_BASE ||
+  'http://localhost:8000'
+
+const normalizedServerApiBase = serverApiBase.replace(/\/+$/, '')
+const devProxyTarget = process.env.API_PROXY_TARGET || serverApiBase
+const nitroProxyTarget =
+  process.env.API_PROXY_TARGET && process.env.API_PROXY_TARGET.includes('/**')
+    ? process.env.API_PROXY_TARGET
+    : `${normalizedServerApiBase}/api/**`
+
 export default defineNuxtConfig({
   modules: ['@pinia/nuxt', '@nuxtjs/tailwindcss', 'nuxt-icon'],
   css: ['~/assets/css/main.css', '~/assets/css/animations.css'],
@@ -9,20 +26,23 @@ export default defineNuxtConfig({
     layoutTransition: { name: 'layout', mode: 'out-in' }
   },
   runtimeConfig: {
+    // 仅服务端可见
+    apiBase: serverApiBase,
     public: {
-      // ʼʹ /api ·ͨת
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
+      // 浏览器端使用
+      apiBase: clientApiBase,
       // OAuthܿ
       enableOAuthLogin: process.env.ENABLE_OAUTH_LOGIN === 'true'
     }
   },
   // 
   devServer: {
+    host: '0.0.0.0',
     port: 3000,
     // ôAPIת
     proxy: {
       '/api': {
-        target: process.env.DOCKER_ENV === 'true' ? 'http://backend:8000' : 'http://127.0.0.1:8000',
+        target: devProxyTarget,
         changeOrigin: true,
         secure: false
       }
@@ -32,12 +52,15 @@ export default defineNuxtConfig({
   nitro: {
     routeRules: {
       '/api/**': {
-        proxy: process.env.DOCKER_ENV ? 'http://backend:8000/api/**' : 'http://127.0.0.1:8000/api/**'
+        proxy: nitroProxyTarget
       }
     }
   },
   // Ӽ
   compatibilityDate: '2025-09-02',
+  experimental: {
+    appManifest: false
+  },
   // TypeScript
   typescript: {
     strict: true,

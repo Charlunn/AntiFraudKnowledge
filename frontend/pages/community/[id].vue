@@ -318,7 +318,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useCommunityApi } from '~/composables/useApi'
+import { useCommunityApi } from '~/composables/useApiData'
 import { useCommentForm } from '~/composables/useForm'
 import { useToast } from '~/composables/useNotification'
 import { formatDate } from '~/utils/formatters'

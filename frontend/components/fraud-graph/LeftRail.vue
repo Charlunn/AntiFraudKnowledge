@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import SceneWizard from './SceneWizard.vue'
 import QuickFilters from './QuickFilters.vue'
 import Card from '~/components/ui/card.vue'
 import CardHeader from '~/components/ui/card-header.vue'
@@ -9,7 +8,6 @@ import CardTitle from '~/components/ui/card-title.vue'
 import CardContent from '~/components/ui/card-content.vue'
 import Badge from '~/components/ui/badge.vue'
 import { useGraphStore } from '~/stores/useGraphStore'
-import type { ScenarioPayload } from '~/types/graph'
 import { TrendingUp, ShieldAlert } from 'lucide-vue-next'
 
 const graphStore = useGraphStore()
@@ -19,23 +17,16 @@ const filterState = computed({
   get: () => filters.value,
   set: (value) => graphStore.setFilters(value)
 })
-
-function handleScenarioComplete(payload: ScenarioPayload) {
-  graphStore.setScenario(payload)
-  graphStore.resetView()
-}
 </script>
 
 <template>
   <aside class="flex h-full flex-col gap-4">
-    <SceneWizard @complete="handleScenarioComplete" />
-
-    <QuickFilters v-model="filterState" @apply="graphStore.initialize()" />
+    <QuickFilters v-model="filterState" @apply="graphStore.applyFilters()" />
 
     <Card class="rounded-2xl border-border/70 bg-card/90 shadow-sm backdrop-blur">
       <CardHeader class="flex flex-row items-center gap-2">
         <TrendingUp class="size-5 text-emerald-500" aria-hidden="true" />
-        <CardTitle class="text-base font-semibold">{{ $t('graph.trending.title') }}</CardTitle>
+        <CardTitle class="whitespace-nowrap text-base font-semibold">{{ $t('graph.trending.title') }}</CardTitle>
       </CardHeader>
       <CardContent class="space-y-3 text-xs md:text-sm">
         <div
@@ -57,7 +48,7 @@ function handleScenarioComplete(payload: ScenarioPayload) {
     <Card class="rounded-2xl border-border/70 bg-card/90 shadow-sm backdrop-blur">
       <CardHeader class="flex flex-row items-center gap-2">
         <ShieldAlert class="size-5 text-amber-500" aria-hidden="true" />
-        <CardTitle class="text-base font-semibold">{{ $t('graph.pitfalls.title') }}</CardTitle>
+        <CardTitle class="whitespace-nowrap text-base font-semibold">{{ $t('graph.pitfalls.title') }}</CardTitle>
       </CardHeader>
       <CardContent class="space-y-3 text-xs md:text-sm">
         <div

@@ -170,7 +170,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { fetchQuestions } from '~/composables/useApi'
+import { fetchQuestions } from '~/composables/useApiData'
 
 // 页面布局
 definePageMeta({

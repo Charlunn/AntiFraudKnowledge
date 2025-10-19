@@ -29,8 +29,7 @@ const {
   filters,
   layout,
   timeline,
-  nodes,
-  edges,
+  metadata,
   lastUpdatedAt
 } = storeToRefs(graphStore)
 
@@ -45,15 +44,57 @@ const drawerBinding = computed({
 })
 
 const availableFilters = computed(() => {
-  const nodeTypes = Array.from(new Set(nodes.value.map((node) => node.data.type)))
-  const edgeTypes = Array.from(new Set(edges.value.map((edge) => edge.data.type)))
-  const sources = Array.from(new Set(edges.value.map((edge) => edge.data.sourceTag)))
+  const labels = metadata.value.labels ?? []
+  const relationships = metadata.value.relationships ?? []
+  const nodeSummaries = metadata.value.nodes ?? []
+
+  const nodeTypes = labels.map((item) => item.label)
+  const edgeTypes = relationships.map((item) => item.type)
+
+  const sources = Array.from(
+    new Set(
+      nodeSummaries
+        .map((item) => {
+          const source = item.properties?.source
+          return typeof source === 'string' ? source : null
+        })
+        .filter((value): value is string => Boolean(value))
+    )
+  )
+
+  const inferredChannels = Array.from(
+    new Set(
+      nodeSummaries.flatMap((item) => {
+        const raw = (item.properties?.channel ?? item.properties?.channels) as
+          | string
+          | string[]
+          | undefined
+        if (Array.isArray(raw)) return raw.map(String)
+        if (typeof raw === 'string') return [raw]
+        return []
+      })
+    )
+  )
+
+  const inferredRegions = Array.from(
+    new Set(
+      nodeSummaries.flatMap((item) => {
+        const raw = (item.properties?.region ?? item.properties?.regions) as
+          | string
+          | string[]
+          | undefined
+        if (Array.isArray(raw)) return raw.map(String)
+        if (typeof raw === 'string') return [raw]
+        return []
+      })
+    )
+  )
 
   return {
     nodeTypes,
     edgeTypes,
-    regions: ['华北', '华东', '华南'],
-    channels: ['sms', 'social', 'app'],
+    regions: inferredRegions.length ? inferredRegions : ['华北', '华东', '华南'],
+    channels: inferredChannels.length ? inferredChannels : ['sms', 'social', 'app'],
     sources
   }
 })

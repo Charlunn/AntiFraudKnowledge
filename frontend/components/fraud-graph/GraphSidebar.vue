@@ -31,7 +31,7 @@ const emit = defineEmits<{
 }>()
 
 const graphStore = useGraphStore()
-const { filters, metadata, metadataLoading, trending, pitfalls } = storeToRefs(graphStore)
+const { filters, metadataForFilters, metadataLoading, trending, pitfalls } = storeToRefs(graphStore)
 const { t } = useI18n()
 
 const filterState = computed({
@@ -81,7 +81,7 @@ onMounted(() => {
         @click="selectTab(tab.id)"
       >
         <component :is="tab.icon" class="size-4 shrink-0" aria-hidden="true" />
-        <span v-if="tab.id === activeTab" class="truncate">{{ tab.label }}</span>
+        <span v-if="tab.id === activeTab" class="truncate whitespace-nowrap">{{ tab.label }}</span>
       </button>
     </nav>
 
@@ -91,11 +91,11 @@ onMounted(() => {
           <template v-if="activeTab === 'filters'">
             <QuickFilters
               v-model="filterState"
-              :node-labels="metadata.labels"
-              :relationships="metadata.relationships"
-              :nodes="metadata.nodes"
+              :node-labels="metadataForFilters.labels"
+              :relationships="metadataForFilters.relationships"
+              :nodes="metadataForFilters.nodes"
               :loading="metadataLoading"
-              :has-more-nodes="metadata.pagination.hasMore"
+              :has-more-nodes="metadataForFilters.pagination.hasMore"
               class="rounded-2xl border border-border/50 bg-background/90 p-3 shadow-sm"
               @apply="applyFilters"
               @load-more-nodes="loadMoreNodes"
@@ -106,7 +106,7 @@ onMounted(() => {
             <Card class="rounded-2xl border-border/60 bg-background/85 shadow-sm">
               <CardHeader class="flex min-w-0 flex-row items-center gap-2">
                 <TrendingUp class="size-5 text-emerald-500" aria-hidden="true" />
-                <CardTitle class="truncate text-base font-semibold">{{ t('graph.trending.title') }}</CardTitle>
+                <CardTitle class="truncate whitespace-nowrap text-base font-semibold">{{ t('graph.trending.title') }}</CardTitle>
               </CardHeader>
               <CardContent class="space-y-3 text-xs md:text-sm">
                 <div
@@ -130,7 +130,7 @@ onMounted(() => {
             <Card class="rounded-2xl border-border/60 bg-background/85 shadow-sm">
               <CardHeader class="flex min-w-0 flex-row items-center gap-2">
                 <ShieldAlert class="size-5 text-amber-500" aria-hidden="true" />
-                <CardTitle class="truncate text-base font-semibold">{{ t('graph.pitfalls.title') }}</CardTitle>
+                <CardTitle class="truncate whitespace-nowrap text-base font-semibold">{{ t('graph.pitfalls.title') }}</CardTitle>
               </CardHeader>
               <CardContent class="space-y-3 text-xs md:text-sm">
                 <div

@@ -10,9 +10,11 @@ import DropdownMenuContent from '~/components/ui/dropdown-menu/DropdownMenuConte
 import DropdownMenuItem from '~/components/ui/dropdown-menu/DropdownMenuItem.vue'
 import GlobalSearch from './GlobalSearch.vue'
 import { useUIStore } from '~/stores/useUIStore'
+import { useGraphStore } from '~/stores/useGraphStore'
 import { CalendarRange, Globe, HelpCircle, Sparkles } from 'lucide-vue-next'
 
 const uiStore = useUIStore()
+const graphStore = useGraphStore()
 const { t, locale } = useI18n()
 
 const { globalQuery, searchSuggestions, timeRange, timeRangeLabel, showAdvancedButtonBadge, locale: storeLocale } = storeToRefs(uiStore)
@@ -43,8 +45,9 @@ watch(
   }
 )
 
-function handleSearch() {
-  // 预留: 可触发后端检索或导航
+async function handleSearch() {
+  if (!globalQuery.value.trim()) return
+  await graphStore.performUniversalSearch(globalQuery.value)
 }
 
 function toggleLocale() {

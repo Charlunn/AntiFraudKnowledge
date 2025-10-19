@@ -420,7 +420,8 @@ LIMIT $limit
 
 TOP_DEGREE_NODES_CYPHER = """
 MATCH (n)
-WITH n, size((n)--()) AS degree
+OPTIONAL MATCH (n)-[r]-()
+WITH n, count(r) AS degree
 WHERE degree > 0
 ORDER BY degree DESC
 SKIP $skip
@@ -447,11 +448,13 @@ UNIVERSAL_SEARCH_CYPHER = """
 CALL {
   MATCH (n)
   WHERE any(val IN keys(n) WHERE toLower(toString(n[val])) CONTAINS toLower($query))
+  OPTIONAL MATCH (n)-[r]-()
+  WITH n, count(r) AS degree
   RETURN 'node' AS kind,
          elementId(n) AS id,
          labels(n) AS labels,
          properties(n) AS properties,
-         size((n)--()) AS degree
+         degree
   ORDER BY degree DESC
   LIMIT $node_limit
 }
