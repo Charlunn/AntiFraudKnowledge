@@ -18,6 +18,12 @@ services:
     working_dir: /app
     env_file:
       - ./config/.env.production
+    environment:
+      API_BASE_SERVER: http://backend:8000
+      API_PROXY_TARGET: http://backend:8000
+      API_BASE_CLIENT: /api
+      NUXT_PUBLIC_API_BASE: /api
+      DOCKER_ENV: "true"
     volumes:
       - ./frontend:/app
     command: npm run build && npm run preview

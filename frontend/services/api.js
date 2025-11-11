@@ -5,6 +5,34 @@ import { useApi } from "~/composables/useApi";
 // API基础配置
 const API_TIMEOUT = 30000; // 30秒超时
 
+const ABSOLUTE_URL_REGEX = /^([a-z][a-z0-9+.-]*:)?\/\//i;
+const trimSlashes = (value = '') => value.replace(/^\/+|\/+$/g, '');
+const splitPathAndSuffix = (value = '') => {
+  const matchIndex = value.search(/[?#]/);
+  if (matchIndex === -1) {
+    return [value, ''];
+  }
+  return [value.slice(0, matchIndex), value.slice(matchIndex)];
+};
+const joinWithPrefix = (prefix = '', path = '') => {
+  const sanitizedPrefix = trimSlashes(prefix);
+  const sanitizedPath = trimSlashes(path);
+
+  if (!sanitizedPrefix && !sanitizedPath) {
+    return '/';
+  }
+
+  if (!sanitizedPrefix) {
+    return sanitizedPath ? `/${sanitizedPath}` : '/';
+  }
+
+  if (!sanitizedPath) {
+    return `/${sanitizedPrefix}`;
+  }
+
+  return `/${sanitizedPrefix}/${sanitizedPath}`;
+};
+
 // 创建HTTP客户端实例
 class ApiClient {
   constructor() {
@@ -13,6 +41,7 @@ class ApiClient {
       "Content-Type": "application/json",
       Accept: "application/json",
     };
+    this.pathPrefix = '/api';
   }
 
   // 获取认证头
@@ -85,9 +114,34 @@ class ApiClient {
       requestOptions.body = JSON.stringify(requestOptions.body)
     }
 
+    let requestEndpoint = endpoint;
+
+    if (
+      typeof requestEndpoint === 'string' &&
+      requestEndpoint &&
+      !ABSOLUTE_URL_REGEX.test(requestEndpoint)
+    ) {
+      const prefix = typeof this.pathPrefix === 'string' ? this.pathPrefix : '/api';
+      const [rawPath, suffix] = splitPathAndSuffix(requestEndpoint);
+      const normalizedPrefix = trimSlashes(prefix);
+      const normalizedPath = trimSlashes(rawPath);
+      const needsPrefix =
+        normalizedPrefix &&
+        !(
+          normalizedPath === normalizedPrefix ||
+          normalizedPath.startsWith(`${normalizedPrefix}/`)
+        );
+
+      const combinedPath = needsPrefix
+        ? joinWithPrefix(normalizedPrefix, normalizedPath)
+        : joinWithPrefix('', normalizedPath);
+
+      requestEndpoint = `${combinedPath}${suffix}`;
+    }
+
     try {
       const api = useApi()
-      return await api(endpoint, requestOptions)
+      return await api(requestEndpoint, requestOptions)
     } catch (error) {
       const status =
         error?.response?.status ??

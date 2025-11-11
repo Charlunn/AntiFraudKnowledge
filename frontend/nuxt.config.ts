@@ -1,21 +1,46 @@
 import { defineNuxtConfig } from 'nuxt/config'
 
+const toBoolean = (value?: string | null) =>
+  typeof value === 'string' &&
+  ['1', 'true', 'yes', 'y', 'on'].includes(value.toLowerCase())
+
+const isDockerEnv =
+  toBoolean(process.env.DOCKER_ENV) ||
+  toBoolean(process.env.DOCKER) ||
+  toBoolean(process.env.IN_DOCKER)
+
+const defaultServerApiBase = isDockerEnv
+  ? 'http://backend:8000'
+  : 'http://localhost:8000'
+
+const defaultClientApiBase = isDockerEnv ? '/api' : 'http://localhost:8000'
+
 const serverApiBase =
   process.env.API_BASE_SERVER ||
   process.env.NUXT_API_BASE_SERVER ||
-  'http://api:8000'
+  defaultServerApiBase
 
 const clientApiBase =
   process.env.API_BASE_CLIENT ||
   process.env.NUXT_PUBLIC_API_BASE ||
-  'http://localhost:8000'
+  defaultClientApiBase
 
-const normalizedServerApiBase = serverApiBase.replace(/\/+$/, '')
-const devProxyTarget = process.env.API_PROXY_TARGET || serverApiBase
+const trimTrailingSlash = (input: string) => input.replace(/\/+$/, '')
+
+const normalizedServerApiBase = trimTrailingSlash(serverApiBase)
+const rawProxyTarget = process.env.API_PROXY_TARGET || normalizedServerApiBase
+const cleanedProxyBase = trimTrailingSlash(
+  rawProxyTarget.includes('/**') ? rawProxyTarget.split('/**')[0] : rawProxyTarget
+)
+const buildProxyPattern = (base: string) =>
+  base.endsWith('/api') ? `${base}/**` : `${base}/api/**`
+
 const nitroProxyTarget =
   process.env.API_PROXY_TARGET && process.env.API_PROXY_TARGET.includes('/**')
     ? process.env.API_PROXY_TARGET
-    : `${normalizedServerApiBase}/api/**`
+    : buildProxyPattern(cleanedProxyBase)
+
+const devProxyTarget = cleanedProxyBase
 
 export default defineNuxtConfig({
   modules: ['@pinia/nuxt', '@nuxtjs/tailwindcss', 'nuxt-icon'],

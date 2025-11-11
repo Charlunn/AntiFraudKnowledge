@@ -33,6 +33,10 @@ services:
       - CI=true
       - NUXT_HOST=0.0.0.0
       - PNPM_STORE_PATH=/pnpm/store
+      - API_BASE_SERVER=http://backend:8000
+      - API_PROXY_TARGET=http://backend:8000
+      - API_BASE_CLIENT=http://localhost:8000
+      - NUXT_PUBLIC_API_BASE=/api
     command: ["sh", "-c", "pnpm install --prefer-offline --frozen-lockfile && pnpm run dev"]
 
   neo4j:
