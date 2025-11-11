@@ -61,6 +61,15 @@ mvp/
    # python init_neo4j.py --uri bolt://localhost:7687 --user neo4j --password mypass
    ```
    鑴氭湰浼氳嚜鍔ㄨ鍙?`backend/.env` 涓殑 `NEO4J_*` 閰嶇疆锛屽苟鎵ц `backend/neo4j/seed.cypher`锛屼竴娆℃€у啓鍏ヤ笁绫诲吀鍨嬮獥妗堬紙鎶曡祫鐞嗚储 / 鍏娉曞啋鍏?/ 鎯呮劅闄亰锛夊強鍏剁浉鍏冲疄浣擄紙璇堥獥鑰呫€佸彈瀹宠€呫€佸績鐞嗗急鐐广€佽处鎴枫€佹笭閬撱€佷氦鏄撶瓑锛夛紝闅忓悗鍗冲彲鍦?`/graph` 椤甸潰楠岃瘉鍙鍖栨晥鏋溿€?
+
+5. **Quiz seed data**
+   ```bash
+   cd mvp/backend
+   python scripts/seed_quiz_questions.py           # ??/??????
+   python scripts/seed_quiz_questions.py --reset  # ?????????
+   ```
+   ?????????/??/?????????????????????????? update_or_create????????
+
 ## Production deployment
 
 涓€涓弬鑰冪殑鐢熶骇绾х紪鎺掍綅浜?`docker-compose.prod.yml`锛屽寘鍚?Postgres銆丯eo4j銆丏jango/Gunicorn銆丯uxt锛圫SR锛夊拰 Nginx 鍙嶅悜浠ｇ悊銆傚惎鍔ㄦ柟寮忥細
@@ -98,7 +107,8 @@ docker compose -f docker-compose.prod.yml up -d --build
 
 - **Backend**: `python manage.py runserver` inside `mvp/backend` still works for quick hacking (defaults to SQLite).
 - **Frontend**: `npm install && npm run dev` under `mvp/frontend` (port 3100, API proxied via `/api`).
-- **Admin seed**: mark any user as admin by setting `user_type='admin'` via Django admin or shell, then manage the quiz bank via the UI.
+- **Admin seed**: 任意 `createsuperuser` 或 `is_staff` 账号都会自动拥有测验管理权限（仍可按需手动把 `user_type` 设为 `admin`）。
+- **Quiz seed**: `python backend/scripts/seed_quiz_questions.py` 可重复导入预置题目，便于本地/测试环境快速填充题库。
 
 ## Next steps (optional)
 - Add proper toast/snackbar component instead of the temporary `window.alert` helper.

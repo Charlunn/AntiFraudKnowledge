@@ -16,6 +16,7 @@ class ChatSimulationResult(models.Model):
     end_reason = models.CharField(max_length=32)
     performance_analysis = models.TextField()
     suggestions = models.TextField()
+    capability_profile = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):

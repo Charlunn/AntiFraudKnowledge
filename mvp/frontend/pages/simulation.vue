@@ -1,11 +1,14 @@
 <template>
   <div class="space-y-6">
-    <PageHeader title="AI 反诈场景模拟" description="通过黑白极简聊天界面体验真实诈骗对话并获得即时评分与建议。" />
+    <PageHeader
+      title="AI 场景模拟"
+      description="选择高发诈骗场景，与 AI 角色进行多轮对练，及时总结识别要点。"
+    />
 
     <Card class="border border-border/80">
       <CardHeader>
-        <CardTitle>对话控制台</CardTitle>
-        <CardDescription>选择场景与模式，开始与 AI 对手过招。</CardDescription>
+        <CardTitle>对话操作台</CardTitle>
+        <CardDescription>配置场景与模式，AI 将模拟真实话术与你交互。</CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">
         <div class="grid gap-4 md:grid-cols-3">
@@ -14,6 +17,7 @@
             <select
               v-model="scenario.type"
               class="w-full rounded-md border border-border bg-background p-2 text-sm"
+              :disabled="sessionClosed"
             >
               <option v-for="option in scenarioOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
@@ -25,6 +29,7 @@
             <select
               v-model="scenario.difficulty"
               class="w-full rounded-md border border-border bg-background p-2 text-sm"
+              :disabled="sessionClosed"
             >
               <option v-for="option in difficultyOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
@@ -36,6 +41,7 @@
             <select
               v-model="scenario.mode"
               class="w-full rounded-md border border-border bg-background p-2 text-sm"
+              :disabled="sessionClosed"
             >
               <option v-for="option in modeOptions" :key="option.value" :value="option.value">
                 {{ option.label }}
@@ -46,24 +52,19 @@
 
         <div class="rounded-2xl border border-border/70 bg-card p-4">
           <div class="flex items-center justify-between text-sm">
-            <p class="font-medium">对话安全评分</p>
-            <div class="text-right">
+            <p class="font-medium">对话得分进度</p>
+            <div v-if="sessionClosed && finalResult" class="text-right">
               <p class="text-2xl font-semibold">
-                {{ sanitizedScore }}<span class="text-base font-normal"> / 100</span>
+                {{ finalResult.finalScore }}<span class="text-base font-normal"> / 100</span>
               </p>
-              <p
-                v-if="scoreChange"
-                class="text-xs"
-                :class="scoreChange > 0 ? 'text-emerald-500' : 'text-red-500'"
-              >
-                {{ scoreChange > 0 ? '+' : '' }}{{ scoreChange }} 分 · {{ changeReason || '系统判定' }}
-              </p>
+              <p class="text-xs text-muted-foreground">{{ finalResult.endReasonLabel }}</p>
             </div>
+            <p v-else class="text-xs text-muted-foreground">完成演练后将显示本次综合得分</p>
           </div>
           <div class="mt-2 h-2 rounded-full bg-muted">
             <div
               class="h-2 rounded-full bg-foreground transition-all"
-              :style="{ width: sanitizedScore + '%' }"
+              :style="{ width: sessionClosed && finalResult ? finalResult.finalScore + '%' : '0%' }"
             ></div>
           </div>
         </div>
@@ -81,7 +82,7 @@
             {{ item.content }}
           </div>
           <p v-if="!conversation.length" class="text-sm text-muted-foreground">
-            还没有任何消息，先向 AI 发起交流吧。
+            还没有任何消息，先向 AI 发起第一句对话吧。
           </p>
         </div>
 
@@ -90,36 +91,64 @@
             v-model="message"
             rows="3"
             class="flex-1"
-            placeholder="请输入你的回应，保持冷静理性（请输入中文，避免暴露个人敏感信息）。"
+            :disabled="sessionClosed"
+            placeholder="描述你的想法、疑问或进一步追问，以锻炼甄别与拒绝能力。"
           />
           <div class="flex flex-col gap-2">
-            <Button type="submit" class="gap-2" :disabled="chatLoading || !message.trim()">
+            <Button type="submit" class="gap-2" :disabled="chatLoading || !message.trim() || sessionClosed">
               <Icon name="lucide:message-circle" class="h-4 w-4" />
-              {{ chatLoading ? '生成中...' : '发送' }}
+              {{ chatLoading && !endingEarly ? '发送中...' : '发送' }}
             </Button>
             <Button type="button" variant="outline" :disabled="chatLoading" @click="resetSession">
               重置会话
             </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              :disabled="sessionClosed || !conversation.length || chatLoading"
+              @click="endSessionEarly"
+            >
+              <Icon name="lucide:flag" class="h-4 w-4" />
+              {{ endingEarly ? '结算中...' : '提前结束' }}
+            </Button>
           </div>
         </form>
+
+        <p v-if="sessionClosed" class="text-sm text-amber-600">
+          本次演练已结束：{{ finalResult?.endReasonLabel ?? '系统终止' }}，可以重置后开启新的对话。
+        </p>
       </CardContent>
     </Card>
 
     <Card>
       <CardHeader>
-        <CardTitle>分析报告</CardTitle>
-        <CardDescription>对完整对话进行总结与改进建议。</CardDescription>
+        <CardTitle>对话总结</CardTitle>
+        <CardDescription>系统自动保存最近一次完整演练，便于复盘与分享。</CardDescription>
       </CardHeader>
-      <CardContent class="space-y-3">
-        <Button class="gap-2" :disabled="reportLoading || !conversation.length" @click="generateReport">
-          <Icon name="lucide:file-text" class="h-4 w-4" />
-          {{ reportLoading ? '生成中...' : '生成报告' }}
-        </Button>
-        <div v-if="report" class="rounded-2xl border border-border/70 bg-card p-4 text-sm leading-relaxed">
-          <p class="text-xs uppercase tracking-widest text-muted-foreground">表现评估</p>
-          <p class="mt-2 whitespace-pre-line">{{ report.performance_analysis }}</p>
+      <CardContent class="space-y-4">
+        <div v-if="displayedResult" class="rounded-2xl border border-border/70 bg-card p-4 text-sm leading-relaxed">
+          <div class="flex flex-wrap items-center gap-2 text-xs text-muted-foreground uppercase tracking-widest">
+            <span>{{ displayedResult.scenarioType }} · {{ displayedResult.difficulty }} · {{ displayedResult.mode }}</span>
+            <span>轮次 {{ displayedResult.conversationRounds }}</span>
+          </div>
+          <p class="mt-3 text-2xl font-semibold">{{ displayedResult.finalScore }} / 100</p>
+          <p class="text-xs text-muted-foreground">{{ displayedResult.endReasonLabel }}</p>
+
+          <CapabilityRadar v-if="radarProfile" class="mt-4 w-full" :profile="radarProfile" height="240px" />
+
+          <p class="mt-4 text-xs uppercase tracking-widest text-muted-foreground">表现分析</p>
+          <p class="mt-2 whitespace-pre-line">{{ displayedResult.performanceAnalysis }}</p>
+
           <p class="mt-4 text-xs uppercase tracking-widest text-muted-foreground">改进建议</p>
-          <p class="mt-2 whitespace-pre-line">{{ report.suggestions }}</p>
+          <p class="mt-2 whitespace-pre-line">{{ displayedResult.suggestions }}</p>
+        </div>
+        <p v-else class="text-sm text-muted-foreground">暂无总结，完成一次演练后即可查看详细复盘。</p>
+        <div class="flex gap-2">
+          <Button variant="outline" :disabled="latestLoading" @click="fetchLatestResult">
+            <Icon name="lucide:refresh-ccw" class="h-4 w-4" />
+            {{ latestLoading ? '刷新中...' : '刷新最近记录' }}
+          </Button>
+          <Button variant="secondary" @click="resetSession">重新开始</Button>
         </div>
       </CardContent>
     </Card>
@@ -128,43 +157,60 @@
 
 <script setup lang="ts">
 import type { AxiosError } from 'axios'
-type ChatMessage = {
-  role: 'user' | 'assistant'
-  content: string
-}
+import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
+import CapabilityRadar from '~/components/simulation/CapabilityRadar.client.vue'
 
 definePageMeta({
   requiresAuth: true,
 })
 
+type ChatMessage = {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+type SimulationResult = {
+  scenarioType: string
+  difficulty: string
+  mode: string
+  finalScore: number
+  conversationRounds: number
+  endReasonLabel: string
+  performanceAnalysis: string
+  suggestions: string
+  updatedAt?: string
+  capabilityProfile?: Record<string, number>
+}
+
 const { $api } = useNuxtApp()
 const score = ref(50)
-const scoreChange = ref(0)
-const changeReason = ref('')
 const message = ref('')
-const chatLoading = ref(false)
-const reportLoading = ref(false)
 const conversation = ref<ChatMessage[]>([])
-const report = ref<{ performance_analysis: string; suggestions: string } | null>(null)
 const chatBodyRef = ref<HTMLElement | null>(null)
+const chatLoading = ref(false)
+const endingEarly = ref(false)
+const sessionClosed = ref(false)
+const finalResult = ref<SimulationResult | null>(null)
+const latestResult = ref<SimulationResult | null>(null)
+const latestLoading = ref(false)
 
 const scenarioOptions = [
-  { label: '杀猪盘投资', value: 'pig-butchering' },
-  { label: '钓鱼短信/邮件', value: 'phishing' },
-  { label: '假客服处理', value: 'fake-customer-service' },
-  { label: '高收益投资', value: 'investment' },
-  { label: '贷款垫资', value: 'loan' },
+  { label: '杀猪盘 / 感情投资', value: 'pig-butchering' },
+  { label: '钓鱼链接 / 伪装客服', value: 'phishing' },
+  { label: '冒充公检法', value: 'fake-customer-service' },
+  { label: '投资理财骗局', value: 'investment' },
+  { label: '借贷与刷单', value: 'loan' },
 ] as const
 
 const difficultyOptions = [
-  { label: '初级', value: 'easy' },
-  { label: '中级', value: 'medium' },
-  { label: '高级', value: 'hard' },
+  { label: '入门', value: 'easy' },
+  { label: '进阶', value: 'medium' },
+  { label: '挑战', value: 'hard' },
 ] as const
 
 const modeOptions = [
-  { label: '混合对抗（真/假客服交替）', value: 'mixed' },
-  { label: '纯诈骗演练', value: 'pure_fake' },
+  { label: '混合博弈（提问 + 引诱）', value: 'mixed' },
+  { label: '纯诈骗话术', value: 'pure_fake' },
 ] as const
 
 const scenario = reactive({
@@ -173,12 +219,17 @@ const scenario = reactive({
   mode: modeOptions[0].value,
 })
 
-const sanitizedScore = computed(() => Math.min(100, Math.max(0, score.value)))
+const displayedResult = computed(() => finalResult.value ?? latestResult.value)
+const radarProfile = computed(() => displayedResult.value?.capabilityProfile ?? null)
 
 const scrollToBottom = () => {
   if (chatBodyRef.value) {
     chatBodyRef.value.scrollTop = chatBodyRef.value.scrollHeight
   }
+}
+
+const showToast = (text: string) => {
+  if (process.client) window.alert(text)
 }
 
 const extractErrorMessage = (error: unknown, fallback: string) => {
@@ -190,25 +241,53 @@ const extractErrorMessage = (error: unknown, fallback: string) => {
   return fallback
 }
 
-const showToast = (text: string) => {
-  if (process.client) {
-    window.alert(text)
+const mapResultFromApi = (payload: any): SimulationResult => ({
+  scenarioType: payload.scenario_type ?? scenario.type,
+  difficulty: payload.difficulty ?? scenario.difficulty,
+  mode: payload.mode ?? scenario.mode,
+  finalScore: payload.final_score ?? 0,
+  conversationRounds: payload.conversation_rounds ?? 0,
+  endReasonLabel: payload.end_reason_label ?? '系统结束',
+  performanceAnalysis: payload.performance_analysis ?? '',
+  suggestions: payload.suggestions ?? '',
+  updatedAt: payload.updated_at ?? new Date().toISOString(),
+  capabilityProfile: payload.capability_profile ?? undefined,
+})
+
+const applyClosurePayload = (payload: any) => {
+  sessionClosed.value = true
+  const mapped = mapResultFromApi(payload)
+  score.value = mapped.finalScore
+  finalResult.value = mapped
+  latestResult.value = mapped
+}
+
+const fetchLatestResult = async () => {
+  latestLoading.value = true
+  try {
+    const { data } = await $api.get('/chat/latest-result/')
+    if (data.has_result) {
+      latestResult.value = mapResultFromApi(data.data)
+    } else {
+      latestResult.value = null
+    }
+  } catch (error) {
+    console.warn('fetch latest result failed', error)
+  } finally {
+    latestLoading.value = false
   }
 }
 
 const sendMessage = async () => {
   const content = message.value.trim()
   if (!content || chatLoading.value) return
+  if (sessionClosed.value) {
+    showToast('当前会话已结束，请重新开始。')
+    return
+  }
 
   chatLoading.value = true
-  report.value = null
-  changeReason.value = ''
-  scoreChange.value = 0
-
-  const historyPayload = conversation.value.map((item) => ({
-    role: item.role,
-    content: item.content,
-  }))
+  const historyPayload = conversation.value.map((item) => ({ role: item.role, content: item.content }))
   historyPayload.push({ role: 'user', content })
 
   conversation.value.push({ role: 'user', content })
@@ -226,18 +305,47 @@ const sendMessage = async () => {
 
     conversation.value.push({
       role: 'assistant',
-      content: data.response || 'AI 没有返回内容，请稍后再试。',
+      content: data.response || 'AI 暂无回复，请稍后再试。',
     })
 
-    if (typeof data.current_score === 'number') {
-      score.value = data.current_score
+    if (data.session_closed) {
+      applyClosurePayload(data)
     }
-    scoreChange.value = typeof data.score_change === 'number' ? data.score_change : 0
-    changeReason.value = data.change_reason || ''
   } catch (error) {
     showToast(extractErrorMessage(error, '发送失败，请稍后重试'))
   } finally {
     chatLoading.value = false
+    nextTick(scrollToBottom)
+  }
+}
+
+const endSessionEarly = async () => {
+  if (!conversation.value.length || sessionClosed.value || chatLoading.value) return
+  chatLoading.value = true
+  endingEarly.value = true
+  try {
+    const historyPayload = conversation.value.map((item) => ({ role: item.role, content: item.content }))
+    const { data } = await $api.post('/chat/scenario/stateless/', {
+      force_end: true,
+      scenario_type: scenario.type,
+      difficulty: scenario.difficulty,
+      mode: scenario.mode,
+      history: historyPayload,
+      current_score: score.value,
+    })
+
+    if (data.response) {
+      conversation.value.push({ role: 'assistant', content: data.response })
+    }
+
+    if (data.session_closed) {
+      applyClosurePayload(data)
+    }
+  } catch (error) {
+    showToast(extractErrorMessage(error, '结束失败，请稍后再试'))
+  } finally {
+    chatLoading.value = false
+    endingEarly.value = false
     nextTick(scrollToBottom)
   }
 }
@@ -252,43 +360,18 @@ const resetSession = async () => {
       mode: scenario.mode,
     })
   } catch (error) {
-    // 保持静默，只在控制台记录
     console.warn('reset session failed', error)
   } finally {
     conversation.value = []
-    score.value = 50
-    scoreChange.value = 0
-    changeReason.value = ''
-    report.value = null
+    message.value = ''
+    sessionClosed.value = false
+    finalResult.value = null
+    chatLoading.value = false
+    endingEarly.value = false
+    nextTick(scrollToBottom)
   }
 }
 
-const generateReport = async () => {
-  if (!conversation.value.length) return
-  reportLoading.value = true
-  try {
-    const { data } = await $api.post('/chat/generate-report/', {
-      scenario_type: scenario.type,
-      difficulty: scenario.difficulty,
-      mode: scenario.mode,
-      final_score: score.value,
-      conversation_rounds: conversation.value.length,
-      end_reason: 'manual',
-      messages: conversation.value.map((item) => ({
-        sender: item.role === 'user' ? 'user' : 'ai',
-        content: item.content,
-      })),
-    })
-    report.value = {
-      performance_analysis: data.performance_analysis ?? '未获取到分析内容。',
-      suggestions: data.suggestions ?? '未获取到建议内容。',
-    }
-  } catch (error) {
-    showToast(extractErrorMessage(error, '生成报告失败，请稍后重试'))
-  } finally {
-    reportLoading.value = false
-  }
-}
-
+onMounted(fetchLatestResult)
 watch(conversation, () => nextTick(scrollToBottom), { deep: true })
 </script>

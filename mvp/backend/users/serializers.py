@@ -59,8 +59,27 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'nickname', 'email', 'phone_number', 'fraud_level', 'user_type', 'avatar', 'avatar_url', 'cached_avatar_url')
-        read_only_fields = ('username', 'fraud_level', 'user_type', 'cached_avatar_url')
+        fields = (
+            'username',
+            'nickname',
+            'email',
+            'phone_number',
+            'fraud_level',
+            'user_type',
+            'is_staff',
+            'is_superuser',
+            'avatar',
+            'avatar_url',
+            'cached_avatar_url',
+        )
+        read_only_fields = (
+            'username',
+            'fraud_level',
+            'user_type',
+            'is_staff',
+            'is_superuser',
+            'cached_avatar_url',
+        )
     
     def get_cached_avatar_url(self, obj):
         """

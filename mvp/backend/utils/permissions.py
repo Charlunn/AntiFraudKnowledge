@@ -7,9 +7,13 @@ class IsAdminUser(permissions.BasePermission):
     """
     def has_permission(self, request, view):
         return (
-            request.user and
-            request.user.is_authenticated and
-            request.user.user_type == 'admin'
+            request.user
+            and request.user.is_authenticated
+            and (
+                request.user.user_type == 'admin'
+                or request.user.is_staff
+                or request.user.is_superuser
+            )
         )
 
 
@@ -22,7 +26,11 @@ class IsOwnerOrAdmin(permissions.BasePermission):
     
     def has_object_permission(self, request, view, obj):
         # 管理员可以访问所有对象
-        if request.user.user_type == 'admin':
+        if (
+            request.user.user_type == 'admin'
+            or request.user.is_staff
+            or request.user.is_superuser
+        ):
             return True
         
         # 检查对象是否有user属性（所有者）
@@ -51,7 +59,11 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
             return True
         
         # 管理员可以编辑所有对象
-        if request.user.user_type == 'admin':
+        if (
+            request.user.user_type == 'admin'
+            or request.user.is_staff
+            or request.user.is_superuser
+        ):
             return True
         
         # 检查对象是否有user属性（所有者）

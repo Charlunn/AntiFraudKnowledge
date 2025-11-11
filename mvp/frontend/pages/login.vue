@@ -5,7 +5,7 @@
         {{ mode === 'login' ? '账号登录' : '快速注册' }}
       </CardTitle>
       <CardDescription>
-        {{ mode === 'login' ? '使用已有账号进入 AntiFraud MVP' : '创建新的普通用户账号（无法直接管理题库）' }}
+        {{ mode === 'login' ? '使用已有账号登录澄源反诈平台' : '创建新的普通用户账号（如需管理员权限请联系平台）' }}
       </CardDescription>
       <div class="grid grid-cols-2 gap-2 pt-2">
         <Button
@@ -108,7 +108,7 @@
             <span v-if="passwordChecking">正在校验密码强度...</span>
             <span v-else-if="passwordErrors.length">{{ passwordErrors[0] }}</span>
             <span v-else-if="passwordValid">密码符合当前安全要求</span>
-            <span v-else>密码需满足 Django 的长度、复杂度与常见密码规则</span>
+            <span v-else>密码需满足平台设定的长度与复杂度要求</span>
           </p>
         </div>
         <div>
@@ -128,13 +128,8 @@
         </Button>
       </form>
     </CardContent>
-    <CardFooter class="text-xs text-muted-foreground leading-relaxed">
-      <p v-if="mode === 'login'">
-        提示：首次使用可在后端容器执行 Django <code>createsuperuser</code> 创建管理员账户。
-      </p>
-      <p v-else>
-        注册创建的账户默认为普通用户，无法直接添加测验，如需管理员权限请联系平台维护人员。
-      </p>
+    <CardFooter v-if="mode === 'register'" class="text-xs text-muted-foreground leading-relaxed">
+      <p>注册创建的账户默认为普通用户，如需管理员权限请联系平台维护人员。</p>
     </CardFooter>
   </Card>
 </template>

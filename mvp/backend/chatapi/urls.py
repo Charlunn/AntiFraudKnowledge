@@ -11,12 +11,14 @@ from .views import (
     ScenarioChatStatelessAPIView,
     ChatSessionsView,
     GenerateReportAPIView,
+    LatestSimulationResultAPIView,
 )
 
 urlpatterns = [
     path('', views.chat_api_view, name='chat_api'),
     path('scenario/', views.ScenarioChatAPIView.as_view(), name='scenario_chat_api'),
     path('scenario/stateless/', ScenarioChatStatelessAPIView.as_view(), name='scenario_chat_stateless'),
+    path('latest-result/', LatestSimulationResultAPIView.as_view(), name='latest_chat_result'),
     path('history/', views.ChatHistoryView.as_view(), name='chat_history'),
     path('sessions/', views.ChatSessionsView.as_view(), name='chat_sessions'),
     path('generate-report/', GenerateReportAPIView.as_view(), name='generate_report'),

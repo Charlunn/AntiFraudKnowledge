@@ -1,4 +1,4 @@
-from django.shortcuts import render
+﻿from django.shortcuts import render
 
 # Create your views here.
 # chatapi/views.py
@@ -37,8 +37,16 @@ END_REASON_LABELS = {
     "score_low": "得分过低，存在高风险",
     "score_high": "得分充足，防范意识优秀",
     "max_turns": "已达到最大演练轮次",
+    "manual": "用户主动结束本轮演练",
 }
 
+CAPABILITY_KEYS = [
+    ("risk_discernment", "风险识别"),
+    ("info_protection", "信息保护"),
+    ("response_speed", "响应速度"),
+    ("emotional_control", "情绪稳定"),
+    ("verification_skill", "核验能力"),
+]
 
 def evaluate_session_end(score: int, user_turns: int) -> Optional[str]:
     if score <= LOW_SCORE_THRESHOLD:
@@ -50,7 +58,31 @@ def evaluate_session_end(score: int, user_turns: int) -> Optional[str]:
     return None
 
 
-def default_report(final_score: int, scenario_type: str) -> Dict[str, str]:
+def heuristic_capability_profile(final_score: int) -> Dict[str, int]:
+    base = max(0, min(100, final_score))
+    adjustments = {
+        "risk_discernment": base,
+        "info_protection": int(base * 0.9 + 5),
+        "response_speed": int(base * 0.8 + 10),
+        "emotional_control": int(base * 0.85 + 8),
+        "verification_skill": int(base * 0.95),
+    }
+    return {key: max(10, min(100, value)) for key, value in adjustments.items()}
+
+
+def normalize_capability_profile(raw: Optional[Dict[str, Any]], fallback_score: int) -> Dict[str, int]:
+    profile = {}
+    if isinstance(raw, dict):
+        for key, _ in CAPABILITY_KEYS:
+            value = raw.get(key)
+            if isinstance(value, (int, float)):
+                profile[key] = max(0, min(100, int(value)))
+    if len(profile) != len(CAPABILITY_KEYS):
+        profile = heuristic_capability_profile(fallback_score)
+    return profile
+
+
+def default_report(final_score: int, scenario_type: str) -> Dict[str, Any]:
     if final_score >= 80:
         perf = f"你在本轮“{scenario_type}”演练中的表现较为稳健，最终得分 {final_score} 分。"
         sug = "继续保持质疑意识，并多练习识别不同渠道的骗术，巩固已有优势。"
@@ -60,7 +92,11 @@ def default_report(final_score: int, scenario_type: str) -> Dict[str, str]:
     else:
         perf = f"本轮“{scenario_type}”演练得分 {final_score} 分，说明当前防骗策略较薄弱。"
         sug = "建议系统复盘对话，熟悉举报和核实流程，必要时参加更多演练巩固意识。"
-    return {"performance_analysis": perf, "suggestions": sug}
+    return {
+        "performance_analysis": perf,
+        "suggestions": sug,
+        "capability_profile": heuristic_capability_profile(final_score),
+    }
 
 
 def build_report_prompt(
@@ -143,9 +179,13 @@ def generate_report_data(
 
         report_data = json.loads(cleaned)
         if "performance_analysis" in report_data and "suggestions" in report_data:
+            profile = normalize_capability_profile(
+                report_data.get("capability_profile"), final_score
+            )
             return {
                 "performance_analysis": report_data["performance_analysis"],
                 "suggestions": report_data["suggestions"],
+                "capability_profile": profile,
             }
         raise ValueError("missing report fields")
     except Exception as exc:
@@ -161,7 +201,7 @@ def persist_latest_result(
     final_score: int,
     conversation_rounds: int,
     end_reason: str,
-    report_data: Dict[str, str],
+    report_data: Dict[str, Any],
 ):
     with transaction.atomic():
         ChatSimulationResult.objects.update_or_create(
@@ -175,6 +215,7 @@ def persist_latest_result(
                 "end_reason": end_reason,
                 "performance_analysis": report_data["performance_analysis"],
                 "suggestions": report_data["suggestions"],
+                "capability_profile": report_data.get("capability_profile", {}),
             },
         )
 
@@ -571,7 +612,7 @@ class GenerateReportAPIView(APIView):
                 }, status=status.HTTP_503_SERVICE_UNAVAILABLE)
             
             completion = openai_client.chat.completions.create(
-                model="qwen-plus",
+                model="qwen-flash",
                 messages=[
                     {"role": "system", "content": "你是一名专业的反诈骗培训师，擅长分析用户的防诈骗表现并给出专业建议。"},
                     {"role": "user", "content": report_prompt}
@@ -1284,15 +1325,19 @@ class ScenarioChatAPIView(APIView):
                 'message': f'处理请求时发生错误: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+
 @method_decorator(csrf_exempt, name="dispatch")
 class ScenarioChatStatelessAPIView(APIView):
-    """无需依赖服务器 session 的场景模拟接口，前端提交全部历史消息"""
+    """Stateless scenario chat endpoint supporting manual termination."""
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         try:
             user_message = request.data.get('message')
             reset_conversation = request.data.get('reset')
+            force_end = bool(request.data.get('force_end'))
             scenario_type = request.data.get('scenario_type', 'pig-butchering')
             difficulty = request.data.get('difficulty', 'medium')
             mode = request.data.get('mode', 'pure')
@@ -1302,7 +1347,7 @@ class ScenarioChatStatelessAPIView(APIView):
             if reset_conversation:
                 return Response({'success': True, 'message': 'stateless session reset'}, status=status.HTTP_200_OK)
 
-            if not user_message or not isinstance(user_message, str):
+            if not force_end and (not user_message or not isinstance(user_message, str)):
                 return Response({'success': False, 'message': '请求中缺少有效的消息内容'}, status=status.HTTP_400_BAD_REQUEST)
 
             try:
@@ -1310,20 +1355,74 @@ class ScenarioChatStatelessAPIView(APIView):
             except (TypeError, ValueError):
                 score_value = 50
 
-            conversation_state: ConversationState = {'messages': [], 'score': max(0, min(100, score_value))}
+            conversation_state: ConversationState = {
+                'messages': [],
+                'score': max(0, min(100, score_value))
+            }
             system_prompt = ScenarioChatAPIView.get_scenario_system_prompt(scenario_type, difficulty, mode)
             conversation_state['messages'].append({'role': 'system', 'content': system_prompt})
 
             history_payload: List[Dict[str, str]] = []
+            report_messages: List[Dict[str, str]] = []
             if isinstance(history_messages, list):
                 for msg in history_messages:
                     role = 'user' if msg.get('role') == 'user' else 'assistant'
                     content = msg.get('content', '')
-                    if content:
-                        history_payload.append({'role': role, 'content': content})
+                    if not content:
+                        continue
+                    history_payload.append({'role': role, 'content': content})
+                    report_messages.append({'sender': 'user' if role == 'user' else 'ai', 'content': content})
 
-            if not history_payload or history_payload[-1]['role'] != 'user' or history_payload[-1]['content'] != user_message:
+            user_turns = len([msg for msg in report_messages if msg['sender'] == 'user'])
+
+            if force_end:
+                if not report_messages:
+                    return Response({'success': False, 'message': '当前对话为空，无法结算'}, status=status.HTTP_400_BAD_REQUEST)
+
+                report_data = generate_report_data(
+                    scenario_type=scenario_type,
+                    difficulty=difficulty,
+                    mode=mode,
+                    final_score=score_value,
+                    conversation_rounds=user_turns,
+                    end_reason='manual',
+                    messages=report_messages,
+                )
+                persist_latest_result(
+                    user=request.user,
+                    scenario_type=scenario_type,
+                    difficulty=difficulty,
+                    mode=mode,
+                    final_score=score_value,
+                    conversation_rounds=user_turns,
+                    end_reason='manual',
+                    report_data=report_data,
+                )
+
+                return Response({
+                    'success': True,
+                    'response': '本轮演练已手动结束。',
+                    'session_closed': True,
+                    'final_score': score_value,
+                    'end_reason': 'manual',
+                    'end_reason_label': END_REASON_LABELS.get('manual', '用户主动结束本轮演练'),
+                    'performance_analysis': report_data['performance_analysis'],
+                    'suggestions': report_data['suggestions'],
+                    'conversation_rounds': user_turns,
+                    'scenario_type': scenario_type,
+                    'difficulty': difficulty,
+                    'mode': mode,
+                    'capability_profile': report_data['capability_profile'],
+                }, status=status.HTTP_200_OK)
+
+            if (
+                not history_payload
+                or history_payload[-1]['role'] != 'user'
+                or history_payload[-1]['content'] != user_message
+            ):
                 history_payload.append({'role': 'user', 'content': user_message})
+                report_messages.append({'sender': 'user', 'content': user_message})
+                user_turns += 1
 
             conversation_state['messages'].extend(history_payload)
 
@@ -1349,7 +1448,7 @@ class ScenarioChatStatelessAPIView(APIView):
                 cleaned_response = cleaned_response.strip()
 
                 import re
-                cleaned_response = re.sub(r'"score_change":\s*\+([0-9]+)', r'"score_change": \1', cleaned_response)
+                cleaned_response = re.sub(r'"score_change":\s*\+([0-9]+)', r'"score_change": ', cleaned_response)
 
                 ai_data = json.loads(cleaned_response)
                 for field in ['content', 'current_score', 'score_change', 'change_reason']:
@@ -1358,14 +1457,58 @@ class ScenarioChatStatelessAPIView(APIView):
 
                 conversation_state['messages'].append({'role': 'assistant', 'content': ai_response})
 
-                return Response({
+                end_reason = evaluate_session_end(ai_data['current_score'], user_turns)
+                session_closed = end_reason is not None
+
+                response_payload: Dict[str, Any] = {
                     'success': True,
                     'response': ai_data['content'],
-                    'current_score': ai_data['current_score'],
-                    'score_change': ai_data['score_change'],
-                    'change_reason': ai_data['change_reason'],
-                    'message_count': len(conversation_state['messages'])
-                }, status=status.HTTP_200_OK)
+                    'session_closed': session_closed,
+                    'message_count': len(conversation_state['messages']),
+                }
+
+                if session_closed:
+                    report_messages.append({'sender': 'ai', 'content': ai_data['content']})
+                    report_data = generate_report_data(
+                        scenario_type=scenario_type,
+                        difficulty=difficulty,
+                        mode=mode,
+                        final_score=ai_data['current_score'],
+                        conversation_rounds=user_turns,
+                        end_reason=end_reason,
+                        messages=report_messages,
+                    )
+                    persist_latest_result(
+                        user=request.user,
+                        scenario_type=scenario_type,
+                        difficulty=difficulty,
+                        mode=mode,
+                        final_score=ai_data['current_score'],
+                        conversation_rounds=user_turns,
+                        end_reason=end_reason,
+                        report_data=report_data,
+                    )
+
+                    response_payload.update({
+                        'final_score': ai_data['current_score'],
+                        'end_reason': end_reason,
+                        'end_reason_label': END_REASON_LABELS.get(end_reason, end_reason),
+                        'performance_analysis': report_data['performance_analysis'],
+                        'suggestions': report_data['suggestions'],
+                        'conversation_rounds': user_turns,
+                        'scenario_type': scenario_type,
+                        'difficulty': difficulty,
+                        'mode': mode,
+                        'capability_profile': report_data['capability_profile'],
+                    })
+                else:
+                    response_payload.update({
+                        'current_score': None,
+                        'score_change': None,
+                        'change_reason': None,
+                    })
+
+                return Response(response_payload, status=status.HTTP_200_OK)
 
             except (json.JSONDecodeError, ValueError, KeyError) as e:
                 logger.warning(f"Stateless scenario JSON parse failed: {e}, raw: {ai_response}")
@@ -1373,12 +1516,41 @@ class ScenarioChatStatelessAPIView(APIView):
                 return Response({
                     'success': True,
                     'response': ai_response,
-                    'current_score': conversation_state['score'],
+                    'session_closed': False,
+                    'message_count': len(conversation_state['messages']),
+                    'current_score': None,
                     'score_change': 0,
                     'change_reason': '格式解析失败',
-                    'message_count': len(conversation_state['messages'])
                 }, status=status.HTTP_200_OK)
 
         except Exception as e:
             logger.error(f"Stateless scenario chat failed: {e}")
             return Response({'success': False, 'message': f'处理请求时出现异常: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class LatestSimulationResultAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            result = ChatSimulationResult.objects.get(user=request.user)
+        except ChatSimulationResult.DoesNotExist:
+            return Response({'has_result': False}, status=status.HTTP_200_OK)
+
+        return Response({
+            'has_result': True,
+            'data': {
+                'scenario_type': result.scenario_type,
+                'difficulty': result.difficulty,
+                'mode': result.mode,
+                'final_score': result.final_score,
+                'conversation_rounds': result.conversation_rounds,
+                'end_reason': result.end_reason,
+                'end_reason_label': END_REASON_LABELS.get(result.end_reason, result.end_reason),
+                'performance_analysis': result.performance_analysis,
+                'suggestions': result.suggestions,
+                'updated_at': result.created_at.isoformat(),
+                'capability_profile': result.capability_profile or {},
+            }
+        }, status=status.HTTP_200_OK)
+

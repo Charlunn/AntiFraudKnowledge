@@ -142,12 +142,15 @@
 </template>
 
 <script setup lang="ts">
+import type { QuizPerformanceStats } from '~/composables/useStatsSync'
+
 definePageMeta({
   requiresAuth: true,
 })
 
 const auth = useAuthStore()
 const { $api } = useNuxtApp()
+const { quizStats, refreshQuizStats, refreshUserStats } = useStatsSync()
 
 const levels = [
   { value: 'beginner', label: '初级', icon: 'lucide:leaf' },
@@ -178,11 +181,14 @@ const answers = reactive<Record<number, string>>({})
 const loading = ref(true)
 const submitting = ref(false)
 const result = ref<any>(null)
-const stats = reactive({
+const defaultQuizStats: QuizPerformanceStats = {
   total_attempts: 0,
   average_score: 0,
   best_score: 0,
-})
+  level_stats: {},
+  recent_attempts: [],
+}
+const stats = computed(() => quizStats.value ?? defaultQuizStats)
 
 const newQuestion = reactive<any>({
   text: '',
@@ -234,9 +240,11 @@ const submitQuiz = async () => {
     }
     const { data } = await $api.post('/quiz/submit/', payload)
     result.value = data
-    stats.total_attempts = stats.total_attempts + 1
-    stats.average_score = data.score
-    stats.best_score = Math.max(stats.best_score, data.score)
+    try {
+      await Promise.all([refreshQuizStats(), refreshUserStats()])
+    } catch (error) {
+      console.warn('Failed to refresh stats after submission', error)
+    }
   } finally {
     submitting.value = false
   }
@@ -244,10 +252,7 @@ const submitQuiz = async () => {
 
 const loadStats = async () => {
   try {
-    const { data } = await $api.get('/quiz/stats/')
-    stats.total_attempts = data.total_attempts ?? 0
-    stats.average_score = data.average_score ?? 0
-    stats.best_score = data.best_score ?? 0
+    await refreshQuizStats()
   } catch (error) {
     console.warn('Failed to load stats', error)
   }

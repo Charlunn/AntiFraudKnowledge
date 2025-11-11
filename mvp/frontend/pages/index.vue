@@ -27,7 +27,7 @@
       </Card>
     </section>
 
-    <section class="grid gap-6 md:grid-cols-2">
+    <section class="grid gap-6 lg:grid-cols-2">
       <Card class="border border-border/80">
         <CardHeader>
           <CardTitle>个人测验概况</CardTitle>
@@ -36,14 +36,18 @@
         <CardContent>
           <div v-if="quizLoading" class="text-sm text-muted-foreground">加载中...</div>
           <div v-else class="space-y-4">
-            <div class="flex items-center justify-between text-sm" v-for="attempt in recentAttempts" :key="attempt.created_at">
+            <div
+              v-for="attempt in recentAttempts"
+              :key="attempt.created_at"
+              class="flex items-center justify-between rounded-xl border border-border/70 bg-card px-4 py-3 text-sm"
+            >
               <div>
-                <p class="font-medium">{{ levelMap[attempt.level] }}</p>
+                <p class="font-medium">{{ levelMap[attempt.level] || '未知等级' }}</p>
                 <p class="text-xs text-muted-foreground">{{ formatDate(attempt.created_at) }}</p>
               </div>
               <Badge>{{ attempt.score }} 分</Badge>
             </div>
-            <p v-if="!recentAttempts.length" class="text-sm text-muted-foreground">暂无测验记录。</p>
+            <p v-if="!recentAttempts.length" class="text-sm text-muted-foreground">暂无测验记录，先去完成一场测验吧。</p>
           </div>
         </CardContent>
       </Card>
@@ -64,9 +68,9 @@
               <Icon name="lucide:network" class="h-4 w-4" />
             </Button>
             <Button
+              v-if="auth.isAdmin"
               variant="outline"
               class="justify-between"
-              :disabled="!auth.isAdmin"
               @click="navigateTo('/admin/questions')"
             >
               <span>题库管理（管理员）</span>
@@ -76,21 +80,101 @@
         </CardContent>
       </Card>
     </section>
+
+    <section class="grid gap-6 lg:grid-cols-2">
+      <Card class="border border-border/80">
+        <CardHeader>
+          <CardTitle>最新 AI 场景模拟</CardTitle>
+          <CardDescription>回顾最近一次对话式演练</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div v-if="latestSimulation" class="space-y-4">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div>
+                <p class="text-xs uppercase tracking-widest text-muted-foreground">场景类别</p>
+                <p class="mt-1 font-medium">{{ latestSimulation.scenarioType }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase tracking-widest text-muted-foreground">难度</p>
+                <p class="mt-1 font-medium capitalize">{{ latestSimulation.difficulty }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase tracking-widest text-muted-foreground">模式</p>
+                <p class="mt-1 font-medium">{{ latestSimulation.mode }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase tracking-widest text-muted-foreground">对话轮次</p>
+                <p class="mt-1 font-medium">{{ latestSimulation.conversationRounds }}</p>
+              </div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="rounded-xl border border-border/70 p-4 text-center">
+                <p class="text-xs uppercase tracking-widest text-muted-foreground">最终得分</p>
+                <p class="mt-2 text-3xl font-semibold">{{ latestSimulation.finalScore }} 分</p>
+              </div>
+              <div class="rounded-xl border border-border/70 p-4 text-center">
+                <p class="text-xs uppercase tracking-widest text-muted-foreground">结束原因</p>
+                <p class="mt-2 text-base font-medium">{{ latestSimulation.endReasonLabel }}</p>
+              </div>
+            </div>
+            <div class="rounded-xl border border-dashed border-border/70 bg-muted/40 p-4 text-sm">
+              <p class="text-xs uppercase tracking-widest text-muted-foreground">表现综述</p>
+              <p class="mt-2 text-muted-foreground">{{ latestSimulation.performanceAnalysis }}</p>
+            </div>
+          </div>
+          <p v-else class="text-sm text-muted-foreground">
+            暂无模拟记录，前往 AI 场景模拟体验一场完整的对话演练。
+          </p>
+        </CardContent>
+      </Card>
+
+      <Card class="border border-border/80">
+        <CardHeader>
+          <CardTitle>能力雷达图</CardTitle>
+          <CardDescription>从多个维度评估反诈能力</CardDescription>
+        </CardHeader>
+        <CardContent class="p-4">
+          <CapabilityRadar :profile="simulationRadarProfile" height="320px" />
+        </CardContent>
+      </Card>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted, ref } from 'vue'
+import CapabilityRadar from '~/components/simulation/CapabilityRadar.client.vue'
+
 definePageMeta({
   requiresAuth: true,
 })
 
 const auth = useAuthStore()
+const { $api } = useNuxtApp()
+
 const statCards = ref([
-  { label: '测验次数', value: '-', hint: '累计完成次数' },
-  { label: '平均得分', value: '-', hint: '最近测验平均值' },
-  { label: '最佳成绩', value: '-', hint: '最高得分记录' },
-  { label: 'AI 模拟得分', value: '—', hint: '来自聊天 API 的最新分数' },
+  { label: '累计测验次数', value: '-', hint: '包含所有历史答题' },
+  { label: '平均得分', value: '-', hint: '最近测验平均成绩' },
+  { label: '最佳成绩', value: '-', hint: '历史最高成绩' },
+  { label: 'AI 模拟得分', value: '-', hint: '最近一次 AI 场景' },
 ])
+
+type SimulationResult = {
+  scenarioType: string
+  difficulty: string
+  mode: string
+  finalScore: number
+  conversationRounds: number
+  endReasonLabel: string
+  performanceAnalysis: string
+  capabilityProfile?: Record<string, number>
+}
+
+type QuizAttempt = {
+  created_at: string
+  level: string
+  score: number
+}
 
 const levelMap: Record<string, string> = {
   beginner: '初级训练',
@@ -98,27 +182,58 @@ const levelMap: Record<string, string> = {
   advanced: '高级训练',
 }
 
-const recentAttempts = ref<any[]>([])
+const recentAttempts = ref<QuizAttempt[]>([])
 const quizLoading = ref(true)
-const { $api } = useNuxtApp()
+const latestSimulation = ref<SimulationResult | null>(null)
 
 const formatDate = (value: string) => {
-  return new Date(value).toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+  return new Date(value).toLocaleString('zh-CN', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
+
+const simulationRadarProfile = computed(() => latestSimulation.value?.capabilityProfile ?? null)
 
 const loadStats = async () => {
   quizLoading.value = true
   try {
-    const [userStatsRes, quizStatsRes] = await Promise.all([
+    const [userStatsRes, quizStatsRes, simulationRes] = await Promise.all([
       $api.get('/users/stats/'),
       $api.get('/quiz/stats/'),
+      $api.get('/chat/latest-result/'),
     ])
-    statCards.value[0].value = userStatsRes.data.quiz_attempts_count ?? 0
-    statCards.value[1].value = (quizStatsRes.data.average_score ?? 0) + '%'
-    statCards.value[2].value = (quizStatsRes.data.best_score ?? 0) + '%'
-    recentAttempts.value = quizStatsRes.data.recent_attempts ?? []
+
+    const totalAttempts = userStatsRes.data?.quiz_attempts_count ?? 0
+    statCards.value[0].value = totalAttempts.toString()
+    statCards.value[1].value = `${quizStatsRes.data?.average_score ?? 0}%`
+    statCards.value[2].value = `${quizStatsRes.data?.best_score ?? 0}%`
+
+    recentAttempts.value = quizStatsRes.data?.recent_attempts ?? []
+
+    if (simulationRes.data?.has_result) {
+      const result = simulationRes.data.data
+      latestSimulation.value = {
+        scenarioType: result.scenario_type,
+        difficulty: result.difficulty,
+        mode: result.mode,
+        finalScore: result.final_score,
+        conversationRounds: result.conversation_rounds,
+        endReasonLabel: result.end_reason_label,
+        performanceAnalysis: result.performance_analysis,
+        capabilityProfile: result.capability_profile,
+      }
+      statCards.value[3].value = `${result.final_score} 分`
+    } else {
+      latestSimulation.value = null
+      statCards.value[3].value = '-'
+    }
   } catch (error) {
     console.error('Failed to fetch stats', error)
+    latestSimulation.value = null
+    statCards.value[3].value = '-'
   } finally {
     quizLoading.value = false
   }

@@ -20,6 +20,8 @@ export interface AuthUser {
   user_type: string
   fraud_level: number
   email?: string
+  is_staff?: boolean
+  is_superuser?: boolean
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -31,7 +33,12 @@ export const useAuthStore = defineStore('auth', () => {
   const refreshToken = useCookie<string | null>('mvp-refresh-token', { sameSite: 'lax' })
 
   const isAuthenticated = computed(() => Boolean(accessToken.value))
-  const isAdmin = computed(() => user.value?.user_type === 'admin')
+  const isAdmin = computed(
+    () =>
+      user.value?.user_type === 'admin' ||
+      Boolean(user.value?.is_staff) ||
+      Boolean(user.value?.is_superuser),
+  )
 
   const setTokens = (access?: string, refresh?: string) => {
     accessToken.value = access ?? null
